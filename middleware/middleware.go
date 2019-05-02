@@ -42,9 +42,7 @@ func MakeHTTPTracingMW(tracer opentracing.Tracer, componentName, operationName s
 func MakeEndpointLoggingMW(logger log.Logger) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
-			defer func(begin time.Time) {
-				logger.Log("correlation_id", ctx.Value("correlation_id").(string), "took", time.Since(begin))
-			}(time.Now())
+			logger.Log("correlation_id", ctx.Value("correlation_id").(string))
 			return next(ctx, req)
 		}
 	}

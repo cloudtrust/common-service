@@ -118,7 +118,7 @@
   version = "v1.3.1"
 
 [[projects]]
-  digest = "1:debcbc62c53851dab1fc881438a65449dd5ffa12f64f059fd6e32b938799513d"
+  digest = "1:e02b687ade0c19c038ecce3ea326d756519adc4bba1203a9e76d620b12354892"
   name = "github.com/google/flatbuffers"
   packages = ["go"]
   pruneopts = "UT"
@@ -153,7 +153,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:2629521d27f3b04ce4d524cb52a25fdc77745071239c91d6fe9a7ce10131365a"
+  digest = "1:3c6faaeb500b7e6fadbe52c0b3fd62b6eed7801ed0d74bb3bd9577017df8d2f4"
   name = "github.com/influxdata/influxdb"
   packages = [
     "client/v2",
@@ -234,14 +234,6 @@
   ]
   pruneopts = "UT"
   revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
-
-[[projects]]
-  digest = "1:b0c25f00bad20d783d259af2af8666969e2fc343fa0dc9efe52936bbd67fb758"
-  name = "github.com/rs/cors"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "9a47f48565a795472d43519dd49aac781f3034fb"
-  version = "v1.6.0"
 
 [[projects]]
   digest = "1:bb495ec276ab82d3dd08504bbc0594a65de8c3b22c6f2aaa92d05b73fbf3a82e"
@@ -398,14 +390,6 @@
   version = "v0.3.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:9fdc2b55e8e0fafe4b41884091e51e77344f7dc511c5acedcfd98200003bff90"
-  name = "golang.org/x/time"
-  packages = ["rate"]
-  pruneopts = "UT"
-  revision = "9d24e82272b4f38b78bc8cff74fa936d31ccd8ef"
-
-[[projects]]
   digest = "1:6eb6e3b6d9fffb62958cf7f7d88dbbe1dd6839436b0802e194c590667a40412a"
   name = "google.golang.org/appengine"
   packages = [
@@ -483,13 +467,10 @@
     "github.com/influxdata/influxdb/client/v2",
     "github.com/opentracing/opentracing-go",
     "github.com/opentracing/opentracing-go/ext",
-    "github.com/opentracing/opentracing-go/log",
     "github.com/pkg/errors",
-    "github.com/rs/cors",
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
     "github.com/uber/jaeger-client-go/config",
-    "golang.org/x/time/rate",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
