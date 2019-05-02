@@ -28,7 +28,7 @@ type DbConfig struct {
 	MaxOpenConns    int
 	MaxIdleConns    int
 	ConnMaxLifetime int
-	Enabled         bool
+	Noop            bool
 }
 
 // ConfigureDbDefault configure default database parameters for a given prefix
@@ -47,25 +47,27 @@ func ConfigureDbDefault(v *viper.Viper, prefix, envUser, envPasswd string) {
 }
 
 // GetDbConfig reads db configuration parameters from Viper
-func GetDbConfig(v *viper.Viper, prefix string, enabled bool) *DbConfig {
+func GetDbConfig(v *viper.Viper, prefix string, noop bool) *DbConfig {
 	var cfg DbConfig
 
-	cfg.HostPort = v.GetString(prefix + "-host-port")
-	cfg.Username = v.GetString(prefix + "-username")
-	cfg.Password = v.GetString(prefix + "-password")
-	cfg.Database = v.GetString(prefix + "-database")
-	cfg.Protocol = v.GetString(prefix + "-protocol")
-	cfg.MaxOpenConns = v.GetInt(prefix + "-max-open-conns")
-	cfg.MaxIdleConns = v.GetInt(prefix + "-max-idle-conns")
-	cfg.ConnMaxLifetime = v.GetInt(prefix + "-conn-max-lifetime")
-	cfg.Enabled = enabled
+	cfg.Noop = noop
+	if !noop {
+		cfg.HostPort = v.GetString(prefix + "-host-port")
+		cfg.Username = v.GetString(prefix + "-username")
+		cfg.Password = v.GetString(prefix + "-password")
+		cfg.Database = v.GetString(prefix + "-database")
+		cfg.Protocol = v.GetString(prefix + "-protocol")
+		cfg.MaxOpenConns = v.GetInt(prefix + "-max-open-conns")
+		cfg.MaxIdleConns = v.GetInt(prefix + "-max-idle-conns")
+		cfg.ConnMaxLifetime = v.GetInt(prefix + "-conn-max-lifetime")
+	}
 
 	return &cfg
 }
 
 // OpenDatabase gets an access to a database
 func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
-	if !cfg.Enabled {
+	if cfg.Noop {
 		return NoopDB{}, nil
 	}
 

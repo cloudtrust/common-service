@@ -22,6 +22,14 @@ func TestGetDbConfig(t *testing.T) {
 	var v = viper.New()
 	var hostport = "cloudtrust.db:3333"
 	v.Set("mydb-host-port", hostport)
-	var cfg = GetDbConfig(v, "mydb", true)
+	var cfg = GetDbConfig(v, "mydb", false)
 	assert.Equal(t, hostport, cfg.HostPort)
+}
+
+func TestOpenDatabaseNoop(t *testing.T) {
+	var v = viper.New()
+	var cfg = GetDbConfig(v, "mydb", true)
+	db, _ := cfg.OpenDatabase()
+	_, err := db.Query("real database would return an error")
+	assert.Nil(t, err)
 }
