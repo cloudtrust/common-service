@@ -1,24 +1,45 @@
 package metrics
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	cs "github.com/cloudtrust/common-service"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics"
 	gokit_influx "github.com/go-kit/kit/metrics/influx"
 	metric "github.com/go-kit/kit/metrics/influx"
 	influx "github.com/influxdata/influxdb/client/v2"
-	"github.com/spf13/viper"
 )
+
+// Counter interface for go-kit/Counter
+type Counter interface {
+	With(labelValues ...string) metrics.Counter
+	Add(delta float64)
+}
+
+// Gauge interface for go-kit/Gauge
+type Gauge interface {
+	With(labelValues ...string) metrics.Gauge
+	Set(value float64)
+	Add(delta float64)
+}
+
+// Histogram interface for go-kit/Histogram
+type Histogram interface {
+	With(labelValues ...string) Histogram
+	Observe(value float64)
+}
 
 // Metrics client.
 type Metrics interface {
-	NewCounter(name string) metrics.Counter
-	NewGauge(name string) metrics.Gauge
-	NewHistogram(name string) metrics.Histogram
+	NewCounter(name string) Counter
+	NewGauge(name string) Gauge
+	NewHistogram(name string) Histogram
 	WriteLoop(c <-chan time.Time)
-	Write(bp influx.BatchPoints) error
+	Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error
+	//Write(bp influx.BatchPoints) error
 	Ping(timeout time.Duration) (time.Duration, string, error)
 	Close()
 }
@@ -39,7 +60,7 @@ type GoKitMetrics interface {
 }
 
 // GetBatchPointsConfig gets the influx configuration
-func GetBatchPointsConfig(v *viper.Viper, prefix string) influx.BatchPointsConfig {
+func GetBatchPointsConfig(v cs.Configuration, prefix string) influx.BatchPointsConfig {
 	return influx.BatchPointsConfig{
 		Precision:        v.GetString(prefix + "-precision"),
 		Database:         v.GetString(prefix + "-database"),
@@ -49,7 +70,7 @@ func GetBatchPointsConfig(v *viper.Viper, prefix string) influx.BatchPointsConfi
 }
 
 // NewMetrics returns an InfluxMetrics.
-func NewMetrics(v *viper.Viper, prefix string, logger log.Logger) (Metrics, error) {
+func NewMetrics(v cs.Configuration, prefix string, logger cs.Logger) (Metrics, error) {
 	if !v.GetBool(prefix) {
 		return &NoopMetrics{}, nil
 	}
@@ -94,18 +115,38 @@ func (m *influxMetrics) Close() {
 }
 
 // NewCounter returns a go-kit Counter.
-func (m *influxMetrics) NewCounter(name string) metrics.Counter {
+func (m *influxMetrics) NewCounter(name string) Counter {
 	return m.metrics.NewCounter(name)
 }
 
 // NewGauge returns a go-kit Gauge.
-func (m *influxMetrics) NewGauge(name string) metrics.Gauge {
+func (m *influxMetrics) NewGauge(name string) Gauge {
 	return m.metrics.NewGauge(name)
 }
 
+type ctHistogram struct {
+	Histogram metrics.Histogram
+}
+
+func (h *ctHistogram) With(labelValues ...string) Histogram {
+	var histo metrics.Histogram
+	histo = h.Histogram.With(labelValues...)
+	return &ctHistogram{
+		Histogram: histo,
+	}
+}
+
+func (h *ctHistogram) Observe(value float64) {
+	h.Histogram.Observe(value)
+}
+
 // NewHistogram returns a go-kit Histogram.
-func (m *influxMetrics) NewHistogram(name string) metrics.Histogram {
-	return m.metrics.NewHistogram(name)
+func (m *influxMetrics) NewHistogram(name string) Histogram {
+	var histo metrics.Histogram
+	histo = m.metrics.NewHistogram(name)
+	return &ctHistogram{
+		Histogram: histo,
+	}
 }
 
 // Write writes the data to the Influx DB.
@@ -116,6 +157,36 @@ func (m *influxMetrics) Write(bp influx.BatchPoints) error {
 // WriteLoop writes the data to the Influx DB.
 func (m *influxMetrics) WriteLoop(c <-chan time.Time) {
 	m.metrics.WriteLoop(c, m.influx)
+}
+
+func (m *influxMetrics) Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error {
+	// Create a new point batch
+	var batchPoints influx.BatchPoints
+	{
+		var err error
+		batchPoints, err = influx.NewBatchPoints(m.BatchPointsConfig)
+		if err != nil {
+			return err
+		}
+	}
+
+	var point *influx.Point
+	{
+		var err error
+		point, err = influx.NewPoint(name, tags, fields, time.Now())
+		if err != nil {
+			return err
+		}
+		batchPoints.AddPoint(point)
+	}
+
+	// Write the batch
+	var err = m.influx.Write(batchPoints)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Ping test the connection to the Influx DB.
@@ -130,16 +201,21 @@ type NoopMetrics struct{}
 func (m *NoopMetrics) Close() {}
 
 // NewCounter returns a Counter that does nothing.
-func (m *NoopMetrics) NewCounter(name string) metrics.Counter { return &NoopCounter{} }
+func (m *NoopMetrics) NewCounter(name string) Counter { return &NoopCounter{} }
 
 // NewGauge returns a Gauge that does nothing.
-func (m *NoopMetrics) NewGauge(name string) metrics.Gauge { return &NoopGauge{} }
+func (m *NoopMetrics) NewGauge(name string) Gauge { return &NoopGauge{} }
 
 // NewHistogram returns an Histogram that does nothing.
-func (m *NoopMetrics) NewHistogram(name string) metrics.Histogram { return &NoopHistogram{} }
+func (m *NoopMetrics) NewHistogram(name string) Histogram { return &NoopHistogram{} }
+
+// Stats does nothing
+func (m *NoopMetrics) Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error {
+	return nil
+}
 
 // Write does nothing.
-func (m *NoopMetrics) Write(bp influx.BatchPoints) error { return nil }
+//func (m *NoopMetrics) Write(bp influx.BatchPoints) error { return nil }
 
 // WriteLoop does nothing.
 func (m *NoopMetrics) WriteLoop(c <-chan time.Time) {}
@@ -174,7 +250,7 @@ func (g *NoopGauge) Add(delta float64) {}
 type NoopHistogram struct{}
 
 // With does nothing.
-func (h *NoopHistogram) With(labelValues ...string) metrics.Histogram { return h }
+func (h *NoopHistogram) With(labelValues ...string) Histogram { return h }
 
 // Observe does nothing.
 func (h *NoopHistogram) Observe(value float64) {}

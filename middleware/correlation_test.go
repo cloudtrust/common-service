@@ -22,11 +22,11 @@ func TestHTTPCorrelationIDMW(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
 	var mockLogger = mock.NewLogger(mockCtrl)
-	var mockTracer = mock.NewTracer(mockCtrl)
+	var mockTracer = mock.NewOpentracingClient(mockCtrl)
 	var mockIDGenerator = mock.NewIDGenerator(mockCtrl)
 
 	var (
-		componentName = "keycloak-bridge"
+		componentName = "component"
 		componentID   = strconv.FormatUint(rand.Uint64(), 10)
 		corrID        = strconv.FormatUint(rand.Uint64(), 10)
 	)

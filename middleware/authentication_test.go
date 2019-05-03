@@ -110,7 +110,7 @@ func testAuthentication(t *testing.T, audienceRequired string, token string, exp
 	var mockKeycloakClient = mock.NewKeycloakClient(mockCtrl)
 	var mockLogger = mock.NewLogger(mockCtrl)
 
-	var handler = http_transport.NewServer(checkContextEndpoint, comhttp.BasicDecodeRequest, comhttp.EncodeReply, http_transport.ServerErrorEncoder(comhttp.ErrorHandler))
+	var handler = http_transport.NewServer(checkContextEndpoint, comhttp.BasicDecodeRequest, comhttp.EncodeReply, http_transport.ServerErrorEncoder(comhttp.ErrorHandlerNoLog))
 	var m = MakeHTTPOIDCTokenValidationMW(mockKeycloakClient, audienceRequired, mockLogger)(handler)
 
 	// HTTP request.

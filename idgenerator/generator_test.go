@@ -7,7 +7,7 @@ import (
 )
 
 func TestIDGenerator(t *testing.T) {
-	var componentName = "bridge"
+	var componentName = "component"
 	var componentID = "123456"
 
 	var generator = New(componentName, componentID)

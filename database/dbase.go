@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/spf13/viper"
+	cs "github.com/cloudtrust/common-service"
 )
 
 // CloudtrustDB interface
@@ -32,7 +32,7 @@ type DbConfig struct {
 }
 
 // ConfigureDbDefault configure default database parameters for a given prefix
-func ConfigureDbDefault(v *viper.Viper, prefix, envUser, envPasswd string) {
+func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
 	v.SetDefault(prefix+"-host-port", "")
 	v.SetDefault(prefix+"-username", "")
 	v.SetDefault(prefix+"-password", "")
@@ -46,8 +46,8 @@ func ConfigureDbDefault(v *viper.Viper, prefix, envUser, envPasswd string) {
 	v.BindEnv(prefix+"-password", envPasswd)
 }
 
-// GetDbConfig reads db configuration parameters from Viper
-func GetDbConfig(v *viper.Viper, prefix string, noop bool) *DbConfig {
+// GetDbConfig reads db configuration parameters
+func GetDbConfig(v cs.Configuration, prefix string, noop bool) *DbConfig {
 	var cfg DbConfig
 
 	cfg.Noop = noop

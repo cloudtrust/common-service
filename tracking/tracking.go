@@ -1,8 +1,8 @@
 package tracking
 
 import (
+	cs "github.com/cloudtrust/common-service"
 	sentry "github.com/getsentry/raven-go"
-	"github.com/spf13/viper"
 )
 
 // Sentry is the Sentry client interface.
@@ -12,25 +12,44 @@ type Sentry interface {
 
 // SentryTracking interface
 type SentryTracking interface {
-	CaptureError(err error, tags map[string]string, interfaces ...sentry.Interface) string
+	CaptureError(err error, tags map[string]string) string
 	URL() string
 	Close()
 }
 
+type internalSentry struct {
+	sentry *sentry.Client
+}
+
 // NewSentry creates a Sentry instance
-func NewSentry(v *viper.Viper, prefix string) (SentryTracking, error) {
+func NewSentry(v cs.Configuration, prefix string) (SentryTracking, error) {
 	sentryEnabled := v.GetBool("sentry")
 	if !sentryEnabled {
 		return &NoopSentry{}, nil
 	}
-	return sentry.New(v.GetString("sentry-dsn"))
+	sentry, err := sentry.New(v.GetString("sentry-dsn"))
+	return &internalSentry{
+		sentry: sentry,
+	}, err
+}
+
+func (s *internalSentry) CaptureError(err error, tags map[string]string) string {
+	return s.sentry.CaptureError(err, tags)
+}
+
+func (s *internalSentry) URL() string {
+	return s.sentry.URL()
+}
+
+func (s *internalSentry) Close() {
+	s.sentry.Close()
 }
 
 // NoopSentry is a Sentry client that does nothing.
 type NoopSentry struct{}
 
 // CaptureError does nothing.
-func (s *NoopSentry) CaptureError(err error, tags map[string]string, interfaces ...sentry.Interface) string {
+func (s *NoopSentry) CaptureError(err error, tags map[string]string) string {
 	return ""
 }
 

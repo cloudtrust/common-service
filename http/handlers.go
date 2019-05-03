@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/security"
+	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/ratelimit"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -77,17 +80,28 @@ func EncodeReply(_ context.Context, w http.ResponseWriter, rep interface{}) erro
 	return nil
 }
 
+// ErrorHandlerNoLog calls ErrorHandler without logger
+func ErrorHandlerNoLog(ctx context.Context, err error, w http.ResponseWriter) {
+	ErrorHandler(ctx, log.NewNopLogger(), err, w)
+}
+
 // ErrorHandler encodes the reply when there is an error.
-func ErrorHandler(_ context.Context, err error, w http.ResponseWriter) {
+func ErrorHandler(_ context.Context, logger cs.Logger, err error, w http.ResponseWriter) {
 	switch e := errors.Cause(err).(type) {
+	case security.ForbiddenError:
+		logger.Log("HTTPErrorHandler", http.StatusForbidden, "msg", e.Error())
+		w.WriteHeader(http.StatusForbidden)
 	case Error:
+		logger.Log("HTTPErrorHandler", e.Status, "msg", e.Error())
 		w.WriteHeader(e.Status)
 		// You should really take care of what you are sending here : e.Message should not leak any sensitive information
 		w.Write([]byte(e.Message))
 	default:
 		if err == ratelimit.ErrLimited {
+			logger.Log("HTTPErrorHandler", http.StatusTooManyRequests, "msg", e.Error())
 			w.WriteHeader(http.StatusTooManyRequests)
 		} else {
+			logger.Log("HTTPErrorHandler", http.StatusInternalServerError, "msg", e.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 		}
