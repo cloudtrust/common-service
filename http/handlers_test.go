@@ -15,6 +15,8 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/cloudtrust/common-service/security"
+
 	"github.com/cloudtrust/common-service/http/mock"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
@@ -208,6 +210,12 @@ func TestErrorHandler(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockRespWriter := mock.NewResponseWriter(mockCtrl)
+
+	// ForbiddenError
+	{
+		mockRespWriter.EXPECT().WriteHeader(http.StatusForbidden).Times(1)
+		ErrorHandlerNoLog(context.Background(), security.ForbiddenError{}, mockRespWriter)
+	}
 
 	// HTTPError
 	{

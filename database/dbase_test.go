@@ -4,6 +4,7 @@ package database
 
 import (
 	"testing"
+	"time"
 
 	"github.com/cloudtrust/common-service/database/mock"
 	"github.com/golang/mock/gomock"
@@ -51,4 +52,16 @@ func TestOpenDatabaseNoop(t *testing.T) {
 	db, _ := cfg.OpenDatabase()
 	_, err := db.Query("real database would return an error")
 	assert.Nil(t, err)
+
+	db.Exec("select 1 from dual")
+	db.QueryRow("select count(1) from dual")
+	db.SetConnMaxLifetime(time.Duration(1))
+	db.SetMaxIdleConns(1)
+	db.SetMaxOpenConns(1)
+}
+
+func TestNoopResult(t *testing.T) {
+	var result NoopResult
+	result.LastInsertId()
+	result.RowsAffected()
 }
