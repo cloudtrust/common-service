@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-
-	cs "github.com/cloudtrust/common-service"
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
@@ -179,7 +177,7 @@ type AuthorizationManager interface {
 //   '*' can be used to express all target realms
 //   '/' can be used to express all non master realms
 //   '*' can be used to express all target groups are allowed
-func NewAuthorizationManager(keycloakClient KeycloakClient, _ cs.Logger, jsonAuthz string) (AuthorizationManager, error) {
+func NewAuthorizationManager(keycloakClient KeycloakClient, jsonAuthz string) (AuthorizationManager, error) {
 	matrix, err := loadAuthorizations(jsonAuthz)
 
 	if err != nil {
@@ -193,12 +191,11 @@ func NewAuthorizationManager(keycloakClient KeycloakClient, _ cs.Logger, jsonAut
 }
 
 // NewAuthorizationManagerFromFile creates an authorization manager from a file
-func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger cs.Logger, filename string) (AuthorizationManager, error) {
+func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, filename string) (AuthorizationManager, error) {
 	json, err := ioutil.ReadFile(filename)
 
 	if err != nil {
-		logger.Log("msg", "could not read JSON authorization file", "error", err)
 		return nil, err
 	}
-	return NewAuthorizationManager(keycloakClient, logger, string(json))
+	return NewAuthorizationManager(keycloakClient, string(json))
 }
