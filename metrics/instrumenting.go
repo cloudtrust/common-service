@@ -70,6 +70,10 @@ func GetBatchPointsConfig(v cs.Configuration, prefix string) influx.BatchPointsC
 }
 
 // NewMetrics returns an InfluxMetrics.
+// For its configuration, parameters are built with the given prefix, then a dash symbol, then one of these suffixes:
+// host-port, username, password, precision, database, retention-policy, write-consistency
+// If a parameter exists only named with the given prefix and if its value if false, the InfluxMetrics
+// will be a inactive one (Noop)
 func NewMetrics(v cs.Configuration, prefix string, logger cs.Logger) (Metrics, error) {
 	if !v.GetBool(prefix) {
 		return &NoopMetrics{}, nil

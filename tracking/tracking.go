@@ -22,12 +22,15 @@ type internalSentry struct {
 }
 
 // NewSentry creates a Sentry instance
+// The Sentry instance if configured according to the parameter named (prefix)-dsn
+// If a parameter exists only named with the given prefix and if its value if false, the OpentracingClient
+// will be a inactive one (Noop)
 func NewSentry(v cs.Configuration, prefix string) (SentryTracking, error) {
-	sentryEnabled := v.GetBool("sentry")
+	sentryEnabled := v.GetBool(prefix)
 	if !sentryEnabled {
 		return &NoopSentry{}, nil
 	}
-	sentry, err := sentry.New(v.GetString("sentry-dsn"))
+	sentry, err := sentry.New(v.GetString(prefix + "-dsn"))
 	return &internalSentry{
 		sentry: sentry,
 	}, err

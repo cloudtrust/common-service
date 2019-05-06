@@ -32,6 +32,10 @@ type DbConfig struct {
 }
 
 // ConfigureDbDefault configure default database parameters for a given prefix
+// Parameters are built with the given prefix, then a dash symbol, then one of these suffixes:
+// host-port, username, password, database, protocol, max-open-conns, max-idle-conns, conn-max-lifetime
+// If a parameter exists only named with the given prefix and if its value if false, the database connection
+// will be a Noop one
 func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
 	v.SetDefault(prefix+"-host-port", "")
 	v.SetDefault(prefix+"-username", "")
@@ -66,6 +70,7 @@ func GetDbConfig(v cs.Configuration, prefix string, noop bool) *DbConfig {
 }
 
 // OpenDatabase gets an access to a database
+// If cfg.Noop is true, a Noop access will be provided
 func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
 	if cfg.Noop {
 		return NoopDB{}, nil

@@ -115,6 +115,10 @@ func (o *internalOpentracingClient) Close() {
 }
 
 // CreateJaegerClient creates an opentracing Jaerger client
+// For its configuration, parameter names are built with the given prefix, then a dash symbol, then one of these suffixes:
+// sampler-type, sampler-param, sampler-host-port, reporter-logspan, write-interval
+// If a parameter exists only named with the given prefix and if its value if false, the OpentracingClient
+// will be a inactive one (Noop)
 func CreateJaegerClient(v cs.Configuration, prefix string, componentName string) (OpentracingClient, error) {
 	if !v.GetBool(prefix) {
 		return &noopOpentracingClient{}, nil
