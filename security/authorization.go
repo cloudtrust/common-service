@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	cs "github.com/cloudtrust/common-service"
 )
@@ -189,4 +190,15 @@ func NewAuthorizationManager(keycloakClient KeycloakClient, _ cs.Logger, jsonAut
 		authorizations: matrix,
 		keycloakClient: keycloakClient,
 	}, nil
+}
+
+// NewAuthorizationManagerFromFile creates an authorization manager from a file
+func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger cs.Logger, filename string) (AuthorizationManager, error) {
+	json, err := ioutil.ReadFile(filename)
+
+	if err != nil {
+		logger.Log("msg", "could not read JSON authorization file", "error", err)
+		return nil, err
+	}
+	return NewAuthorizationManager(keycloakClient, logger, string(json))
 }
