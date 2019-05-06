@@ -39,7 +39,6 @@ type Metrics interface {
 	NewHistogram(name string) Histogram
 	WriteLoop(c <-chan time.Time)
 	Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error
-	//Write(bp influx.BatchPoints) error
 	Ping(timeout time.Duration) (time.Duration, string, error)
 	Close()
 }
