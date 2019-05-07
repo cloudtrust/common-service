@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/cloudtrust/common-service/security/mock"
-	kc "github.com/cloudtrust/keycloak-client"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -105,12 +104,8 @@ func TestCheckAuthorizationOnTargetGroupID(t *testing.T) {
 		ctx = context.WithValue(ctx, "realm", realm)
 
 		var groupName = "customer"
-		var group = kc.GroupRepresentation{
-			Id:   &targetGroupID,
-			Name: &groupName,
-		}
 
-		mockKeycloakClient.EXPECT().GetGroup(accessToken, targetRealm, targetGroupID).Return(group, nil).Times(1)
+		mockKeycloakClient.EXPECT().GetGroupName(accessToken, targetRealm, targetGroupID).Return(groupName, nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetGroupID(ctx, "DeleteUser", "master", targetGroupID)
 		assert.Nil(t, err)
@@ -128,7 +123,7 @@ func TestCheckAuthorizationOnTargetGroupID(t *testing.T) {
 		ctx = context.WithValue(ctx, "groups", groups)
 		ctx = context.WithValue(ctx, "realm", realm)
 
-		mockKeycloakClient.EXPECT().GetGroup(accessToken, targetRealm, targetGroupID).Return(kc.GroupRepresentation{}, fmt.Errorf("ERROR")).Times(1)
+		mockKeycloakClient.EXPECT().GetGroupName(accessToken, targetRealm, targetGroupID).Return("", fmt.Errorf("ERROR")).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetGroupID(ctx, "DeleteUser", "master", targetGroupID)
 		assert.Equal(t, ForbiddenError{}, err)
@@ -146,7 +141,7 @@ func TestCheckAuthorizationOnTargetGroupID(t *testing.T) {
 		ctx = context.WithValue(ctx, "groups", groups)
 		ctx = context.WithValue(ctx, "realm", realm)
 
-		mockKeycloakClient.EXPECT().GetGroup(accessToken, targetRealm, targetGroupID).Return(kc.GroupRepresentation{}, nil).Times(1)
+		mockKeycloakClient.EXPECT().GetGroupName(accessToken, targetRealm, targetGroupID).Return("", nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetGroupID(ctx, "DeleteUser", "master", targetGroupID)
 		assert.Equal(t, ForbiddenError{}, err)
@@ -176,15 +171,10 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 		ctx = context.WithValue(ctx, "realm", realm)
 
 		var userID = "123-456-789"
-		var groupID = "789-741-963"
 		var groupName = "customer"
-		var group = kc.GroupRepresentation{
-			Id:   &groupID,
-			Name: &groupName,
-		}
 
-		mockKeycloakClient.EXPECT().GetGroupsOfUser(accessToken, targetRealm, targetUserID).Return([]kc.GroupRepresentation{
-			group,
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{
+			groupName,
 		}, nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", userID)
@@ -205,7 +195,7 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 
 		var userID = "123-456-789"
 
-		mockKeycloakClient.EXPECT().GetGroupsOfUser(accessToken, targetRealm, targetUserID).Return([]kc.GroupRepresentation{}, nil).Times(1)
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{}, nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", userID)
 		assert.Equal(t, ForbiddenError{}, err)
@@ -223,22 +213,17 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 		ctx = context.WithValue(ctx, "groups", groups)
 		ctx = context.WithValue(ctx, "realm", realm)
 
-		var groupID = "789-741-963"
 		var groupName = "customer"
-		var group = kc.GroupRepresentation{
-			Id:   &groupID,
-			Name: &groupName,
-		}
 
-		mockKeycloakClient.EXPECT().GetGroupsOfUser(accessToken, targetRealm, targetUserID).Return([]kc.GroupRepresentation{
-			group,
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{
+			groupName,
 		}, nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", targetRealm, targetUserID)
 		assert.Nil(t, err)
 
-		mockKeycloakClient.EXPECT().GetGroupsOfUser(accessToken, "master", targetUserID).Return([]kc.GroupRepresentation{
-			group,
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, "master", targetUserID).Return([]string{
+			groupName,
 		}, nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", targetUserID)
@@ -257,15 +242,10 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 		ctx = context.WithValue(ctx, "groups", groups)
 		ctx = context.WithValue(ctx, "realm", realm)
 
-		var groupID = "789-741-963"
 		var groupName = "customer"
-		var group = kc.GroupRepresentation{
-			Id:   &groupID,
-			Name: &groupName,
-		}
 
-		mockKeycloakClient.EXPECT().GetGroupsOfUser(accessToken, targetRealm, targetUserID).Return([]kc.GroupRepresentation{
-			group,
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{
+			groupName,
 		}, nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", targetUserID)
@@ -284,7 +264,7 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 		ctx = context.WithValue(ctx, "groups", groups)
 		ctx = context.WithValue(ctx, "realm", realm)
 
-		mockKeycloakClient.EXPECT().GetGroupsOfUser(accessToken, targetRealm, targetUserID).Return([]kc.GroupRepresentation{}, fmt.Errorf("Error")).Times(1)
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{}, fmt.Errorf("Error")).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", targetUserID)
 		assert.Equal(t, ForbiddenError{}, err)
@@ -302,15 +282,10 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 		ctx = context.WithValue(ctx, "groups", groups)
 		ctx = context.WithValue(ctx, "realm", realm)
 
-		var groupID = "789-741-963"
 		var groupName = "customer"
-		var group = kc.GroupRepresentation{
-			Id:   &groupID,
-			Name: &groupName,
-		}
 
-		mockKeycloakClient.EXPECT().GetGroupsOfUser(accessToken, targetRealm, targetUserID).Return([]kc.GroupRepresentation{
-			group,
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{
+			groupName,
 		}, nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", targetRealm, targetUserID)
@@ -329,15 +304,10 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 		ctx = context.WithValue(ctx, "groups", groups)
 		ctx = context.WithValue(ctx, "realm", realm)
 
-		var groupID = "789-741-963"
 		var groupName = "customer"
-		var group = kc.GroupRepresentation{
-			Id:   &groupID,
-			Name: &groupName,
-		}
 
-		mockKeycloakClient.EXPECT().GetGroupsOfUser(accessToken, targetRealm, targetUserID).Return([]kc.GroupRepresentation{
-			group,
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{
+			groupName,
 		}, nil).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", targetRealm, targetUserID)

@@ -1,18 +1,28 @@
 package metrics
 
+//go:generate mockgen -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service Configuration
+
 import (
+	"context"
 	"testing"
 
-	influx "github.com/influxdata/influxdb/client/v2"
+	"github.com/cloudtrust/common-service/database/mock"
+	"github.com/golang/mock/gomock"
 
 	"github.com/go-kit/kit/log"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNoopInfluxClient(t *testing.T) {
-	var cfg = viper.New()
-	var noop, err = NewMetrics(cfg, "noop", nil)
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+	var mockConf = mock.NewConfiguration(mockCtrl)
+
+	var prefix = "noop"
+
+	mockConf.EXPECT().GetBool(prefix).Return(false).Times(1)
+
+	var noop, err = NewMetrics(mockConf, prefix, nil)
 	assert.Nil(t, err)
 	defer noop.Close()
 
@@ -30,24 +40,42 @@ func TestNoopInfluxClient(t *testing.T) {
 	histo.With("value")
 	histo.Observe(1.0)
 
-	var bp influx.BatchPoints
-	noop.Write(bp)
 	noop.Ping(1)
+	noop.WriteLoop(nil)
+	noop.Stats(context.TODO(), "name", map[string]string{}, map[string]interface{}{})
+	noop.Close()
 }
 
 func TestInvalidConfigurationInfluxClient(t *testing.T) {
-	var cfg = viper.New()
-	cfg.Set("name", true)
-	cfg.Set("name-host-port", "influx.io#%")
-	var _, err = NewMetrics(cfg, "name", log.NewNopLogger())
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+	var mockConf = mock.NewConfiguration(mockCtrl)
+
+	var prefix = "name"
+
+	mockConf.EXPECT().GetBool(prefix).Return(true).Times(1)
+	mockConf.EXPECT().GetString(prefix + "-host-port").Return("influx.io#%").Times(1)
+	mockConf.EXPECT().GetString(prefix + "-username").Return("username").Times(1)
+	mockConf.EXPECT().GetString(prefix + "-password").Return("password").Times(1)
+
+	var _, err = NewMetrics(mockConf, prefix, log.NewNopLogger())
 	assert.NotNil(t, err)
 }
 
 func TestTrueInfluxClient(t *testing.T) {
-	var cfg = viper.New()
-	cfg.Set("name", true)
-	cfg.Set("name-host-port", "influx.io")
-	var influx, err = NewMetrics(cfg, "name", log.NewNopLogger())
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+	var mockConf = mock.NewConfiguration(mockCtrl)
+
+	var prefix = "name"
+
+	mockConf.EXPECT().GetBool(prefix).Return(true).Times(1)
+	mockConf.EXPECT().GetString(prefix + "-host-port").Return("influx.io").Times(1)
+	for _, suffix := range []string{"-username", "-password", "-precision", "-database", "-retention-policy", "-write-consistency"} {
+		mockConf.EXPECT().GetString(prefix + suffix).Return("value" + suffix).Times(1)
+	}
+
+	var influx, err = NewMetrics(mockConf, "name", log.NewNopLogger())
 	assert.Nil(t, err)
 	assert.NotNil(t, influx)
 

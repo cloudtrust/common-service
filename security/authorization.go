@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
-	kc "github.com/cloudtrust/keycloak-client"
+	"io/ioutil"
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
@@ -13,9 +12,9 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 
 	// Retrieve the group of the target user
 
-	var groupsRep []kc.GroupRepresentation
+	var groupsRep []string
 	var err error
-	if groupsRep, err = am.keycloakClient.GetGroupsOfUser(accessToken, targetRealm, userID); err != nil {
+	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(accessToken, targetRealm, userID); err != nil {
 		return ForbiddenError{}
 	}
 
@@ -25,7 +24,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 	}
 
 	for _, targetGroup := range groupsRep {
-		if am.CheckAuthorizationOnTargetGroup(ctx, action, targetRealm, *targetGroup.Name) == nil {
+		if am.CheckAuthorizationOnTargetGroup(ctx, action, targetRealm, targetGroup) == nil {
 			return nil
 		}
 	}
@@ -38,16 +37,16 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 
 	// Retrieve the name of the target group
 	var err error
-	var targetGroup kc.GroupRepresentation
-	if targetGroup, err = am.keycloakClient.GetGroup(accessToken, targetRealm, targetGroupID); err != nil {
+	var targetGroup string
+	if targetGroup, err = am.keycloakClient.GetGroupName(accessToken, targetRealm, targetGroupID); err != nil {
 		return ForbiddenError{}
 	}
 
-	if targetGroup.Name == nil || *(targetGroup.Name) == "" {
+	if targetGroup == "" {
 		return ForbiddenError{}
 	}
 
-	return am.CheckAuthorizationOnTargetGroup(ctx, action, targetRealm, *(targetGroup.Name))
+	return am.CheckAuthorizationOnTargetGroup(ctx, action, targetRealm, targetGroup)
 }
 
 func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error {
@@ -152,8 +151,8 @@ type authorizationManager struct {
 
 // KeycloakClient is the minimum interface required to access Keycloak
 type KeycloakClient interface {
-	GetGroupsOfUser(accessToken string, realmName, userID string) ([]kc.GroupRepresentation, error)
-	GetGroup(accessToken string, realmName, groupID string) (kc.GroupRepresentation, error)
+	GetGroupNamesOfUser(accessToken string, realmName, userID string) ([]string, error)
+	GetGroupName(accessToken string, realmName, groupID string) (string, error)
 }
 
 // AuthorizationManager interface
@@ -189,4 +188,14 @@ func NewAuthorizationManager(keycloakClient KeycloakClient, jsonAuthz string) (A
 		authorizations: matrix,
 		keycloakClient: keycloakClient,
 	}, nil
+}
+
+// NewAuthorizationManagerFromFile creates an authorization manager from a file
+func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, filename string) (AuthorizationManager, error) {
+	json, err := ioutil.ReadFile(filename)
+
+	if err != nil {
+		return nil, err
+	}
+	return NewAuthorizationManager(keycloakClient, string(json))
 }

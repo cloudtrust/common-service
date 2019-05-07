@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
+	cs "github.com/cloudtrust/common-service"
 	"github.com/gbrlsnchs/jwt"
-	"github.com/go-kit/kit/log"
 )
 
 // KeycloakClient is the interface of the keycloak client.
@@ -17,13 +17,13 @@ type KeycloakClient interface {
 }
 
 // MakeHTTPOIDCTokenValidationMW retrieve the oidc token from the HTTP header 'Bearer' and
-// check its validity for the Keycloak instance binded to the bridge.
+// check its validity for the Keycloak instance binded to the component.
 // If there is no such header, the request is not allowed.
 // If the token is validated, the following informations are added into the context:
 //   - access_token: the recieved access token in raw format
 //   - realm: realm name extracted from the Issuer information of the token
 //   - username: username extracted from the token
-func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) func(http.Handler) http.Handler {
+func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequired string, logger cs.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var authorizationHeader = req.Header.Get("Authorization")
