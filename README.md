@@ -10,3 +10,5 @@ common-service is a library which provides tools to Cloudtrust components design
 * security: authorization manager
 * tracing: Jaeger client management
 * tracking: Sentry client management
+
+ceci est un test
