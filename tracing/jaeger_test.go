@@ -18,17 +18,24 @@ func TestCreateNoopJaegerClient(t *testing.T) {
 	var mockConf = mock.NewConfiguration(mockCtrl)
 
 	var prefix = "prefix"
+	var expected = "expected"
 
 	mockConf.EXPECT().GetBool(prefix).Return(false).Times(1)
 
 	var jaeger, err = CreateJaegerClient(mockConf, prefix, "")
-
 	assert.Nil(t, err)
 
 	jaeger.TryStartSpanWithTag(context.TODO(), "name", "tagName", "tagValue")
-	jaeger.MakeEndpointTracingMW("name")
 	jaeger.MakeHTTPTracingMW("component", "operation")
 	jaeger.Close()
+
+	var e = jaeger.MakeEndpointTracingMW("name")(
+		func(_ context.Context, _ interface{}) (interface{}, error) {
+			return expected, nil
+		},
+	)
+	result, _ := e(context.TODO(), nil)
+	assert.Equal(t, expected, result)
 }
 
 func TestCreateJaegerClientSucceeds(t *testing.T) {
