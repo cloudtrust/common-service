@@ -71,16 +71,26 @@ func TestTrueInfluxClient(t *testing.T) {
 
 	mockConf.EXPECT().GetBool(prefix).Return(true).Times(1)
 	mockConf.EXPECT().GetString(prefix + "-host-port").Return("influx.io").Times(1)
-	for _, suffix := range []string{"-username", "-password", "-precision", "-database", "-retention-policy", "-write-consistency"} {
+	for _, suffix := range []string{"-username", "-password", "-database", "-retention-policy", "-write-consistency"} {
 		mockConf.EXPECT().GetString(prefix + suffix).Return("value" + suffix).Times(1)
 	}
+	mockConf.EXPECT().GetString(prefix + "-precision").Return("s").Times(1)
 
 	var influx, err = NewMetrics(mockConf, "name", log.NewNopLogger())
 	assert.Nil(t, err)
 	assert.NotNil(t, influx)
+	defer influx.Close()
 
 	influx.NewCounter("name")
 	influx.NewGauge("name")
 	influx.NewHistogram("name")
 	influx.Ping(1)
+
+	// Stats fails
+	{
+		var tags = map[string]string{}
+		var fields = map[string]interface{}{}
+		err := influx.Stats(context.TODO(), "name", tags, fields)
+		assert.NotNil(t, err)
+	}
 }
