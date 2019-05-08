@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+
+	cs "github.com/cloudtrust/common-service"
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
