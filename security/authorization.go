@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
-
-	"github.com/go-kit/kit/log"
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
@@ -189,7 +187,7 @@ func loadAuthorizations(jsonAuthz string) (authorizations, error) {
 type authorizationManager struct {
 	authorizations authorizations
 	keycloakClient KeycloakClient
-	logger         log.Logger
+	logger         cs.Logger
 }
 
 // KeycloakClient is the minimum interface required to access Keycloak
@@ -220,7 +218,7 @@ type AuthorizationManager interface {
 //   '*' can be used to express all target realms
 //   '/' can be used to express all non master realms
 //   '*' can be used to express all target groups are allowed
-func NewAuthorizationManager(keycloakClient KeycloakClient, logger log.Logger, jsonAuthz string) (AuthorizationManager, error) {
+func NewAuthorizationManager(keycloakClient KeycloakClient, logger cs.Logger, jsonAuthz string) (AuthorizationManager, error) {
 	matrix, err := loadAuthorizations(jsonAuthz)
 
 	if err != nil {
@@ -235,7 +233,7 @@ func NewAuthorizationManager(keycloakClient KeycloakClient, logger log.Logger, j
 }
 
 // NewAuthorizationManagerFromFile creates an authorization manager from a file
-func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger log.Logger, filename string) (AuthorizationManager, error) {
+func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger cs.Logger, filename string) (AuthorizationManager, error) {
 	json, err := ioutil.ReadFile(filename)
 
 	if err != nil {
