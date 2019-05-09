@@ -47,12 +47,16 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 
 func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error {
 	var accessToken = ctx.Value("access_token").(string)
+	var currentRealm = ctx.Value("realm").(string)
+	var currentGroups = ctx.Value("groups").([]string)
 
 	infos, _ := json.Marshal(map[string]string{
 		"ThrownBy":      "CheckAuthorizationOnTargetGroupID",
 		"Action":        action,
 		"targetRealm":   targetRealm,
 		"targetGroupID": targetGroupID,
+		"currentRealm":  currentRealm,
+		"currentGroups": strings.Join(currentGroups, "|"),
 	})
 
 	// Retrieve the name of the target group
