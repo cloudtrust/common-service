@@ -56,7 +56,7 @@ func TestHTTPManagementHandler(t *testing.T) {
 			return DecodeRequest(ctx, req, pathParams, queryParams)
 		},
 		EncodeReply,
-		http_transport.ServerErrorEncoder(ErrorHandlerNoLog),
+		http_transport.ServerErrorEncoder(ErrorHandlerNoLog()),
 	)
 
 	r := mux.NewRouter()
@@ -214,7 +214,7 @@ func TestErrorHandler(t *testing.T) {
 	// ForbiddenError
 	{
 		mockRespWriter.EXPECT().WriteHeader(http.StatusForbidden).Times(1)
-		ErrorHandlerNoLog(context.Background(), security.ForbiddenError{}, mockRespWriter)
+		ErrorHandlerNoLog()(context.Background(), security.ForbiddenError{}, mockRespWriter)
 	}
 
 	// HTTPError
@@ -225,21 +225,20 @@ func TestErrorHandler(t *testing.T) {
 		}
 		mockRespWriter.EXPECT().WriteHeader(err.Status).Times(1)
 		mockRespWriter.EXPECT().Write([]byte(err.Message)).Times(1)
-		ErrorHandlerNoLog(context.Background(), err, mockRespWriter)
+		ErrorHandlerNoLog()(context.Background(), err, mockRespWriter)
 	}
 
 	// ratelimit.ErrLimited
 	{
 		mockRespWriter.EXPECT().WriteHeader(http.StatusTooManyRequests).Times(1)
 		mockRespWriter.EXPECT().Write(gomock.Any()).Times(0)
-		ErrorHandlerNoLog(context.Background(), ratelimit.ErrLimited, mockRespWriter)
+		ErrorHandlerNoLog()(context.Background(), ratelimit.ErrLimited, mockRespWriter)
 	}
 
 	// Internal server error
 	{
 		message := "500"
 		mockRespWriter.EXPECT().WriteHeader(http.StatusInternalServerError).Times(1)
-		mockRespWriter.EXPECT().Write([]byte(message)).Times(1)
-		ErrorHandlerNoLog(context.Background(), errors.New(message), mockRespWriter)
+		ErrorHandlerNoLog()(context.Background(), errors.New(message), mockRespWriter)
 	}
 }

@@ -18,22 +18,6 @@
   version = "2018.01.18"
 
 [[projects]]
-  digest = "1:a4379ea3dcb7d84f2d1dcb64add468b37395de41cd47591b02d6b5c74cf6f3a7"
-  name = "github.com/cloudtrust/keycloak-client"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "a2556ede8fae11b5f07e55a0911f29644e82db14"
-  version = "v1.0-rc1"
-
-[[projects]]
-  digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
-  name = "github.com/coreos/go-oidc"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "1180514eaf4d9f38d0d19eef639a1d695e066e72"
-  version = "v2.0.0"
-
-[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -87,16 +71,8 @@
   name = "github.com/golang/mock"
   packages = ["gomock"]
   pruneopts = "UT"
-  revision = "937870445b8bddd7f05ea90e81c58ebe83681534"
-  version = "v1.3.0"
-
-[[projects]]
-  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
-  name = "github.com/golang/protobuf"
-  packages = ["proto"]
-  pruneopts = "UT"
-  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
-  version = "v1.3.1"
+  revision = "9fa652df1129bef0e734c9cf9bf6dbae9ef3b9fa"
+  version = "1.3.1"
 
 [[projects]]
   digest = "1:d5f97fc268267ec1b61c3453058c738246fc3e746f14b1ae25161513b7367b0c"
@@ -155,17 +131,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:bd9efe4e0b0f768302a1e2f0c22458149278de533e521206e5ddc71848c269a0"
-  name = "github.com/pquerna/cachecontrol"
-  packages = [
-    ".",
-    "cacheobject",
-  ]
-  pruneopts = "UT"
-  revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
-
-[[projects]]
   digest = "1:972c2427413d41a1e06ca4897e8528e5a1622894050e2f527b38ddf0f343f759"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
@@ -207,123 +172,10 @@
   revision = "0e30338a695636fe5bcf7301e8030ce8dd2a8530"
   version = "v2.0.0"
 
-[[projects]]
-  branch = "master"
-  digest = "1:b8fa1ff0fc20983395978b3f771bb10438accbfe19326b02e236c1d4bf1c91b2"
-  name = "golang.org/x/crypto"
-  packages = [
-    "ed25519",
-    "ed25519/internal/edwards25519",
-    "pbkdf2",
-  ]
-  pruneopts = "UT"
-  revision = "a29dc8fdc73485234dbef99ebedb95d2eced08de"
-
-[[projects]]
-  branch = "master"
-  digest = "1:c2be8ebcdd05ff53516bf03f8c5ff67e791a4e64ed6d8f798e672965f76be72e"
-  name = "golang.org/x/net"
-  packages = [
-    "context",
-    "context/ctxhttp",
-    "idna",
-    "publicsuffix",
-  ]
-  pruneopts = "UT"
-  revision = "7f726cade0ab7c929c16ce0b5b25bd201e25f39f"
-
-[[projects]]
-  branch = "master"
-  digest = "1:9927d6aceb89d188e21485f42a7a254e67e6fdcf4260aba375fe18e3c300dfb4"
-  name = "golang.org/x/oauth2"
-  packages = [
-    ".",
-    "internal",
-  ]
-  pruneopts = "UT"
-  revision = "9f3314589c9a9136388751d9adae6b0ed400978a"
-
-[[projects]]
-  digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
-  name = "golang.org/x/text"
-  packages = [
-    "collate",
-    "collate/build",
-    "internal/colltab",
-    "internal/gen",
-    "internal/language",
-    "internal/language/compact",
-    "internal/tag",
-    "internal/triegen",
-    "internal/ucd",
-    "language",
-    "secure/bidirule",
-    "transform",
-    "unicode/bidi",
-    "unicode/cldr",
-    "unicode/norm",
-    "unicode/rangetable",
-  ]
-  pruneopts = "UT"
-  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
-  version = "v0.3.2"
-
-[[projects]]
-  digest = "1:6eb6e3b6d9fffb62958cf7f7d88dbbe1dd6839436b0802e194c590667a40412a"
-  name = "google.golang.org/appengine"
-  packages = [
-    "internal",
-    "internal/base",
-    "internal/datastore",
-    "internal/log",
-    "internal/remote_api",
-    "internal/urlfetch",
-    "urlfetch",
-  ]
-  pruneopts = "UT"
-  revision = "54a98f90d1c46b7731eb8fb305d2a321c30ef610"
-  version = "v1.5.0"
-
-[[projects]]
-  digest = "1:fdc801e94ddbe703f6b4263ee96ed12fc9e1d754369bf9de874c7567ea2c9686"
-  name = "gopkg.in/h2non/gentleman.v2"
-  packages = [
-    ".",
-    "context",
-    "middleware",
-    "mux",
-    "plugin",
-    "plugins/body",
-    "plugins/bodytype",
-    "plugins/cookies",
-    "plugins/headers",
-    "plugins/multipart",
-    "plugins/query",
-    "plugins/timeout",
-    "plugins/url",
-    "utils",
-  ]
-  pruneopts = "UT"
-  revision = "e0f81be2f4064ea7aa7470e9daddd2dc8e8152c7"
-  version = "v2.0.3"
-
-[[projects]]
-  digest = "1:8c05919580be8a5be668709d7e5a69d5cd19b8ee9f23d62ce5b10d3457bf6a13"
-  name = "gopkg.in/square/go-jose.v2"
-  packages = [
-    ".",
-    "cipher",
-    "json",
-  ]
-  pruneopts = "UT"
-  revision = "730df5f748271903322feb182be83b43ebbbe27d"
-  version = "v2.3.1"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/cloudtrust/keycloak-client",
     "github.com/gbrlsnchs/jwt",
     "github.com/getsentry/raven-go",
     "github.com/go-kit/kit/endpoint",
@@ -337,7 +189,6 @@
     "github.com/influxdata/influxdb/client/v2",
     "github.com/opentracing/opentracing-go",
     "github.com/opentracing/opentracing-go/ext",
-    "github.com/opentracing/opentracing-go/log",
     "github.com/pkg/errors",
     "github.com/stretchr/testify/assert",
     "github.com/uber/jaeger-client-go/config",

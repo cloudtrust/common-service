@@ -14,9 +14,7 @@ import (
 func MakeEndpointLoggingMW(logger cs.Logger) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
-			defer func(begin time.Time) {
-				logger.Log("correlation_id", ctx.Value("correlation_id").(string), "took", time.Since(begin))
-			}(time.Now())
+			logger.Log("correlation_id", ctx.Value("correlation_id").(string))
 			return next(ctx, req)
 		}
 	}

@@ -5,21 +5,33 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
+
+	cs "github.com/cloudtrust/common-service"
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
 	var accessToken = ctx.Value("access_token").(string)
+
+	infos, _ := json.Marshal(map[string]string{
+		"ThrownBy":    "CheckAuthorizationOnTargetUser",
+		"Action":      action,
+		"targetRealm": targetRealm,
+		"userID":      userID,
+	})
 
 	// Retrieve the group of the target user
 
 	var groupsRep []string
 	var err error
 	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(accessToken, targetRealm, userID); err != nil {
+		am.logger.Log("ForbiddenError", err.Error(), "infos", infos)
 		return ForbiddenError{}
 	}
 
 	if groupsRep == nil || len(groupsRep) == 0 {
 		// No groups assigned, nothing allowed
+		am.logger.Log("ForbiddenError", "No groups assigned to this user, nothing allowed", "infos", infos)
 		return ForbiddenError{}
 	}
 
@@ -29,20 +41,34 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 		}
 	}
 
+	am.logger.Log("ForbiddenError", "Not allowed to perform the action on user with such groups", "infos", infos)
 	return ForbiddenError{}
 }
 
 func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error {
 	var accessToken = ctx.Value("access_token").(string)
+	var currentRealm = ctx.Value("realm").(string)
+	var currentGroups = ctx.Value("groups").([]string)
+
+	infos, _ := json.Marshal(map[string]string{
+		"ThrownBy":      "CheckAuthorizationOnTargetGroupID",
+		"Action":        action,
+		"targetRealm":   targetRealm,
+		"targetGroupID": targetGroupID,
+		"currentRealm":  currentRealm,
+		"currentGroups": strings.Join(currentGroups, "|"),
+	})
 
 	// Retrieve the name of the target group
 	var err error
 	var targetGroup string
 	if targetGroup, err = am.keycloakClient.GetGroupName(accessToken, targetRealm, targetGroupID); err != nil {
+		am.logger.Log("ForbiddenError", err.Error(), "infos", infos)
 		return ForbiddenError{}
 	}
 
 	if targetGroup == "" {
+		am.logger.Log("ForbiddenError", "Group not found", "infos", infos)
 		return ForbiddenError{}
 	}
 
@@ -52,6 +78,15 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error {
 	var currentRealm = ctx.Value("realm").(string)
 	var currentGroups = ctx.Value("groups").([]string)
+
+	infos, _ := json.Marshal(map[string]string{
+		"ThrownBy":      "CheckAuthorizationOnTargetGroup",
+		"Action":        action,
+		"targetRealm":   targetRealm,
+		"targetGroup":   targetGroup,
+		"currentRealm":  currentRealm,
+		"currentGroups": strings.Join(currentGroups, "|"),
+	})
 
 	for _, group := range currentGroups {
 		targetGroupAllowed, wildcard := am.authorizations[currentRealm][group][action]["*"]
@@ -88,12 +123,21 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 		}
 	}
 
+	am.logger.Log("ForbiddenError", "Not allowed to perform the action on this group", "infos", infos)
 	return ForbiddenError{}
 }
 
 func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Context, action, targetRealm string) error {
 	var currentRealm = ctx.Value("realm").(string)
 	var currentGroups = ctx.Value("groups").([]string)
+
+	infos, _ := json.Marshal(map[string]string{
+		"ThrownBy":      "CheckAuthorizationOnTargetRealm",
+		"Action":        action,
+		"targetRealm":   targetRealm,
+		"currentRealm":  currentRealm,
+		"currentGroups": strings.Join(currentGroups, "|"),
+	})
 
 	for _, group := range currentGroups {
 		_, wildcard := am.authorizations[currentRealm][group][action]["*"]
@@ -104,6 +148,8 @@ func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Cont
 			return nil
 		}
 	}
+
+	am.logger.Log("ForbiddenError", "Not allowed to perform the action on this realm", "infos", infos)
 
 	return ForbiddenError{}
 }
@@ -147,6 +193,7 @@ func loadAuthorizations(jsonAuthz string) (authorizations, error) {
 type authorizationManager struct {
 	authorizations authorizations
 	keycloakClient KeycloakClient
+	logger         cs.Logger
 }
 
 // KeycloakClient is the minimum interface required to access Keycloak
@@ -177,7 +224,7 @@ type AuthorizationManager interface {
 //   '*' can be used to express all target realms
 //   '/' can be used to express all non master realms
 //   '*' can be used to express all target groups are allowed
-func NewAuthorizationManager(keycloakClient KeycloakClient, jsonAuthz string) (AuthorizationManager, error) {
+func NewAuthorizationManager(keycloakClient KeycloakClient, logger cs.Logger, jsonAuthz string) (AuthorizationManager, error) {
 	matrix, err := loadAuthorizations(jsonAuthz)
 
 	if err != nil {
@@ -187,15 +234,16 @@ func NewAuthorizationManager(keycloakClient KeycloakClient, jsonAuthz string) (A
 	return &authorizationManager{
 		authorizations: matrix,
 		keycloakClient: keycloakClient,
+		logger:         logger,
 	}, nil
 }
 
 // NewAuthorizationManagerFromFile creates an authorization manager from a file
-func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, filename string) (AuthorizationManager, error) {
+func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger cs.Logger, filename string) (AuthorizationManager, error) {
 	json, err := ioutil.ReadFile(filename)
 
 	if err != nil {
 		return nil, err
 	}
-	return NewAuthorizationManager(keycloakClient, string(json))
+	return NewAuthorizationManager(keycloakClient, logger, string(json))
 }
