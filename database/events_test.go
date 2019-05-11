@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/database/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -18,8 +19,8 @@ func TestEventsDBModule(t *testing.T) {
 
 	var eventsDBModule = NewEventsDBModule(mockDB)
 
-	var ctx = context.WithValue(context.Background(), "username", "my name")
-	ctx = context.WithValue(ctx, "realm", "myrealm")
+	var ctx = context.WithValue(context.Background(), cs.CtContextUsername, "my name")
+	ctx = context.WithValue(ctx, cs.CtContextRealm, "myrealm")
 
 	// Missing ct_event_type
 	{

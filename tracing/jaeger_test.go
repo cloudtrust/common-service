@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/tracing/mock"
 	"github.com/golang/mock/gomock"
 	opentracing "github.com/opentracing/opentracing-go"
@@ -126,7 +127,7 @@ func TestEndpointTracingMW(t *testing.T) {
 
 	// Context with correlation ID.
 	var corrID = strconv.FormatUint(rand.Uint64(), 10)
-	var ctx = context.WithValue(context.Background(), "correlation_id", corrID)
+	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
 	ctx = opentracing.ContextWithSpan(ctx, mockSpan)
 
 	// With correlation ID.

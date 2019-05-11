@@ -75,7 +75,7 @@ func (o *internalOpentracingClient) MakeEndpointTracingMW(operationName string) 
 				span = o.Tracer.StartSpan(operationName, opentracing.ChildOf(span.Context()))
 				defer span.Finish()
 
-				span.SetTag("correlation_id", ctx.Value("correlation_id").(string))
+				span.SetTag("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string))
 
 				ctx = opentracing.ContextWithSpan(ctx, span)
 			}
