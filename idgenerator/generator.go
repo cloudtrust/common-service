@@ -10,17 +10,17 @@ import (
 // New returns an ID generator which generate a unique id.
 func New(componentName, componentID string) IDGenerator {
 	return &generator{
-		componentID: componentID,
+		componentID:   componentID,
 		componentName: componentName,
 	}
 }
 
-type IDGenerator interface{
+type IDGenerator interface {
 	NextID() string
 }
 
 type generator struct {
-	componentID string
+	componentID   string
 	componentName string
 }
 
