@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	cs "github.com/cloudtrust/common-service"
 	comhttp "github.com/cloudtrust/common-service/http"
 	"github.com/cloudtrust/common-service/middleware/mock"
 	http_transport "github.com/go-kit/kit/transport/http"
@@ -27,10 +28,10 @@ const (
 )
 
 func checkContextEndpoint(ctx context.Context, request interface{}) (response interface{}, err error) {
-	var accessToken = ctx.Value("access_token").(string)
-	var realm = ctx.Value("realm").(string)
-	var user = ctx.Value("username").(string)
-	var groups = ctx.Value("groups").([]string)
+	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
+	var realm = ctx.Value(cs.CtContextRealm).(string)
+	var user = ctx.Value(cs.CtContextUsername).(string)
+	var groups = ctx.Value(cs.CtContextGroups).([]string)
 	if (tokenAudString == accessToken || tokenAudArray == accessToken) && "master" == realm && "admin" == user && len(groups) == 1 && "toe_administrator" == groups[0] {
 		return "", nil
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
-	var accessToken = ctx.Value("access_token").(string)
+	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
 
 	infos, _ := json.Marshal(map[string]string{
 		"ThrownBy":    "CheckAuthorizationOnTargetUser",
@@ -46,9 +46,9 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 }
 
 func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error {
-	var accessToken = ctx.Value("access_token").(string)
-	var currentRealm = ctx.Value("realm").(string)
-	var currentGroups = ctx.Value("groups").([]string)
+	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
+	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
+	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
 
 	infos, _ := json.Marshal(map[string]string{
 		"ThrownBy":      "CheckAuthorizationOnTargetGroupID",
@@ -76,8 +76,8 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 }
 
 func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error {
-	var currentRealm = ctx.Value("realm").(string)
-	var currentGroups = ctx.Value("groups").([]string)
+	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
+	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
 
 	infos, _ := json.Marshal(map[string]string{
 		"ThrownBy":      "CheckAuthorizationOnTargetGroup",
@@ -128,8 +128,8 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 }
 
 func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Context, action, targetRealm string) error {
-	var currentRealm = ctx.Value("realm").(string)
-	var currentGroups = ctx.Value("groups").([]string)
+	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
+	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
 
 	infos, _ := json.Marshal(map[string]string{
 		"ThrownBy":      "CheckAuthorizationOnTargetRealm",

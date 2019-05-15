@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/middleware/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +35,7 @@ func TestEndpointLoggingMW(t *testing.T) {
 
 	// Context with correlation ID.
 	var corrID = strconv.FormatUint(rand.Uint64(), 10)
-	var ctx = context.WithValue(context.Background(), "correlation_id", corrID)
+	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
 
 	// With correlation ID.
 	mockLogger.EXPECT().Log("correlation_id", corrID).Return(nil).Times(1)
@@ -55,7 +56,7 @@ func TestEndpointInstrumentingMW(t *testing.T) {
 
 	var histoName = "histo_name"
 	var corrID = strconv.FormatUint(rand.Uint64(), 10)
-	var ctx = context.WithValue(context.Background(), "correlation_id", corrID)
+	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
 
 	mockMetrics.EXPECT().NewHistogram(histoName).Return(mockHisto).Times(1)
 	mockHisto.EXPECT().With("correlation_id", corrID).Return(mockHisto).Times(1)
