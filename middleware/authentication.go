@@ -71,7 +71,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger cs.Logger) fun
 				return
 			}
 
-			var ctx = context.WithValue(req.Context(), "username", username)
+			var ctx = context.WithValue(req.Context(), cs.CtContextUsername, username)
 
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
