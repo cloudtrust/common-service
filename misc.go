@@ -26,6 +26,7 @@ type Configuration interface {
 
 	Get(key string) interface{}
 	GetString(key string) string
+	GetStringSlice(key string) []string
 	GetBool(key string) bool
 	GetInt(key string) int
 	GetInt32(key string) int32
