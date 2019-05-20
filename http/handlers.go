@@ -20,7 +20,7 @@ func BasicDecodeRequest(ctx context.Context, req *http.Request) (interface{}, er
 	return DecodeRequest(ctx, req, map[string]string{}, map[string]string{})
 }
 
-// DecodeEventsRequest gets the HTTP parameters and body content
+// DecodeRequest gets the HTTP parameters and body content
 func DecodeRequest(_ context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string) (interface{}, error) {
 	var request = map[string]string{}
 

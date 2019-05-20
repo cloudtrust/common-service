@@ -73,12 +73,12 @@ func GetDbConfig(v cs.Configuration, prefix string, noop bool) *DbConfig {
 // If cfg.Noop is true, a Noop access will be provided
 func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
 	if cfg.Noop {
-		return NoopDB{}, nil
+		return &NoopDB{}, nil
 	}
 
 	dbConn, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s(%s)/%s", cfg.Username, cfg.Password, cfg.Protocol, cfg.HostPort, cfg.Database))
 	if err != nil {
-		return NoopDB{}, err
+		return &NoopDB{}, err
 	}
 
 	// the config of the DB should have a max_connections > SetMaxOpenConns
@@ -95,22 +95,24 @@ func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
 type NoopDB struct{}
 
 // Exec does nothing.
-func (NoopDB) Exec(query string, args ...interface{}) (sql.Result, error) { return NoopResult{}, nil }
+func (db *NoopDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return NoopResult{}, nil
+}
 
 // Query does nothing.
-func (NoopDB) Query(query string, args ...interface{}) (*sql.Rows, error) { return nil, nil }
+func (db *NoopDB) Query(query string, args ...interface{}) (*sql.Rows, error) { return nil, nil }
 
 // QueryRow does nothing.
-func (NoopDB) QueryRow(query string, args ...interface{}) *sql.Row { return nil }
+func (db *NoopDB) QueryRow(query string, args ...interface{}) *sql.Row { return nil }
 
 // SetMaxOpenConns does nothing.
-func (NoopDB) SetMaxOpenConns(n int) {}
+func (db *NoopDB) SetMaxOpenConns(n int) {}
 
 // SetMaxIdleConns does nothing.
-func (NoopDB) SetMaxIdleConns(n int) {}
+func (db *NoopDB) SetMaxIdleConns(n int) {}
 
 // SetConnMaxLifetime does nothing.
-func (NoopDB) SetConnMaxLifetime(d time.Duration) {}
+func (db *NoopDB) SetConnMaxLifetime(d time.Duration) {}
 
 // NoopResult is a sql.Result that does nothing.
 type NoopResult struct{}

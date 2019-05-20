@@ -1,7 +1,5 @@
 package database
 
-//go:generate mockgen -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service Configuration
-
 import (
 	"testing"
 	"time"
