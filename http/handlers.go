@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"regexp"
 
 	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/security"
@@ -16,18 +18,21 @@ import (
 
 // BasicDecodeRequest does not expect parameters
 func BasicDecodeRequest(ctx context.Context, req *http.Request) (interface{}, error) {
-	return DecodeRequest(ctx, req, []string{}, []string{})
+	return DecodeRequest(ctx, req, map[string]string{}, map[string]string{})
 }
 
-// DecodeRequest gets the HTTP parameters and body content
-func DecodeRequest(_ context.Context, req *http.Request, pathParams []string, queryParams []string) (interface{}, error) {
+// DecodeEventsRequest gets the HTTP parameters and body content
+func DecodeRequest(_ context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string) (interface{}, error) {
 	var request = map[string]string{}
 
-	// Fetch path parameter such as realm, userID, ...
+	// Fetch and validate path parameter such as realm, userID, ...
 	var m = mux.Vars(req)
-	for _, key := range pathParams {
+	for key, validationRegExp := range pathParams {
 		if v, ok := m[key]; ok {
-			request[key] = v
+			if matched, _ := regexp.Match(validationRegExp, []byte(v)); !matched {
+				return nil, fmt.Errorf("Invalid path param: %s", key)
+			}
+			request[key] = m[key]
 		}
 	}
 
@@ -36,10 +41,16 @@ func DecodeRequest(_ context.Context, req *http.Request, pathParams []string, qu
 
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(req.Body)
+	// Input validation of body content should be performed once the content is unmarshalled (Endpoint layer)
 	request["body"] = buf.String()
 
-	for _, key := range queryParams {
+	// Fetch and validate query parameter such as email, firstName, ...
+	for key, validationRegExp := range queryParams {
 		if value := req.URL.Query().Get(key); value != "" {
+			if matched, _ := regexp.Match(validationRegExp, []byte(value)); !matched {
+				return nil, fmt.Errorf("Invalid path param: %s", key)
+			}
+
 			request[key] = value
 		}
 	}

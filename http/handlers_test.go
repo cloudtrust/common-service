@@ -51,8 +51,16 @@ func TestHTTPManagementHandler(t *testing.T) {
 	}
 	handler := http_transport.NewServer(e,
 		func(ctx context.Context, req *http.Request) (interface{}, error) {
-			pathParams := []string{"pathParameter1", "pathParameter2", "pathParameter3"}
-			queryParams := []string{"queryParameter1", "queryParameter2", "queryParameter3"}
+			pathParams := map[string]string{
+				"pathParameter1": "^[a-zA-Z0-9-]+$",
+				"pathParameter2": "^[a-zA-Z0-9-]+$",
+				"pathParameter3": "^[a-zA-Z0-9-]+$",
+			}
+			queryParams := map[string]string{
+				"queryParameter1": "^[a-zA-Z0-9-]+$",
+				"queryParameter2": "^[a-zA-Z0-9-]+$",
+				"queryParameter3": "^[a-zA-Z0-9-]+$",
+			}
 			return DecodeRequest(ctx, req, pathParams, queryParams)
 		},
 		EncodeReply,
@@ -76,6 +84,8 @@ func TestHTTPManagementHandler(t *testing.T) {
 	checkPathParameter(t, ts.URL+"/param2/valueB", "4-p2valueB")
 	// Has both pathParam1 and pathParam2 in path
 	checkPathParameter(t, ts.URL+"/param1/valueC/param2/valueD", "5-p1valueC-p2valueD")
+	// Has pathParam2 invalid in path
+	checkInvalidPathParameter(t, ts.URL+"/param2/valueB!")
 }
 
 func checkPathParameter(t *testing.T, url string, expected string) {
@@ -88,7 +98,13 @@ func checkPathParameter(t *testing.T, url string, expected string) {
 	assert.Equal(t, `"`+expected+`"`, buf.String())
 }
 
-func genericTestDecodeRequest(ctx context.Context, tls *tls.ConnectionState, xFwdProto *string, rawQuery string) map[string]string {
+func checkInvalidPathParameter(t *testing.T, url string) {
+	res, err := http.Get(url)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+}
+
+func genericTestDecodeRequest(ctx context.Context, tls *tls.ConnectionState, xFwdProto *string, rawQuery string) (map[string]string, error) {
 	input := "the body"
 	var req http.Request
 	var url url.URL
@@ -101,14 +117,26 @@ func genericTestDecodeRequest(ctx context.Context, tls *tls.ConnectionState, xFw
 	}
 	req.Body = ioutil.NopCloser(bytes.NewBufferString(input))
 	req.URL = &url
-	pathParams := []string{"pathParam1", "pathParam2"}
-	queryParams := []string{"queryParam1", "queryParam2"}
-	r, _ := DecodeRequest(ctx, &req, pathParams, queryParams)
-	return r.(map[string]string)
+	pathParams := map[string]string{
+		"pathParam1": "^[a-zA-Z0-9-]+$",
+		"pathParam2": "^[a-zA-Z0-9-]+$",
+	}
+	queryParams := map[string]string{
+		"queryParam1": "^[a-zA-Z0-9-]+$",
+		"queryParam2": "^[a-zA-Z0-9-]+$",
+	}
+
+	r, err := DecodeRequest(ctx, &req, pathParams, queryParams)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r.(map[string]string), nil
 }
 
 func TestDecodeRequestHTTP(t *testing.T) {
-	request := genericTestDecodeRequest(context.Background(), nil, nil, "")
+	request, _ := genericTestDecodeRequest(context.Background(), nil, nil, "")
 
 	// Minimum parameters are scheme, host and body
 	assert.Equal(t, 3, len(request))
@@ -120,7 +148,7 @@ func TestDecodeRequestHTTP(t *testing.T) {
 func TestDecodeRequestHTTPS(t *testing.T) {
 	var reqConnState tls.ConnectionState
 
-	request := genericTestDecodeRequest(context.Background(), &reqConnState, nil, "")
+	request, _ := genericTestDecodeRequest(context.Background(), &reqConnState, nil, "")
 
 	// Minimum parameters are scheme, host and body
 	assert.Equal(t, 3, len(request))
@@ -132,7 +160,7 @@ func TestDecodeRequestHTTPS(t *testing.T) {
 func TestDecodeRequestForwardProto(t *testing.T) {
 	proto := "ftp"
 
-	request := genericTestDecodeRequest(context.Background(), nil, &proto, "")
+	request, _ := genericTestDecodeRequest(context.Background(), nil, &proto, "")
 
 	// Minimum parameters are scheme, host and body
 	assert.Equal(t, 3, len(request))
@@ -143,11 +171,18 @@ func TestDecodeRequestForwardProto(t *testing.T) {
 
 func TestDecodeRequestQueryParams(t *testing.T) {
 	value := "valueX"
-	request := genericTestDecodeRequest(context.Background(), nil, nil, "queryParam2="+value)
+	request, _ := genericTestDecodeRequest(context.Background(), nil, nil, "queryParam2="+value)
 
 	// Minimum parameters are scheme, host and body
 	assert.Equal(t, 4, len(request))
 	assert.Equal(t, value, request["queryParam2"])
+}
+
+func TestDecodeEventsRequestInvalidQueryParams(t *testing.T) {
+	value := "valueX!"
+	_, err := genericTestDecodeRequest(context.Background(), nil, nil, "queryParam2="+value)
+
+	assert.NotNil(t, err)
 }
 
 func TestEncodeReplyNilResponse(t *testing.T) {
