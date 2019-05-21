@@ -23,11 +23,19 @@ func CreateMissingParameterError(name string) Error {
 	}
 }
 
-// CreateInvalidParameterError creates an error relative to a invalid parameter
-func CreateInvalidParameterError(paramName string) Error {
+// CreateInvalidQueryParameterError creates an error relative to a invalid query parameter
+func CreateInvalidQueryParameterError(paramName string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: fmt.Sprintf("Invalid parameter %s", paramName),
+		Message: fmt.Sprintf("Invalid query parameter %s", paramName),
+	}
+}
+
+// CreateInvalidPathParameterError creates an error relative to a invalid path parameter
+func CreateInvalidPathParameterError(paramName string) Error {
+	return Error{
+		Status:  http.StatusBadRequest,
+		Message: fmt.Sprintf("Invalid path parameter %s", paramName),
 	}
 }
 

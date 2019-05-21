@@ -29,7 +29,7 @@ func DecodeRequest(_ context.Context, req *http.Request, pathParams map[string]s
 	for key, validationRegExp := range pathParams {
 		if v, ok := m[key]; ok {
 			if matched, _ := regexp.Match(validationRegExp, []byte(v)); !matched {
-				return nil, CreateInvalidParameterError(key)
+				return nil, CreateInvalidQueryParameterError(key)
 			}
 			request[key] = m[key]
 		}
@@ -47,7 +47,7 @@ func DecodeRequest(_ context.Context, req *http.Request, pathParams map[string]s
 	for key, validationRegExp := range queryParams {
 		if value := req.URL.Query().Get(key); value != "" {
 			if matched, _ := regexp.Match(validationRegExp, []byte(value)); !matched {
-				return nil, CreateInvalidParameterError(key)
+				return nil, CreateInvalidPathParameterError(key)
 			}
 
 			request[key] = value
