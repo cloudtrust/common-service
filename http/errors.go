@@ -15,10 +15,26 @@ func (e Error) Error() string {
 	return fmt.Sprintf("%d %s", e.Status, e.Message)
 }
 
-// CreateMissingParameterError creates a HTTPResponse for an error relative to a missing mandatory parameter
+// CreateMissingParameterError creates an error relative to a missing mandatory parameter
 func CreateMissingParameterError(name string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
 		Message: fmt.Sprintf("Missing mandatory parameter %s", name),
+	}
+}
+
+// CreateInvalidParameterError creates an error relative to a invalid parameter
+func CreateInvalidParameterError(paramName string) Error {
+	return Error{
+		Status:  http.StatusBadRequest,
+		Message: fmt.Sprintf("Invalid parameter %s", paramName),
+	}
+}
+
+// CreateInvalidParameterError creates an error relative to a invalid parameter
+func CreateBadRequestError(publicMessage string) Error {
+	return Error{
+		Status:  http.StatusBadRequest,
+		Message: publicMessage,
 	}
 }
