@@ -101,7 +101,7 @@ func checkPathParameter(t *testing.T, url string, expected string) {
 func checkInvalidPathParameter(t *testing.T, url string) {
 	res, err := http.Get(url)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 }
 
 func genericTestDecodeRequest(ctx context.Context, tls *tls.ConnectionState, xFwdProto *string, rawQuery string) (map[string]string, error) {
