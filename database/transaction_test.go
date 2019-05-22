@@ -28,5 +28,5 @@ func TestTransaction(t *testing.T) {
 	assert.Nil(t, tx.Commit())
 
 	// Already closed
-	assert.Nil(t, tx.Rollback())
+	assert.Nil(t, tx.Close())
 }
