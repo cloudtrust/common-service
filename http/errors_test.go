@@ -13,4 +13,7 @@ func TestHTTPResponse(t *testing.T) {
 
 	error = CreateBadRequestError("message")
 	assert.Contains(t, error.Error(), error.Message)
+
+	error = CreateInternalServerError("message")
+	assert.Contains(t, error.Error(), error.Message)
 }
