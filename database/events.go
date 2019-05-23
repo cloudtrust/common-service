@@ -130,8 +130,7 @@ func (er *ReportEventDetails) AddAgentDetails(ctx context.Context) {
 	//retrieve agent username
 	er.details["agent_username"] = ctx.Value(cs.CtContextUsername).(string)
 	//retrieve agent user id - not yet implemented
-	//to be uncommented once the ctx contains the userId value
-	//er.details["userId"] = ctx.Value(cs.CtContextUserID).(string)
+	er.details["userId"] = ctx.Value(cs.CtContextUserID).(string)
 	//retrieve agent realm
 	er.details["agent_realm_name"] = ctx.Value(cs.CtContextRealm).(string)
 }
