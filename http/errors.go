@@ -15,6 +15,14 @@ func (e Error) Error() string {
 	return fmt.Sprintf("%d %s", e.Status, e.Message)
 }
 
+// CreateInternalServerError creates an error relative to an internal server error
+func CreateInternalServerError(message string) Error {
+	return Error{
+		Status:  http.StatusInternalServerError,
+		Message: message,
+	}
+}
+
 // CreateMissingParameterError creates an error relative to a missing mandatory parameter
 func CreateMissingParameterError(name string) Error {
 	return Error{
@@ -39,7 +47,7 @@ func CreateInvalidPathParameterError(paramName string) Error {
 	}
 }
 
-// CreateInvalidParameterError creates an error relative to a invalid parameter
+// CreateBadRequestError creates an error relative to a bad request
 func CreateBadRequestError(publicMessage string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
