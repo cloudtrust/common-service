@@ -75,15 +75,15 @@
   version = "1.3.1"
 
 [[projects]]
-  digest = "1:d5f97fc268267ec1b61c3453058c738246fc3e746f14b1ae25161513b7367b0c"
+  digest = "1:3af6be4fee7c08f81f13d36f04ffb63ad4b6b5aaba12cce96095c7c2863d4912"
   name = "github.com/gorilla/mux"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c5c6c98bc25355028a63748a498942a6398ccd22"
-  version = "v1.7.1"
+  revision = "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+  version = "v1.7.2"
 
 [[projects]]
-  digest = "1:2629521d27f3b04ce4d524cb52a25fdc77745071239c91d6fe9a7ce10131365a"
+  digest = "1:3c6faaeb500b7e6fadbe52c0b3fd62b6eed7801ed0d74bb3bd9577017df8d2f4"
   name = "github.com/influxdata/influxdb"
   packages = [
     "client/v2",
@@ -189,6 +189,7 @@
     "github.com/influxdata/influxdb/client/v2",
     "github.com/opentracing/opentracing-go",
     "github.com/opentracing/opentracing-go/ext",
+    "github.com/opentracing/opentracing-go/log",
     "github.com/pkg/errors",
     "github.com/stretchr/testify/assert",
     "github.com/uber/jaeger-client-go/config",
