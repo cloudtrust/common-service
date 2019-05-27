@@ -9,6 +9,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestDbVersion(t *testing.T) {
+	var err error
+
+	for _, invalidVersion := range []string{"", "1.0.1", "A.b"} {
+		_, err = newDbVersion(invalidVersion)
+		assert.NotNil(t, err)
+	}
+
+	var v1, v2 *dbVersion
+	v1, err = newDbVersion("1.0")
+	assert.Nil(t, err)
+
+	var matchTests = map[string]bool{"0.9": false, "1.0": true, "1.5": true, "2.0": true}
+	for k, v := range matchTests {
+		v2, err = newDbVersion(k)
+		assert.Equal(t, v, v2.matchesRequired(v1))
+	}
+}
+
 func TestConfigureDbDefault(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -18,7 +37,7 @@ func TestConfigureDbDefault(t *testing.T) {
 	var envUser = "the env user"
 	var envPass = "the env password"
 
-	for _, suffix := range []string{"-host-port", "-username", "-password", "-database", "-protocol", "-max-open-conns", "-max-idle-conns", "-conn-max-lifetime"} {
+	for _, suffix := range []string{"-host-port", "-username", "-password", "-database", "-protocol", "-max-open-conns", "-max-idle-conns", "-conn-max-lifetime", "-migration", "-migration-version"} {
 		mockConf.EXPECT().SetDefault(prefix+suffix, gomock.Any()).Times(1)
 	}
 	mockConf.EXPECT().BindEnv(prefix+"-username", envUser).Times(1)
@@ -40,6 +59,8 @@ func TestGetDbConfig(t *testing.T) {
 	for _, suffix := range []string{"-max-open-conns", "-max-idle-conns", "-conn-max-lifetime"} {
 		mockConf.EXPECT().GetInt(prefix + suffix).Return(1).Times(1)
 	}
+	mockConf.EXPECT().GetBool(prefix + "-migration").Return(false).Times(1)
+	mockConf.EXPECT().GetString(prefix + "-migration-version").Return("1.0").Times(1)
 
 	var cfg = GetDbConfig(mockConf, prefix, false)
 	assert.Equal(t, "value-host-port", cfg.HostPort)
