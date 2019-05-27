@@ -10,34 +10,22 @@ import (
 )
 
 func TestDbVersion(t *testing.T) {
-	_, err := newDbVersion("")
-	assert.NotNil(t, err)
+	var err error
 
-	_, err = newDbVersion("1.0.1")
-	assert.NotNil(t, err)
-
-	_, err = newDbVersion("A.b")
-	assert.NotNil(t, err)
+	for _, invalidVersion := range []string{"", "1.0.1", "A.b"} {
+		_, err = newDbVersion(invalidVersion)
+		assert.NotNil(t, err)
+	}
 
 	var v1, v2 *dbVersion
 	v1, err = newDbVersion("1.0")
 	assert.Nil(t, err)
 
-	v2, err = newDbVersion("0.9")
-	assert.Nil(t, err)
-	assert.False(t, v2.matchesRequired(v1))
-
-	v2, err = newDbVersion("1.0")
-	assert.Nil(t, err)
-	assert.True(t, v2.matchesRequired(v1))
-
-	v2, err = newDbVersion("1.5")
-	assert.Nil(t, err)
-	assert.True(t, v2.matchesRequired(v1))
-
-	v2, err = newDbVersion("2.0")
-	assert.Nil(t, err)
-	assert.True(t, v2.matchesRequired(v1))
+	var matchTests = map[string]bool{"0.9": false, "1.0": true, "1.5": true, "2.0": true}
+	for k, v := range matchTests {
+		v2, err = newDbVersion(k)
+		assert.Equal(t, v, v2.matchesRequired(v1))
+	}
 }
 
 func TestConfigureDbDefault(t *testing.T) {
