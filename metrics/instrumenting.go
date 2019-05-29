@@ -132,8 +132,7 @@ type ctHistogram struct {
 }
 
 func (h *ctHistogram) With(labelValues ...string) Histogram {
-	var histo metrics.Histogram
-	histo = h.Histogram.With(labelValues...)
+	var histo = h.Histogram.With(labelValues...)
 	return &ctHistogram{
 		Histogram: histo,
 	}

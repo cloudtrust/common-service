@@ -28,23 +28,17 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger cs.Logger) fun
 				return
 			}
 
-			var matched, _ = regexp.MatchString(`^[Bb]asic *`, authorizationHeader)
-
-			if !matched {
+			var regexpBasicAuth = `^[Bb]asic (.+)$`
+			var r = regexp.MustCompile(regexpBasicAuth)
+			var match = r.FindStringSubmatch(authorizationHeader)
+			if match == nil {
 				logger.Log("Authorization Error", "Missing basic token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Missing basic token"), w)
 				return
 			}
 
-			var splitToken = strings.Split(authorizationHeader, "Basic ")
-			if len(splitToken) < 2 {
-				splitToken = strings.Split(authorizationHeader, "basic ")
-			}
-
-			var accessToken = splitToken[1]
-
 			// Decode base 64
-			decodedToken, err := base64.StdEncoding.DecodeString(accessToken)
+			decodedToken, err := base64.StdEncoding.DecodeString(match[1])
 
 			if err != nil {
 				logger.Log("Authorization Error", "Invalid base64 token")

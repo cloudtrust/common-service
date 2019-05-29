@@ -24,8 +24,9 @@ func newDbVersion(version string) (*dbVersion, error) {
 		return nil, fmt.Errorf("version %s does not match the required format", version)
 	}
 	// We don't test the Atoi errors as version matches the regexp
-	var maj, _ = strconv.Atoi(match[0])
-	var min, _ = strconv.Atoi(match[1])
+	// Major/Minor version numbers are stored in groups 1 and 2. Group 0 is the whole matched valued
+	var maj, _ = strconv.Atoi(match[1])
+	var min, _ = strconv.Atoi(match[2])
 	return &dbVersion{
 		major: maj,
 		minor: min,
