@@ -32,16 +32,26 @@ type GenericResponse struct {
 
 // WriteResponse writes a response for a mime content type
 func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
-	w.WriteHeader(r.StatusCode)
+	if r.Headers == nil {
+		r.Headers = make(map[string]string, 0)
+	}
+	// Headers
+	if r.MimeContent != nil {
+		r.Headers["Content-Type"] = r.MimeContent.MimeType
+		if len(r.MimeContent.Filename) > 0 {
+			// Does not support UTF-8 or spaces in filename
+			r.Headers["Content-Disposition"] = "attachment; filename=" + r.MimeContent.Filename
+		}
+	}
 	for k, v := range r.Headers {
 		w.Header().Set(k, v)
 	}
+
+	// Status code
+	w.WriteHeader(r.StatusCode)
+
+	// Body
 	if r.MimeContent != nil {
-		w.Header().Set("Content-Type", r.MimeContent.MimeType)
-		if len(r.MimeContent.Filename) > 0 {
-			// Does not support UTF-8 or spaces in filename
-			w.Header().Set("Content-Disposition", "attachment; filename="+r.MimeContent.Filename)
-		}
 		w.Write(r.MimeContent.Content)
 	} else if r.ExportToJSON != nil {
 		writeJSON(r.ExportToJSON, w)

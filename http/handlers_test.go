@@ -26,49 +26,65 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenericResponse(t *testing.T) {
-	var mockCtrl = gomock.NewController(t)
-	defer mockCtrl.Finish()
+func makeHandler(e endpoint.Endpoint) *http_transport.Server {
+	return http_transport.NewServer(e,
+		func(ctx context.Context, req *http.Request) (interface{}, error) {
+			return BasicDecodeRequest(ctx, req)
+		},
+		EncodeReply,
+		http_transport.ServerErrorEncoder(ErrorHandlerNoLog()),
+	)
+}
 
-	mockRespWriter := mock.NewResponseWriter(mockCtrl)
-
+func TestHttpGenericResponse(t *testing.T) {
+	r := mux.NewRouter()
 	// Test with JSON content
-	var resp = GenericResponse{
-		StatusCode:   http.StatusNotFound,
-		Headers:      map[string]string{"Location": "here"},
-		MimeContent:  nil,
-		ExportToJSON: make([]int, 0),
-	}
-
-	var headers = make(http.Header)
-	mockRespWriter.EXPECT().Header().Return(headers).Times(2)
-	mockRespWriter.EXPECT().WriteHeader(resp.StatusCode).Times(1)
-	mockRespWriter.EXPECT().Write([]byte("[]")).Times(1)
-
-	EncodeReply(context.Background(), mockRespWriter, resp)
-
-	assert.Equal(t, 2, len(headers))
-	assert.Equal(t, "here", headers.Get("Location"))
-	assert.Equal(t, "application/json; charset=utf-8", headers.Get("Content-Type"))
-
+	r.Handle("/path/to/mime", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
+		return GenericResponse{
+			StatusCode:   http.StatusNotFound,
+			Headers:      map[string]string{"Location": "here"},
+			MimeContent:  nil,
+			ExportToJSON: make([]int, 0),
+		}, nil
+	}))
 	// Test with MimeContent
-	mime := MimeContent{
-		MimeType: "image/jpg",
-		Content:  []byte("not a real jpeg"),
-		Filename: "filename.jpg",
-	}
-	resp = GenericResponse{
-		StatusCode:   http.StatusCreated,
-		Headers:      nil,
-		MimeContent:  &mime,
-		ExportToJSON: nil,
+	r.Handle("/path/to/jpeg", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
+		mime := MimeContent{
+			MimeType: "image/jpg",
+			Content:  []byte("not a real jpeg"),
+			Filename: "filename.jpg",
+		}
+		return GenericResponse{
+			StatusCode:   http.StatusCreated,
+			Headers:      nil,
+			MimeContent:  &mime,
+			ExportToJSON: nil,
+		}, nil
+	}))
+
+	ts := httptest.NewServer(r)
+	defer ts.Close()
+
+	{
+		res, err := http.Get(ts.URL + "/path/to/mime")
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusNotFound, res.StatusCode)
+		assert.Equal(t, "here", res.Header.Get("Location"))
+
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(res.Body)
+		assert.Equal(t, "[]", buf.String())
 	}
 
-	mockRespWriter.EXPECT().Header().Return(headers).Times(1)
-	mockRespWriter.EXPECT().WriteHeader(resp.StatusCode).Times(1)
-	mockRespWriter.EXPECT().Write(resp.MimeContent.Content).Times(1)
+	{
+		res, err := http.Get(ts.URL + "/path/to/jpeg")
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusCreated, res.StatusCode)
 
-	EncodeReply(context.Background(), mockRespWriter, resp)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(res.Body)
+		assert.Equal(t, "not a real jpeg", buf.String())
+	}
 }
 
 type nonJsonable struct {
