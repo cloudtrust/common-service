@@ -15,6 +15,45 @@ import (
 	"github.com/pkg/errors"
 )
 
+// MimeContent defines a mime content for HTTP responses
+type MimeContent struct {
+	Filename string
+	MimeType string
+	Content  []byte
+}
+
+// GenericResponse for HTTP requests
+type GenericResponse struct {
+	StatusCode   int
+	Headers      map[string]string
+	MimeContent  *MimeContent
+	ExportToJSON interface{}
+}
+
+// WriteResponse writes a response for a mime content type
+func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
+	if r.MimeContent != nil {
+		w.Header().Set("Content-Type", r.MimeContent.MimeType)
+		w.Write(r.MimeContent.Content)
+	} else if r.ExportToJSON != nil {
+		writeJSON(r.ExportToJSON, w)
+	}
+	for k, v := range r.Headers {
+		w.Header().Set(k, v)
+	}
+	w.WriteHeader(r.StatusCode)
+}
+
+func writeJSON(exportToJSON interface{}, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	var json, err = json.MarshalIndent(exportToJSON, "", " ")
+
+	if err == nil {
+		w.Write(json)
+	}
+}
+
 // BasicDecodeRequest does not expect parameters
 func BasicDecodeRequest(ctx context.Context, req *http.Request) (interface{}, error) {
 	return DecodeRequest(ctx, req, map[string]string{}, map[string]string{})
@@ -78,13 +117,12 @@ func EncodeReply(_ context.Context, w http.ResponseWriter, rep interface{}) erro
 		return nil
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-
-	var json, err = json.MarshalIndent(rep, "", " ")
-
-	if err == nil {
-		w.Write(json)
+	switch e := rep.(type) {
+	case GenericResponse:
+		e.WriteResponse(w)
+	default:
+		w.WriteHeader(http.StatusOK)
+		writeJSON(rep, w)
 	}
 
 	return nil

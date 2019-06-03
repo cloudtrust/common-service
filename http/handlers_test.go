@@ -26,6 +26,51 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGenericResponse(t *testing.T) {
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockRespWriter := mock.NewResponseWriter(mockCtrl)
+
+	// Test with JSON content
+	var resp = GenericResponse{
+		StatusCode:   http.StatusNotFound,
+		Headers:      map[string]string{"Location": "here"},
+		MimeContent:  nil,
+		ExportToJSON: make([]int, 0),
+	}
+
+	var headers = make(http.Header)
+	mockRespWriter.EXPECT().Header().Return(headers).Times(2)
+	mockRespWriter.EXPECT().WriteHeader(resp.StatusCode).Times(1)
+	mockRespWriter.EXPECT().Write([]byte("[]")).Times(1)
+
+	EncodeReply(context.Background(), mockRespWriter, resp)
+
+	assert.Equal(t, 2, len(headers))
+	assert.Equal(t, "here", headers.Get("Location"))
+	assert.Equal(t, "application/json; charset=utf-8", headers.Get("Content-Type"))
+
+	// Test with MimeContent
+	mime := MimeContent{
+		MimeType: "image/jpg",
+		Content:  []byte("not a real jpeg"),
+		Filename: "filename.jpg",
+	}
+	resp = GenericResponse{
+		StatusCode:   http.StatusCreated,
+		Headers:      nil,
+		MimeContent:  &mime,
+		ExportToJSON: nil,
+	}
+
+	mockRespWriter.EXPECT().Header().Return(headers).Times(1)
+	mockRespWriter.EXPECT().WriteHeader(resp.StatusCode).Times(1)
+	mockRespWriter.EXPECT().Write(resp.MimeContent.Content).Times(1)
+
+	EncodeReply(context.Background(), mockRespWriter, resp)
+}
+
 type nonJsonable struct {
 }
 
