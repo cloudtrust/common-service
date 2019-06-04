@@ -28,6 +28,27 @@ const (
 		`
 )
 
+// Defines event information constants
+const (
+	CtEventType            = "ct_event_type"
+	CtEventAgentUsername   = "agent_username"
+	CtEventAgentRealmName  = "agent_realm_name"
+	CtEventUserID          = "user_id"
+	CtEventOrigin          = "origin"
+	CtEventAuditTime       = "audit_time"
+	CtEventRealmName       = "realm_name"
+	CtEventAgentUserID     = "agent_user_id"
+	CtEventUsername        = "username"
+	CtEventKcEventType     = "kc_event_type"
+	CtEventKcOperationType = "kc_operation_type"
+	CtEventClientID        = "client_id"
+	CtEventAdditionalInfo  = "additional_info"
+)
+
+var ctEventColumns = []string{
+	CtEventType, CtEventAgentUsername, CtEventAgentRealmName, CtEventUserID, CtEventOrigin, CtEventAuditTime, CtEventRealmName,
+	CtEventAgentUserID, CtEventUsername, CtEventKcEventType, CtEventKcOperationType, CtEventClientID, CtEventAdditionalInfo}
+
 // EventsDBModule is the interface of the audit events module.
 type EventsDBModule interface {
 	Store(context.Context, map[string]string) error
@@ -36,6 +57,22 @@ type EventsDBModule interface {
 
 type eventsDBModule struct {
 	db CloudtrustDB
+}
+
+func isInArray(array []string, value string) bool {
+	for _, e := range array {
+		if e == value {
+			return true
+		}
+	}
+	return false
+}
+
+func checkNull(value string) interface{} {
+	if value == "" {
+		return nil
+	}
+	return value
 }
 
 // CreateAdditionalInfo creates the additional info value
@@ -59,41 +96,54 @@ func NewEventsDBModule(db CloudtrustDB) EventsDBModule {
 func (cm *eventsDBModule) Store(_ context.Context, m map[string]string) error {
 	// if ctEventType is not "", then record the events in MariaDB
 	// otherwise, do nothing
-	if m["ct_event_type"] == "" {
+	if m[CtEventType] == "" {
 		return nil
 	}
 
 	// the event was already formatted according to the DB structure already at the component level
 
 	//auditTime - time of the event
-	auditTime := m["audit_time"]
+	auditTime := m[CtEventAuditTime]
 	// origin - the component that initiated the event
-	origin := m["origin"]
+	origin := m[CtEventOrigin]
 	// realmName - realm name of the user that is impacted by the action
-	realmName := m["realm_name"]
+	realmName := m[CtEventRealmName]
 	//agentUserID - userId of who is performing an action
-	agentUserID := m["agent_user_id"]
+	agentUserID := m[CtEventAgentUserID]
 	//agentUsername - username of who is performing an action
-	agentUsername := m["agent_username"]
+	agentUsername := m[CtEventAgentUsername]
 	//agentRealmName - realm of who is performing an action
-	agentRealmName := m["agent_realm_name"]
+	agentRealmName := m[CtEventAgentRealmName]
 	//userID - ID of the user that is impacted by the action
-	userID := m["user_id"]
+	userID := m[CtEventUserID]
 	//username - username of the user that is impacted by the action
-	username := m["username"]
+	username := m[CtEventUsername]
 	// ctEventType that  is established before at the component level
-	ctEventType := m["ct_event_type"]
+	ctEventType := m[CtEventType]
 	// kcEventType corresponds to keycloak event type
-	kcEventType := m["kc_event_type"]
+	kcEventType := m[CtEventKcEventType]
 	// kcOperationType - operation type of the event that comes from Keycloak
-	kcOperationType := m["kc_operation_type"]
+	kcOperationType := m[CtEventKcOperationType]
 	// Id of the client
-	clientID := m["client_id"]
+	clientID := m[CtEventClientID]
 	//additional_info - all the rest of the information from the event
-	additionalInfo := m["additional_info"]
+	additionalInfo := m[CtEventAdditionalInfo]
+	if additionalInfo == "" {
+		var addNfo = make(map[string]string)
+		for k, v := range m {
+			if !isInArray(ctEventColumns, k) {
+				addNfo[k] = v
+			}
+		}
+		if additionalInfoBytes, err := json.Marshal(addNfo); err == nil && len(addNfo) > 0 {
+			additionalInfo = string(additionalInfoBytes)
+		}
+	}
 
 	//store the event in the DB
-	_, err := cm.db.Exec(insertEvent, auditTime, origin, realmName, agentUserID, agentUsername, agentRealmName, userID, username, ctEventType, kcEventType, kcOperationType, clientID, additionalInfo)
+	_, err := cm.db.Exec(insertEvent, auditTime, origin, checkNull(realmName), checkNull(agentUserID), checkNull(agentUsername),
+		checkNull(agentRealmName), checkNull(userID), checkNull(username), checkNull(ctEventType), checkNull(kcEventType),
+		checkNull(kcOperationType), checkNull(clientID), checkNull(additionalInfo))
 
 	return err
 }
@@ -120,9 +170,9 @@ type ReportEventDetails struct {
 func CreateEvent(apiCall string, origin string) ReportEventDetails {
 	var event ReportEventDetails
 	event.details = make(map[string]string)
-	event.details["ct_event_type"] = apiCall
-	event.details["origin"] = origin
-	event.details["audit_time"] = time.Now().UTC().Format(timeFormat)
+	event.details[CtEventType] = apiCall
+	event.details[CtEventOrigin] = origin
+	event.details[CtEventAuditTime] = time.Now().UTC().Format(timeFormat)
 
 	return event
 }
@@ -138,11 +188,15 @@ func (er *ReportEventDetails) AddEventValues(values ...string) {
 
 // AddAgentDetails add details from the context
 func (er *ReportEventDetails) AddAgentDetails(ctx context.Context) {
-	//retrieve agent username
-	er.details["agent_username"] = ctx.Value(cs.CtContextUsername).(string)
-	//retrieve agent user id - not yet implemented
-	//to be uncommented once the ctx contains the userId value
-	//er.details["userId"] = ctx.Value(cs.CtContextUserID).(string)
-	//retrieve agent realm
-	er.details["agent_realm_name"] = ctx.Value(cs.CtContextRealm).(string)
+	var mapper = map[cs.CtContext]string{
+		cs.CtContextUsername: CtEventAgentUsername,
+		cs.CtContextUserID:   CtEventUserID,
+		cs.CtContextRealm:    CtEventAgentRealmName,
+	}
+	for keyFrom, keyTo := range mapper {
+		var value = ctx.Value(keyFrom)
+		if value != nil {
+			er.details[keyTo] = value.(string)
+		}
+	}
 }
