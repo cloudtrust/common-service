@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	cs "github.com/cloudtrust/common-service"
@@ -35,6 +36,16 @@ type EventsDBModule interface {
 
 type eventsDBModule struct {
 	db CloudtrustDB
+}
+
+// CreateAdditionalInfo creates the additional info value
+func CreateAdditionalInfo(values ...string) string {
+	var nfo = make(map[string]string)
+	for i := 0; i+1 < len(values); i += 2 {
+		nfo[values[i]] = values[i+1]
+	}
+	addInfo, _ := json.Marshal(nfo)
+	return string(addInfo)
 }
 
 // NewEventsDBModule returns a Console module.

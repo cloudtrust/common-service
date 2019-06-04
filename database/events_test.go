@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	cs "github.com/cloudtrust/common-service"
@@ -9,6 +10,13 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestCreateAdditionalInfo(t *testing.T) {
+	var addInfo = CreateAdditionalInfo("a", "b", "c", "d", "z")
+	assert.True(t, strings.Contains(addInfo, `"a":"b"`))
+	assert.True(t, strings.Contains(addInfo, `"c":"d"`))
+	assert.False(t, strings.Contains(addInfo, `"z"`))
+}
 
 func TestEventsDBModule(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
