@@ -41,10 +41,10 @@ func TestHttpGenericResponse(t *testing.T) {
 	// Test with JSON content
 	r.Handle("/path/to/mime", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
 		return GenericResponse{
-			StatusCode:   http.StatusNotFound,
-			Headers:      map[string]string{"Location": "here"},
-			MimeContent:  nil,
-			ExportToJSON: make([]int, 0),
+			StatusCode:       http.StatusNotFound,
+			Headers:          map[string]string{"Location": "here"},
+			MimeContent:      nil,
+			JSONableResponse: make([]int, 0),
 		}, nil
 	}))
 	// Test with MimeContent
@@ -55,10 +55,10 @@ func TestHttpGenericResponse(t *testing.T) {
 			Filename: "filename.jpg",
 		}
 		return GenericResponse{
-			StatusCode:   http.StatusCreated,
-			Headers:      nil,
-			MimeContent:  &mime,
-			ExportToJSON: nil,
+			StatusCode:       http.StatusCreated,
+			Headers:          nil,
+			MimeContent:      &mime,
+			JSONableResponse: nil,
 		}, nil
 	}))
 

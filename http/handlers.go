@@ -24,10 +24,10 @@ type MimeContent struct {
 
 // GenericResponse for HTTP requests
 type GenericResponse struct {
-	StatusCode   int
-	Headers      map[string]string
-	MimeContent  *MimeContent
-	ExportToJSON interface{}
+	StatusCode       int
+	Headers          map[string]string
+	MimeContent      *MimeContent
+	JSONableResponse interface{}
 }
 
 // WriteResponse writes a response for a mime content type
@@ -53,15 +53,15 @@ func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
 	// Body
 	if r.MimeContent != nil {
 		w.Write(r.MimeContent.Content)
-	} else if r.ExportToJSON != nil {
-		writeJSON(r.ExportToJSON, w)
+	} else if r.JSONableResponse != nil {
+		writeJSON(r.JSONableResponse, w)
 	}
 }
 
-func writeJSON(exportToJSON interface{}, w http.ResponseWriter) {
+func writeJSON(jsonableResponse interface{}, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	var json, err = json.MarshalIndent(exportToJSON, "", " ")
+	var json, err = json.MarshalIndent(jsonableResponse, "", " ")
 
 	if err == nil {
 		w.Write(json)
