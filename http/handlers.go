@@ -15,6 +15,59 @@ import (
 	"github.com/pkg/errors"
 )
 
+// MimeContent defines a mime content for HTTP responses
+type MimeContent struct {
+	Filename string
+	MimeType string
+	Content  []byte
+}
+
+// GenericResponse for HTTP requests
+type GenericResponse struct {
+	StatusCode       int
+	Headers          map[string]string
+	MimeContent      *MimeContent
+	JSONableResponse interface{}
+}
+
+// WriteResponse writes a response for a mime content type
+func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
+	if r.Headers == nil {
+		r.Headers = make(map[string]string, 0)
+	}
+	// Headers
+	if r.MimeContent != nil {
+		r.Headers["Content-Type"] = r.MimeContent.MimeType
+		if len(r.MimeContent.Filename) > 0 {
+			// Does not support UTF-8 or spaces in filename
+			r.Headers["Content-Disposition"] = "attachment; filename=" + r.MimeContent.Filename
+		}
+	}
+	for k, v := range r.Headers {
+		w.Header().Set(k, v)
+	}
+
+	// Status code
+	w.WriteHeader(r.StatusCode)
+
+	// Body
+	if r.MimeContent != nil {
+		w.Write(r.MimeContent.Content)
+	} else if r.JSONableResponse != nil {
+		writeJSON(r.JSONableResponse, w)
+	}
+}
+
+func writeJSON(jsonableResponse interface{}, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	var json, err = json.MarshalIndent(jsonableResponse, "", " ")
+
+	if err == nil {
+		w.Write(json)
+	}
+}
+
 // BasicDecodeRequest does not expect parameters
 func BasicDecodeRequest(ctx context.Context, req *http.Request) (interface{}, error) {
 	return DecodeRequest(ctx, req, map[string]string{}, map[string]string{})
@@ -78,13 +131,12 @@ func EncodeReply(_ context.Context, w http.ResponseWriter, rep interface{}) erro
 		return nil
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-
-	var json, err = json.MarshalIndent(rep, "", " ")
-
-	if err == nil {
-		w.Write(json)
+	switch e := rep.(type) {
+	case GenericResponse:
+		e.WriteResponse(w)
+	default:
+		w.WriteHeader(http.StatusOK)
+		writeJSON(rep, w)
 	}
 
 	return nil
