@@ -18,10 +18,10 @@ func TestDbVersion(t *testing.T) {
 	}
 
 	var v1, v2 *dbVersion
-	v1, err = newDbVersion("1.0")
+	v1, err = newDbVersion("1.1")
 	assert.Nil(t, err)
 
-	var matchTests = map[string]bool{"0.9": false, "1.0": true, "1.5": true, "2.0": true}
+	var matchTests = map[string]bool{"0.9": false, "1.0": false, "1.1": true, "1.5": true, "2.0": true}
 	for k, v := range matchTests {
 		v2, err = newDbVersion(k)
 		assert.Equal(t, v, v2.matchesRequired(v1))
