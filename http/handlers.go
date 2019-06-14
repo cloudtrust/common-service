@@ -47,19 +47,18 @@ func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
 		w.Header().Set(k, v)
 	}
 
-	// Status code
-	w.WriteHeader(r.StatusCode)
-
 	// Body
 	if r.MimeContent != nil {
+		w.WriteHeader(r.StatusCode)
 		w.Write(r.MimeContent.Content)
 	} else if r.JSONableResponse != nil {
-		writeJSON(r.JSONableResponse, w)
+		writeJSON(r.JSONableResponse, w, r.StatusCode)
 	}
 }
 
-func writeJSON(jsonableResponse interface{}, w http.ResponseWriter) {
+func writeJSON(jsonableResponse interface{}, w http.ResponseWriter, statusCode int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(statusCode)
 
 	var json, err = json.MarshalIndent(jsonableResponse, "", " ")
 
@@ -135,8 +134,7 @@ func EncodeReply(_ context.Context, w http.ResponseWriter, rep interface{}) erro
 	case GenericResponse:
 		e.WriteResponse(w)
 	default:
-		w.WriteHeader(http.StatusOK)
-		writeJSON(rep, w)
+		writeJSON(rep, w, http.StatusOK)
 	}
 
 	return nil
