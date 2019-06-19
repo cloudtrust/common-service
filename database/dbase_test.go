@@ -28,6 +28,20 @@ func TestDbVersion(t *testing.T) {
 	}
 }
 
+func TestGetDbConnectionString(t *testing.T) {
+	var conf = DbConfig{
+		Username: "user",
+		Password: "pass",
+		Protocol: "proto",
+		HostPort: "1234",
+		Database: "db",
+	}
+	assert.Equal(t, "user:pass@proto(1234)/db", conf.getDbConnectionString())
+
+	conf.Parameters = "params"
+	assert.Equal(t, "user:pass@proto(1234)/db?params", conf.getDbConnectionString())
+}
+
 func TestConfigureDbDefault(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
