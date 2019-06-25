@@ -54,6 +54,7 @@ type DbConfig struct {
 	Password         string
 	Database         string
 	Protocol         string
+	Parameters       string
 	MaxOpenConns     int
 	MaxIdleConns     int
 	ConnMaxLifetime  int
@@ -73,6 +74,7 @@ func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
 	v.SetDefault(prefix+"-password", "")
 	v.SetDefault(prefix+"-database", "")
 	v.SetDefault(prefix+"-protocol", "")
+	v.SetDefault(prefix+"-parameters", "")
 	v.SetDefault(prefix+"-max-open-conns", 10)
 	v.SetDefault(prefix+"-max-idle-conns", 2)
 	v.SetDefault(prefix+"-conn-max-lifetime", 3600)
@@ -94,6 +96,7 @@ func GetDbConfig(v cs.Configuration, prefix string, noop bool) *DbConfig {
 		cfg.Password = v.GetString(prefix + "-password")
 		cfg.Database = v.GetString(prefix + "-database")
 		cfg.Protocol = v.GetString(prefix + "-protocol")
+		cfg.Parameters = v.GetString(prefix + "-parameters")
 		cfg.MaxOpenConns = v.GetInt(prefix + "-max-open-conns")
 		cfg.MaxIdleConns = v.GetInt(prefix + "-max-idle-conns")
 		cfg.ConnMaxLifetime = v.GetInt(prefix + "-conn-max-lifetime")
@@ -104,6 +107,14 @@ func GetDbConfig(v cs.Configuration, prefix string, noop bool) *DbConfig {
 	return &cfg
 }
 
+func (cfg *DbConfig) getDbConnectionString() string {
+	var separ = ""
+	if len(cfg.Parameters) > 0 {
+		separ = "?"
+	}
+	return fmt.Sprintf("%s:%s@%s(%s)/%s%s%s", cfg.Username, cfg.Password, cfg.Protocol, cfg.HostPort, cfg.Database, separ, cfg.Parameters)
+}
+
 // OpenDatabase gets an access to a database
 // If cfg.Noop is true, a Noop access will be provided
 func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
@@ -111,9 +122,9 @@ func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
 		return &NoopDB{}, nil
 	}
 
-	dbConn, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s(%s)/%s", cfg.Username, cfg.Password, cfg.Protocol, cfg.HostPort, cfg.Database))
+	dbConn, err := sql.Open("mysql", cfg.getDbConnectionString())
 	if err != nil {
-		return &NoopDB{}, err
+		return nil, err
 	}
 
 	// DB migration version
