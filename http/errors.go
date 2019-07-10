@@ -5,6 +5,18 @@ import (
 	"net/http"
 )
 
+var emitter string
+
+// SetEmitter is called by the components that call the methods of the common service
+func SetEmitter(e string) {
+	emitter = e
+}
+
+// GetEmitter allows to see who called the common service
+func GetEmitter() string {
+	return emitter
+}
+
 // Error can be returned by the API endpoints
 type Error struct {
 	Status  int
@@ -19,7 +31,7 @@ func (e Error) Error() string {
 func CreateInternalServerError(message string) Error {
 	return Error{
 		Status:  http.StatusInternalServerError,
-		Message: message,
+		Message: GetEmitter() + "." + message,
 	}
 }
 
@@ -27,7 +39,7 @@ func CreateInternalServerError(message string) Error {
 func CreateMissingParameterError(name string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: fmt.Sprintf("Missing mandatory parameter %s", name),
+		Message: fmt.Sprintf("%s.missingMandatoryParameter.%s", GetEmitter(), name),
 	}
 }
 
@@ -35,7 +47,7 @@ func CreateMissingParameterError(name string) Error {
 func CreateInvalidQueryParameterError(paramName string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: fmt.Sprintf("Invalid query parameter %s", paramName),
+		Message: fmt.Sprintf("%s.invalidQueryParameter.%s", GetEmitter(), paramName),
 	}
 }
 
@@ -43,7 +55,7 @@ func CreateInvalidQueryParameterError(paramName string) Error {
 func CreateInvalidPathParameterError(paramName string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: fmt.Sprintf("Invalid path parameter %s", paramName),
+		Message: fmt.Sprintf("%s.invalidPathParameter.%s", GetEmitter(), paramName),
 	}
 }
 
@@ -51,6 +63,6 @@ func CreateInvalidPathParameterError(paramName string) Error {
 func CreateBadRequestError(publicMessage string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: publicMessage,
+		Message: GetEmitter() + "." + publicMessage,
 	}
 }
