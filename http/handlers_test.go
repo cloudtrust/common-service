@@ -310,6 +310,7 @@ func TestErrorHandler(t *testing.T) {
 	// ForbiddenError
 	{
 		mockRespWriter.EXPECT().WriteHeader(http.StatusForbidden).Times(1)
+		mockRespWriter.EXPECT().Write(gomock.Any()).Times(1)
 		ErrorHandlerNoLog()(context.Background(), security.ForbiddenError{}, mockRespWriter)
 	}
 
@@ -337,4 +338,5 @@ func TestErrorHandler(t *testing.T) {
 		mockRespWriter.EXPECT().WriteHeader(http.StatusInternalServerError).Times(1)
 		ErrorHandlerNoLog()(context.Background(), errors.New(message), mockRespWriter)
 	}
+
 }
