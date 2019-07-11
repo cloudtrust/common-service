@@ -152,6 +152,7 @@ func ErrorHandler(logger cs.Logger) func(context.Context, error, http.ResponseWr
 		case security.ForbiddenError:
 			logger.Log("ErrorHandler", http.StatusForbidden, "msg", e.Error())
 			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(GetEmitter() + ".operationNotPermitted"))
 		case Error:
 			logger.Log("ErrorHandler", e.Status, "msg", e.Error())
 			w.WriteHeader(e.Status)
