@@ -38,8 +38,5 @@ func httpErrorHandler(_ context.Context, statusCode int, err error, w http.Respo
 	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	//var reply, _ = json.MarshalIndent(map[string]string{"error": err.Error()}, "", "  ")
-	//w.Write(reply)
-
 	w.Write([]byte(cshttp.GetEmitter() + "." + err.Error()))
 }
