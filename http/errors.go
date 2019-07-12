@@ -66,3 +66,19 @@ func CreateBadRequestError(publicMessage string) Error {
 		Message: GetEmitter() + "." + publicMessage,
 	}
 }
+
+// CreateNotAllowedError creates an error relative to a not allowed request
+func CreateNotAllowedError(publicMessage string) Error {
+	return Error{
+		Status:  http.StatusMethodNotAllowed,
+		Message: GetEmitter() + "." + publicMessage,
+	}
+}
+
+// CreateNotFoundError creates an error relative to a not found request
+func CreateNotFoundError(publicMessage string) Error {
+	return Error{
+		Status:  http.StatusNotFound,
+		Message: GetEmitter() + "." + publicMessage,
+	}
+}
