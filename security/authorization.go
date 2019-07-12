@@ -3,7 +3,7 @@ package security
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"strings"
 
@@ -179,7 +179,7 @@ type authorizations map[string]map[string]map[string]map[string]map[string]struc
 //   '*' can be used to express all target groups are allowed
 func loadAuthorizations(jsonAuthz string) (authorizations, error) {
 	if jsonAuthz == "" {
-		return nil, fmt.Errorf("JSON structure expected")
+		return nil, errors.New("JSON structure expected")
 	}
 	var authz = make(authorizations)
 
