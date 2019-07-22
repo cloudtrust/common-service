@@ -96,21 +96,16 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 				return
 			}
 
-			var matched, _ = regexp.MatchString(`^[Bb]earer *`, authorizationHeader)
-
-			if !matched {
+			var r = regexp.MustCompile(`^[Bb]earer +([^ ]+)$`)
+			var match = r.FindStringSubmatch(authorizationHeader)
+			if match == nil {
 				logger.Info("Authorization Error", "Missing bearer token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Missing bearer token"), w)
 				return
 			}
 
-			var splitToken = strings.Split(authorizationHeader, "Bearer ")
-
-			if len(splitToken) < 2 {
-				splitToken = strings.Split(authorizationHeader, "bearer ")
-			}
-
-			var accessToken = splitToken[1]
+			// match[0] is the global matched group. match[1] is the first captured group
+			var accessToken = match[1]
 
 			payload, _, err := jwt.Parse(accessToken)
 			if err != nil {
