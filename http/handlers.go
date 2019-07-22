@@ -7,6 +7,10 @@ import (
 	"net/http"
 	"regexp"
 
+<<<<<<< HEAD
+=======
+	cs "github.com/cloudtrust/common-service"
+>>>>>>> 53ec5f5... Log with level
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/security"
 	"github.com/go-kit/kit/ratelimit"

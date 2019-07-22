@@ -96,9 +96,15 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 				return
 			}
 
+<<<<<<< HEAD
 			var r = regexp.MustCompile(`^[Bb]earer +([^ ]+)$`)
 			var match = r.FindStringSubmatch(authorizationHeader)
 			if match == nil {
+=======
+			var matched, _ = regexp.MatchString(`^[Bb]earer *`, authorizationHeader)
+
+			if !matched {
+>>>>>>> 53ec5f5... Log with level
 				logger.Info("Authorization Error", "Missing bearer token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Missing bearer token"), w)
 				return
