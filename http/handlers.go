@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"regexp"
 
-	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/security"
 	"github.com/go-kit/kit/ratelimit"
@@ -150,15 +149,15 @@ func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseW
 	return func(_ context.Context, err error, w http.ResponseWriter) {
 		switch e := errors.Cause(err).(type) {
 		case security.ForbiddenError:
-			logger.Log("ErrorHandler", http.StatusForbidden, "msg", e.Error())
+			logger.Info("ErrorHandler", http.StatusForbidden, "msg", e.Error())
 			w.WriteHeader(http.StatusForbidden)
 		case Error:
-			logger.Log("ErrorHandler", e.Status, "msg", e.Error())
+			logger.Error("ErrorHandler", e.Status, "msg", e.Error())
 			w.WriteHeader(e.Status)
 			// You should really take care of what you are sending here : e.Message should not leak any sensitive information
 			w.Write([]byte(e.Message))
 		default:
-			logger.Log("ErrorHandler", http.StatusInternalServerError, "msg", e.Error())
+			logger.Error("ErrorHandler", http.StatusInternalServerError, "msg", e.Error())
 			if err == ratelimit.ErrLimited {
 				w.WriteHeader(http.StatusTooManyRequests)
 			} else {

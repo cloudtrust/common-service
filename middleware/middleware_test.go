@@ -38,7 +38,7 @@ func TestEndpointLoggingMW(t *testing.T) {
 	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
 
 	// With correlation ID.
-	mockLogger.EXPECT().Log("correlation_id", corrID).Return(nil).Times(1)
+	mockLogger.EXPECT().Debug("correlation_id", corrID).Return(nil).Times(1)
 	m(ctx, nil)
 
 	// Without correlation ID.
