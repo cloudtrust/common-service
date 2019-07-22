@@ -174,7 +174,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 	// Invalid bearer token.
 	{
 		var w = httptest.NewRecorder()
-		mockLogger.EXPECT().Log("Authorization Error", "Missing bearer token").Return(nil).Times(1)
+		mockLogger.EXPECT().Info("Authorization Error", "Missing bearer token").Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
