@@ -8,8 +8,8 @@ import (
 	"regexp"
 
 	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/security"
-	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/ratelimit"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -146,7 +146,7 @@ func ErrorHandlerNoLog() func(context.Context, error, http.ResponseWriter) {
 }
 
 // ErrorHandler encodes the reply when there is an error.
-func ErrorHandler(logger cs.Logger) func(context.Context, error, http.ResponseWriter) {
+func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseWriter) {
 	return func(_ context.Context, err error, w http.ResponseWriter) {
 		switch e := errors.Cause(err).(type) {
 		case security.ForbiddenError:

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	cs "github.com/cloudtrust/common-service"
-	"github.com/go-kit/kit/log"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/go-kit/kit/metrics"
 	gokit_influx "github.com/go-kit/kit/metrics/influx"
 	metric "github.com/go-kit/kit/metrics/influx"
@@ -73,7 +73,7 @@ func GetBatchPointsConfig(v cs.Configuration, prefix string) influx.BatchPointsC
 // host-port, username, password, precision, database, retention-policy, write-consistency
 // If a parameter exists only named with the given prefix and if its value if false, the InfluxMetrics
 // will be a inactive one (Noop)
-func NewMetrics(v cs.Configuration, prefix string, logger cs.Logger) (Metrics, error) {
+func NewMetrics(v cs.Configuration, prefix string, logger log.Logger) (Metrics, error) {
 	if !v.GetBool(prefix) {
 		return &NoopMetrics{}, nil
 	}
@@ -95,7 +95,7 @@ func NewMetrics(v cs.Configuration, prefix string, logger cs.Logger) (Metrics, e
 	var gokitInflux = gokit_influx.New(
 		map[string]string{},
 		influxBatchPointsConfig,
-		log.With(logger, "unit", "go-kit influx"),
+		log.With(logger, "unit", "go-kit influx").ToGoKitLogger(),
 	)
 
 	return &influxMetrics{
