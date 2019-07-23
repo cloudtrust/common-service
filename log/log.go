@@ -4,9 +4,13 @@ import kit_level "github.com/go-kit/kit/log/level"
 import kit_log "github.com/go-kit/kit/log"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Logger interface for logging with level
 =======
 >>>>>>> 53ec5f5... Log with level
+=======
+// Logger interface for logging with level
+>>>>>>> 817ac50... Fixup
 type Logger interface {
 	Debug(keyvals ...interface{}) error
 	Info(keyvals ...interface{}) error
