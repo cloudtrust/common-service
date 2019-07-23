@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/gbrlsnchs/jwt"
 )
 
@@ -17,13 +18,13 @@ import (
 // If there is no such header, the request is not allowed.
 // If the password is correct, the username is added into the context:
 //   - username: username extracted from the token
-func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger cs.Logger) func(http.Handler) http.Handler {
+func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var authorizationHeader = req.Header.Get("Authorization")
 
 			if authorizationHeader == "" {
-				logger.Log("Authorization Error", "Missing Authorization header")
+				logger.Info("Authorization Error", "Missing Authorization header")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Missing Authorization header"), w)
 				return
 			}
@@ -32,7 +33,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger cs.Logger) fun
 			var r = regexp.MustCompile(regexpBasicAuth)
 			var match = r.FindStringSubmatch(authorizationHeader)
 			if match == nil {
-				logger.Log("Authorization Error", "Missing basic token")
+				logger.Info("Authorization Error", "Missing basic token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Missing basic token"), w)
 				return
 			}
@@ -41,7 +42,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger cs.Logger) fun
 			decodedToken, err := base64.StdEncoding.DecodeString(match[1])
 
 			if err != nil {
-				logger.Log("Authorization Error", "Invalid base64 token")
+				logger.Info("Authorization Error", "Invalid base64 token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Invalid token"), w)
 				return
 			}
@@ -50,7 +51,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger cs.Logger) fun
 			var tokenSubparts = strings.Split(string(decodedToken), ":")
 
 			if len(tokenSubparts) != 2 {
-				logger.Log("Authorization Error", "Invalid token format (username:password)")
+				logger.Info("Authorization Error", "Invalid token format (username:password)")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Invalid token"), w)
 				return
 			}
@@ -60,7 +61,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger cs.Logger) fun
 
 			// Check password match
 			if password != passwordToMatch {
-				logger.Log("Authorization Error", "Invalid password value")
+				logger.Info("Authorization Error", "Invalid password value")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Invalid token"), w)
 				return
 			}
@@ -84,13 +85,13 @@ type KeycloakClient interface {
 //   - access_token: the recieved access token in raw format
 //   - realm: realm name extracted from the Issuer information of the token
 //   - username: username extracted from the token
-func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequired string, logger cs.Logger) func(http.Handler) http.Handler {
+func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var authorizationHeader = req.Header.Get("Authorization")
 
 			if authorizationHeader == "" {
-				logger.Log("Authorization Error", "Missing Authorization header")
+				logger.Info("Authorization Error", "Missing Authorization header")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Missing Authorization header"), w)
 				return
 			}
@@ -98,7 +99,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			var r = regexp.MustCompile(`^[Bb]earer +([^ ]+)$`)
 			var match = r.FindStringSubmatch(authorizationHeader)
 			if match == nil {
-				logger.Log("Authorization Error", "Missing bearer token")
+				logger.Info("Authorization Error", "Missing bearer token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Missing bearer token"), w)
 				return
 			}
@@ -108,7 +109,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 
 			payload, _, err := jwt.Parse(accessToken)
 			if err != nil {
-				logger.Log("Authorization Error", err)
+				logger.Info("Authorization Error", err)
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Invalid token"), w)
 				return
 			}
@@ -129,7 +130,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 					groups = extractGroups(jot.Groups)
 
 					if !assertMatchingAudience(jot.Audience, audienceRequired) {
-						logger.Log("Authorization Error", "Incorrect audience")
+						logger.Info("Authorization Error", "Incorrect audience")
 						httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Invalid token"), w)
 						return
 					}
@@ -147,19 +148,19 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 					groups = extractGroups(jot.Groups)
 
 					if jot.Audience != audienceRequired {
-						logger.Log("Authorization Error", "Incorrect audience")
+						logger.Info("Authorization Error", "Incorrect audience")
 						httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Invalid token"), w)
 						return
 					}
 				} else {
-					logger.Log("Authorization Error", err)
+					logger.Info("Authorization Error", err)
 					httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Invalid token"), w)
 					return
 				}
 			}
 
 			if err = keycloakClient.VerifyToken(realm, accessToken); err != nil {
-				logger.Log("Authorization Error", err)
+				logger.Info("Authorization Error", err)
 				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Invalid token"), w)
 				return
 			}

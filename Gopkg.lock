@@ -42,11 +42,12 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:d3bddc85b95446035729f10d290dc420c74ca9403ccb1b82b44cd68a0b239000"
+  digest = "1:15c75b28cf00c6cc6763b2544a6424aa2b94c0f1d6ed0230a1fd7e0c381a6d22"
   name = "github.com/go-kit/kit"
   packages = [
     "endpoint",
     "log",
+    "log/level",
     "metrics",
     "metrics/generic",
     "metrics/influx",
@@ -180,6 +181,7 @@
     "github.com/getsentry/raven-go",
     "github.com/go-kit/kit/endpoint",
     "github.com/go-kit/kit/log",
+    "github.com/go-kit/kit/log/level",
     "github.com/go-kit/kit/metrics",
     "github.com/go-kit/kit/metrics/influx",
     "github.com/go-kit/kit/ratelimit",

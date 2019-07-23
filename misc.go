@@ -11,11 +11,6 @@ type Endpoint func(ctx context.Context, request interface{}) (response interface
 // Middleware type
 type Middleware func(Endpoint) Endpoint
 
-// Logger interface
-type Logger interface {
-	Log(keyvals ...interface{}) error
-}
-
 // Configuration interface
 type Configuration interface {
 	SetDefault(key string, value interface{})
