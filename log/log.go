@@ -3,6 +3,7 @@ package log
 import kit_level "github.com/go-kit/kit/log/level"
 import kit_log "github.com/go-kit/kit/log"
 
+// Logger interface for logging with level
 type Logger interface {
 	Debug(keyvals ...interface{}) error
 	Info(keyvals ...interface{}) error
