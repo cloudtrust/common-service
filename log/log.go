@@ -43,19 +43,19 @@ func With(logger Logger, keyvals ...interface{}) Logger {
 }
 
 func (l *ctLogger) Debug(keyvals ...interface{}) error {
-	return kit_level.Debug(l.logger).Log(keyvals)
+	return kit_level.Debug(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) Info(keyvals ...interface{}) error {
-	return kit_level.Info(l.logger).Log(keyvals)
+	return kit_level.Info(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) Warn(keyvals ...interface{}) error {
-	return kit_level.Warn(l.logger).Log(keyvals)
+	return kit_level.Warn(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) Error(keyvals ...interface{}) error {
-	return kit_level.Error(l.logger).Log(keyvals)
+	return kit_level.Error(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) ToGoKitLogger() kit_log.Logger {
