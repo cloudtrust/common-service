@@ -38,7 +38,7 @@ func NewLeveledLogger(l kit_log.Logger) Logger {
 // Valuer with their generated value for each call to its Log method.
 func With(logger Logger, keyvals ...interface{}) Logger {
 	return &ctLogger{
-		logger: kit_log.With(logger.ToGoKitLogger(), keyvals),
+		logger: kit_log.With(logger.ToGoKitLogger(), keyvals...),
 	}
 }
 
