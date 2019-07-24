@@ -1,7 +1,11 @@
 package log
 
-import kit_level "github.com/go-kit/kit/log/level"
-import kit_log "github.com/go-kit/kit/log"
+import (
+	"fmt"
+
+	kit_log "github.com/go-kit/kit/log"
+	kit_level "github.com/go-kit/kit/log/level"
+)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -39,6 +43,29 @@ func NewLeveledLogger(l kit_log.Logger) Logger {
 func With(logger Logger, keyvals ...interface{}) Logger {
 	return &ctLogger{
 		logger: kit_log.With(logger.ToGoKitLogger(), keyvals...),
+	}
+}
+
+// AllowLevel sets the log filtering according to the provided level
+func AllowLevel(logger Logger, level kit_level.Option) Logger {
+	return &ctLogger{
+		logger: kit_level.NewFilter(logger.ToGoKitLogger(), level),
+	}
+}
+
+// ConvertToLevel transform string value in level
+func ConvertToLevel(strLevel string) (kit_level.Option, error) {
+	switch strLevel {
+	case "debug":
+		return kit_level.AllowDebug(), nil
+	case "info":
+		return kit_level.AllowInfo(), nil
+	case "warn":
+		return kit_level.AllowWarn(), nil
+	case "error":
+		return kit_level.AllowError(), nil
+	default:
+		return nil, fmt.Errorf("Invalid level")
 	}
 }
 
