@@ -46,20 +46,22 @@ func AllowLevel(logger Logger, level kit_level.Option) Logger {
 	}
 }
 
+var levels = map[string]kit_level.Option{
+	"debug": kit_level.AllowDebug(),
+	"info":  kit_level.AllowDebug(),
+	"warn":  kit_level.AllowDebug(),
+	"error": kit_level.AllowDebug(),
+}
+
 // ConvertToLevel transform string value in level
 func ConvertToLevel(strLevel string) (kit_level.Option, error) {
-	switch strLevel {
-	case "debug":
-		return kit_level.AllowDebug(), nil
-	case "info":
-		return kit_level.AllowInfo(), nil
-	case "warn":
-		return kit_level.AllowWarn(), nil
-	case "error":
-		return kit_level.AllowError(), nil
-	default:
+	var level, ok = levels[strLevel]
+
+	if !ok {
 		return nil, fmt.Errorf("Invalid level")
 	}
+
+	return level, nil
 }
 
 func (l *ctLogger) Debug(keyvals ...interface{}) error {
