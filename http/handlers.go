@@ -149,20 +149,8 @@ func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseW
 	return func(_ context.Context, err error, w http.ResponseWriter) {
 		switch e := errors.Cause(err).(type) {
 		case security.ForbiddenError:
-<<<<<<< HEAD
-<<<<<<< HEAD
 			w.WriteHeader(http.StatusForbidden)
 		case Error:
-=======
-			logger.Info("ErrorHandler", http.StatusForbidden, "msg", e.Error())
-			w.WriteHeader(http.StatusForbidden)
-		case Error:
-			logger.Error("ErrorHandler", e.Status, "msg", e.Error())
->>>>>>> b6d9953... Fixup
-=======
-			w.WriteHeader(http.StatusForbidden)
-		case Error:
->>>>>>> 817ac50... Fixup
 			w.WriteHeader(e.Status)
 			// You should really take care of what you are sending here : e.Message should not leak any sensitive information
 			w.Write([]byte(e.Message))
