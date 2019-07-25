@@ -1,7 +1,11 @@
 package log
 
-import kit_level "github.com/go-kit/kit/log/level"
-import kit_log "github.com/go-kit/kit/log"
+import (
+	"fmt"
+
+	kit_log "github.com/go-kit/kit/log"
+	kit_level "github.com/go-kit/kit/log/level"
+)
 
 // Logger interface for logging with level
 type Logger interface {
@@ -31,24 +35,49 @@ func NewLeveledLogger(l kit_log.Logger) Logger {
 // Valuer with their generated value for each call to its Log method.
 func With(logger Logger, keyvals ...interface{}) Logger {
 	return &ctLogger{
-		logger: kit_log.With(logger.ToGoKitLogger(), keyvals),
+		logger: kit_log.With(logger.ToGoKitLogger(), keyvals...),
 	}
 }
 
+// AllowLevel sets the log filtering according to the provided level
+func AllowLevel(logger Logger, level kit_level.Option) Logger {
+	return &ctLogger{
+		logger: kit_level.NewFilter(logger.ToGoKitLogger(), level),
+	}
+}
+
+var levels = map[string]kit_level.Option{
+	"debug": kit_level.AllowDebug(),
+	"info":  kit_level.AllowDebug(),
+	"warn":  kit_level.AllowDebug(),
+	"error": kit_level.AllowDebug(),
+}
+
+// ConvertToLevel transform string value in level
+func ConvertToLevel(strLevel string) (kit_level.Option, error) {
+	var level, ok = levels[strLevel]
+
+	if !ok {
+		return nil, fmt.Errorf("Invalid level")
+	}
+
+	return level, nil
+}
+
 func (l *ctLogger) Debug(keyvals ...interface{}) error {
-	return kit_level.Debug(l.logger).Log(keyvals)
+	return kit_level.Debug(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) Info(keyvals ...interface{}) error {
-	return kit_level.Info(l.logger).Log(keyvals)
+	return kit_level.Info(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) Warn(keyvals ...interface{}) error {
-	return kit_level.Warn(l.logger).Log(keyvals)
+	return kit_level.Warn(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) Error(keyvals ...interface{}) error {
-	return kit_level.Error(l.logger).Log(keyvals)
+	return kit_level.Error(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) ToGoKitLogger() kit_log.Logger {

@@ -15,8 +15,10 @@ import (
 func MakeEndpointLoggingMW(logger log.Logger) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
-			logger.Debug("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string))
-			return next(ctx, req)
+			logger.Debug("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string), "req", req)
+			res, err := next(ctx, req)
+			logger.Debug("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string), "res", res)
+			return res, err
 		}
 	}
 }
