@@ -61,6 +61,7 @@ type DbConfig struct {
 	Noop             bool
 	MigrationEnabled bool
 	MigrationVersion string
+	ConnectionCheck  bool
 }
 
 // ConfigureDbDefault configure default database parameters for a given prefix
@@ -80,6 +81,7 @@ func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
 	v.SetDefault(prefix+"-conn-max-lifetime", 3600)
 	v.SetDefault(prefix+"-migration", false)
 	v.SetDefault(prefix+"-migration-version", "")
+	v.SetDefault(prefix+"-connection-check", true)
 
 	v.BindEnv(prefix+"-username", envUser)
 	v.BindEnv(prefix+"-password", envPasswd)
@@ -102,6 +104,7 @@ func GetDbConfig(v cs.Configuration, prefix string, noop bool) *DbConfig {
 		cfg.ConnMaxLifetime = v.GetInt(prefix + "-conn-max-lifetime")
 		cfg.MigrationEnabled = v.GetBool(prefix + "-migration")
 		cfg.MigrationVersion = v.GetString(prefix + "-migration-version")
+		cfg.ConnectionCheck = v.GetBool(prefix + "-connection-check")
 	}
 
 	return &cfg
@@ -139,6 +142,9 @@ func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
 			dbConn.Close()
 			dbConn = nil
 		}
+	} else if cfg.ConnectionCheck {
+		// Executes a simple query to check that the connection is valid
+		_, err = dbConn.Exec("select 1")
 	}
 
 	// the config of the DB should have a max_connections > SetMaxOpenConns
