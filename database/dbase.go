@@ -144,7 +144,7 @@ func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
 		}
 	} else if cfg.ConnectionCheck {
 		// Executes a simple query to check that the connection is valid
-		_, err = dbConn.Exec("select 1")
+		err = dbConn.Ping()
 	}
 
 	// the config of the DB should have a max_connections > SetMaxOpenConns
