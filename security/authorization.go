@@ -155,6 +155,26 @@ func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Cont
 	return ForbiddenError{}
 }
 
+// GetRightsOfCurrentUser returns the matrix rights of the current user
+func (am *authorizationManager) GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{} {
+	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
+	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
+
+	//3 dimensions table to express authorizations (group_of_user, action, target_realm) -> target_group for which the action is allowed
+	// We keep group_of_user as a user may be part of multiple groups
+	var rights = map[string]map[string]map[string]map[string]struct{}{}
+
+	for _, group := range currentGroups {
+		rightsForGroup, exist := am.authorizations[currentRealm][group]
+
+		if exist {
+			rights[group] = rightsForGroup
+		}
+	}
+
+	return rights
+}
+
 // ForbiddenError when an operation is not permitted.
 type ForbiddenError struct{}
 
@@ -163,7 +183,7 @@ func (e ForbiddenError) Error() string {
 }
 
 // Authorizations data structure
-// 4 dimensions table to express authorizations (realm_of_user, role_of_user, action, target_realm) -> target_group for which the action is allowed
+// 4 dimensions table to express authorizations (realm_of_user, group_of_user, action, target_realm) -> target_group for which the action is allowed
 type authorizations map[string]map[string]map[string]map[string]map[string]struct{}
 
 // LoadAuthorizations loads the authorization JSON into the data structure
@@ -209,6 +229,7 @@ type AuthorizationManager interface {
 	CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error
 	CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error
 	CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error
+	GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{}
 }
 
 // Authorizations data structure
