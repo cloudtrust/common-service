@@ -157,8 +157,18 @@ func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Cont
 
 // GetRightsOfCurrentUser returns the matrix rights of the current user
 func (am *authorizationManager) GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{} {
-	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
-	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
+	var currentRealm string
+	var currentGroups = []string{}
+	var currentRealmVal = ctx.Value(cs.CtContextRealm)
+	var currentGroupsVal = ctx.Value(cs.CtContextGroups)
+
+	if currentRealmVal != nil {
+		currentRealm = currentRealmVal.(string)
+	}
+
+	if currentGroupsVal != nil {
+		currentGroups = currentGroupsVal.([]string)
+	}
 
 	//3 dimensions table to express authorizations (group_of_user, action, target_realm) -> target_group for which the action is allowed
 	// We keep group_of_user as a user may be part of multiple groups
