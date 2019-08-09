@@ -51,7 +51,7 @@ func TestConfigureDbDefault(t *testing.T) {
 	var envUser = "the env user"
 	var envPass = "the env password"
 
-	for _, suffix := range []string{"-host-port", "-username", "-password", "-database", "-protocol", "-parameters", "-max-open-conns", "-max-idle-conns", "-conn-max-lifetime", "-migration", "-migration-version"} {
+	for _, suffix := range []string{"-host-port", "-username", "-password", "-database", "-protocol", "-parameters", "-max-open-conns", "-max-idle-conns", "-conn-max-lifetime", "-migration", "-migration-version", "-connection-check"} {
 		mockConf.EXPECT().SetDefault(prefix+suffix, gomock.Any()).Times(1)
 	}
 	mockConf.EXPECT().BindEnv(prefix+"-username", envUser).Times(1)
@@ -74,6 +74,7 @@ func TestGetDbConfig(t *testing.T) {
 		mockConf.EXPECT().GetInt(prefix + suffix).Return(1).Times(1)
 	}
 	mockConf.EXPECT().GetBool(prefix + "-migration").Return(false).Times(1)
+	mockConf.EXPECT().GetBool(prefix + "-connection-check").Return(true).Times(1)
 	mockConf.EXPECT().GetString(prefix + "-migration-version").Return("1.0").Times(1)
 
 	var cfg = GetDbConfig(mockConf, prefix, false)
