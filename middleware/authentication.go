@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -96,11 +97,11 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 				return
 			}
 
-			var matched, _ = regexp.MatchString(`^[Bb]earer *`, authorizationHeader)
-
-			if !matched {
+			var r = regexp.MustCompile(`^[Bb]earer +([^ ]+)$`)
+			var match = r.FindStringSubmatch(authorizationHeader)
+			if match == nil {
 				logger.Info("Authorization Error", "Missing bearer token")
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("missingBearerToken"), w)
+				httpErrorHandler(context.TODO(), http.StatusForbidden, fmt.Errorf("Missing bearer token"), w)
 				return
 			}
 
