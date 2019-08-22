@@ -24,7 +24,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			var authorizationHeader = req.Header.Get("Authorization")
 
 			if authorizationHeader == "" {
-				logger.Log("Authorization Error", "Missing Authorization header")
+				logger.Info("Authorization Error", "Missing Authorization header")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("missingAuthorizationheader"), w)
 				return
 			}
@@ -33,7 +33,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			var r = regexp.MustCompile(regexpBasicAuth)
 			var match = r.FindStringSubmatch(authorizationHeader)
 			if match == nil {
-				logger.Log("Authorization Error", "Missing basic token")
+				logger.Info("Authorization Error", "Missing basic token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("missingBasicToken"), w)
 				return
 			}
@@ -42,7 +42,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			decodedToken, err := base64.StdEncoding.DecodeString(match[1])
 
 			if err != nil {
-				logger.Log("Authorization Error", "Invalid base64 token")
+				logger.Info("Authorization Error", "Invalid base64 token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("invalidToken"), w)
 				return
 			}
@@ -51,7 +51,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			var tokenSubparts = strings.Split(string(decodedToken), ":")
 
 			if len(tokenSubparts) != 2 {
-				logger.Log("Authorization Error", "Invalid token format (username:password)")
+				logger.Info("Authorization Error", "Invalid token format (username:password)")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("invalidToken"), w)
 				return
 			}
@@ -61,7 +61,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 
 			// Check password match
 			if password != passwordToMatch {
-				logger.Log("Authorization Error", "Invalid password value")
+				logger.Info("Authorization Error", "Invalid password value")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("invalidToken"), w)
 				return
 			}
@@ -91,7 +91,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			var authorizationHeader = req.Header.Get("Authorization")
 
 			if authorizationHeader == "" {
-				logger.Log("Authorization Error", "Missing Authorization header")
+				logger.Info("Authorization Error", "Missing Authorization header")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("missingAuthorizationHeader"), w)
 				return
 			}
@@ -99,7 +99,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			var matched, _ = regexp.MatchString(`^[Bb]earer *`, authorizationHeader)
 
 			if !matched {
-				logger.Log("Authorization Error", "Missing bearer token")
+				logger.Info("Authorization Error", "Missing bearer token")
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("missingBearerToken"), w)
 				return
 			}
@@ -109,7 +109,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 
 			payload, _, err := jwt.Parse(accessToken)
 			if err != nil {
-				logger.Log("Authorization Error", err)
+				logger.Info("Authorization Error", err)
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("invalidToken"), w)
 				return
 			}
@@ -130,7 +130,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 					groups = extractGroups(jot.Groups)
 
 					if !assertMatchingAudience(jot.Audience, audienceRequired) {
-						logger.Log("Authorization Error", "Incorrect audience")
+						logger.Info("Authorization Error", "Incorrect audience")
 						httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("invalidToken"), w)
 						return
 					}
@@ -148,7 +148,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 					groups = extractGroups(jot.Groups)
 
 					if jot.Audience != audienceRequired {
-						logger.Log("Authorization Error", "Incorrect audience")
+						logger.Info("Authorization Error", "Incorrect audience")
 						httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("invalidToken"), w)
 						return
 					}
