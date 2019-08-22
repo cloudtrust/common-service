@@ -6,6 +6,7 @@ import (
 	"time"
 
 	cs "github.com/cloudtrust/common-service"
+	cshttp "github.com/cloudtrust/common-service/http"
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/metrics"
 )
@@ -40,5 +41,5 @@ func httpErrorHandler(_ context.Context, statusCode int, err error, w http.Respo
 	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	w.Write([]byte(cs.GetEmitter() + "." + err.Error()))
+	w.Write([]byte(cshttp.GetEmitter() + "." + err.Error()))
 }
