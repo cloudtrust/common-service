@@ -99,7 +99,7 @@ func TestHTTPTracingMW(t *testing.T) {
 	m.ServeHTTP(w, req)
 
 	// Without existing tracer.
-	mockTracer.EXPECT().Extract(opentracing.HTTPHeaders, gomock.Any()).Return(nil, fmt.Errorf("fail")).Times(1)
+	mockTracer.EXPECT().Extract(opentracing.HTTPHeaders, gomock.Any()).Return(nil, errors.New("fail")).Times(1)
 	mockTracer.EXPECT().StartSpan("operationName").Return(mockSpan).Times(1)
 	mockSpan.EXPECT().Finish().Return().Times(1)
 	mockSpan.EXPECT().SetTag(gomock.Any(), gomock.Any()).Return(mockSpan).Times(3)
