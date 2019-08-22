@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/security/mock"
-	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -419,5 +419,75 @@ func TestLoadAuthorizations(t *testing.T) {
 
 		_, ok = authorizations["DEP"]["l1_support_manager"]["GetUsers"]["DEP"]["end_user2"]
 		assert.Equal(t, false, ok)
+	}
+}
+
+func TestGetAuthorization(t *testing.T) {
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+	var mockKeycloakClient = mock.NewKeycloakClient(mockCtrl)
+
+	{
+		var jsonAuthz = `{
+			"master":{
+			  "toe_administrator":{
+				"GetUsers": {
+				  "master": {
+					"*": {}
+				  }
+				},
+				"CreateUser": {
+				  "master": {
+					"integrator_manager": {},
+					"integrator_agent": {},
+					"l2_support_manager": {},
+					"l2_support_agent": {},
+					"l3_support_manager": {},
+					"l3_support_agent": {}
+				  }
+				}
+			  },
+			  "l3_support_agent": {}
+			},
+			"DEP":{
+			  "product_administrator":{
+				"GetUsers": {
+				  "DEP": {
+					"*": {}
+				  }
+				},
+				"CreateUser": {
+				  "DEP": {
+					"l1_support_manager": {}
+				  }
+				}
+			  },
+			  "l1_support_manager": {
+				"GetUsers": {
+				  "DEP": {
+					"l1_support_agent": {},
+					"end_user": {}
+				  }
+				}
+			  }
+			}
+		  }`
+
+		var authorizationManager, err = NewAuthorizationManager(mockKeycloakClient, log.NewNopLogger(), jsonAuthz)
+		assert.Nil(t, err)
+
+		var ctx = context.Background()
+		ctx = context.WithValue(ctx, cs.CtContextRealm, "master")
+		ctx = context.WithValue(ctx, cs.CtContextGroups, []string{"toe_administrator"})
+		ctx = context.WithValue(ctx, cs.CtContextUsername, "toe")
+
+		rights := authorizationManager.GetRightsOfCurrentUser(ctx)
+
+		_, ok := rights["toe_administrator"]["GetUsers"]["master"]["*"]
+		assert.Equal(t, true, ok)
+
+		_, ok = rights["toe_administrator"]["CreateUser"]["master"]
+		assert.Equal(t, true, ok)
+
 	}
 }

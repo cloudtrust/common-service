@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/log"
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
@@ -25,13 +26,13 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 	var groupsRep []string
 	var err error
 	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(accessToken, targetRealm, userID); err != nil {
-		am.logger.Log("ForbiddenError", err.Error(), "infos", infos)
+		am.logger.Info("ForbiddenError", err.Error(), "infos", infos)
 		return ForbiddenError{}
 	}
 
 	if groupsRep == nil || len(groupsRep) == 0 {
 		// No groups assigned, nothing allowed
-		am.logger.Log("ForbiddenError", "No groups assigned to this user, nothing allowed", "infos", infos)
+		am.logger.Info("ForbiddenError", "No groups assigned to this user, nothing allowed", "infos", infos)
 		return ForbiddenError{}
 	}
 
@@ -41,7 +42,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 		}
 	}
 
-	am.logger.Log("ForbiddenError", "Not allowed to perform the action on user with such groups", "infos", infos)
+	am.logger.Info("ForbiddenError", "Not allowed to perform the action on user with such groups", "infos", infos)
 	return ForbiddenError{}
 }
 
@@ -63,12 +64,12 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 	var err error
 	var targetGroup string
 	if targetGroup, err = am.keycloakClient.GetGroupName(accessToken, targetRealm, targetGroupID); err != nil {
-		am.logger.Log("ForbiddenError", err.Error(), "infos", infos)
+		am.logger.Info("ForbiddenError", err.Error(), "infos", infos)
 		return ForbiddenError{}
 	}
 
 	if targetGroup == "" {
-		am.logger.Log("ForbiddenError", "Group not found", "infos", infos)
+		am.logger.Info("ForbiddenError", "Group not found", "infos", infos)
 		return ForbiddenError{}
 	}
 
@@ -123,7 +124,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 		}
 	}
 
-	am.logger.Log("ForbiddenError", "Not allowed to perform the action on this group", "infos", infos)
+	am.logger.Info("ForbiddenError", "Not allowed to perform the action on this group", "infos", infos)
 	return ForbiddenError{}
 }
 
@@ -149,9 +150,39 @@ func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Cont
 		}
 	}
 
-	am.logger.Log("ForbiddenError", "Not allowed to perform the action on this realm", "infos", infos)
+	am.logger.Info("ForbiddenError", "Not allowed to perform the action on this realm", "infos", infos)
 
 	return ForbiddenError{}
+}
+
+// GetRightsOfCurrentUser returns the matrix rights of the current user
+func (am *authorizationManager) GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{} {
+	var currentRealm string
+	var currentGroups = []string{}
+	var currentRealmVal = ctx.Value(cs.CtContextRealm)
+	var currentGroupsVal = ctx.Value(cs.CtContextGroups)
+
+	if currentRealmVal != nil {
+		currentRealm = currentRealmVal.(string)
+	}
+
+	if currentGroupsVal != nil {
+		currentGroups = currentGroupsVal.([]string)
+	}
+
+	//3 dimensions table to express authorizations (group_of_user, action, target_realm) -> target_group for which the action is allowed
+	// We keep group_of_user as a user may be part of multiple groups
+	var rights = map[string]map[string]map[string]map[string]struct{}{}
+
+	for _, group := range currentGroups {
+		rightsForGroup, exist := am.authorizations[currentRealm][group]
+
+		if exist {
+			rights[group] = rightsForGroup
+		}
+	}
+
+	return rights
 }
 
 // ForbiddenError when an operation is not permitted.
@@ -162,7 +193,7 @@ func (e ForbiddenError) Error() string {
 }
 
 // Authorizations data structure
-// 4 dimensions table to express authorizations (realm_of_user, role_of_user, action, target_realm) -> target_group for which the action is allowed
+// 4 dimensions table to express authorizations (realm_of_user, group_of_user, action, target_realm) -> target_group for which the action is allowed
 type authorizations map[string]map[string]map[string]map[string]map[string]struct{}
 
 // LoadAuthorizations loads the authorization JSON into the data structure
@@ -193,7 +224,7 @@ func loadAuthorizations(jsonAuthz string) (authorizations, error) {
 type authorizationManager struct {
 	authorizations authorizations
 	keycloakClient KeycloakClient
-	logger         cs.Logger
+	logger         log.Logger
 }
 
 // KeycloakClient is the minimum interface required to access Keycloak
@@ -208,6 +239,7 @@ type AuthorizationManager interface {
 	CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error
 	CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error
 	CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error
+	GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{}
 }
 
 // Authorizations data structure
@@ -224,7 +256,7 @@ type AuthorizationManager interface {
 //   '*' can be used to express all target realms
 //   '/' can be used to express all non master realms
 //   '*' can be used to express all target groups are allowed
-func NewAuthorizationManager(keycloakClient KeycloakClient, logger cs.Logger, jsonAuthz string) (AuthorizationManager, error) {
+func NewAuthorizationManager(keycloakClient KeycloakClient, logger log.Logger, jsonAuthz string) (AuthorizationManager, error) {
 	matrix, err := loadAuthorizations(jsonAuthz)
 
 	if err != nil {
@@ -239,7 +271,7 @@ func NewAuthorizationManager(keycloakClient KeycloakClient, logger cs.Logger, js
 }
 
 // NewAuthorizationManagerFromFile creates an authorization manager from a file
-func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger cs.Logger, filename string) (AuthorizationManager, error) {
+func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger log.Logger, filename string) (AuthorizationManager, error) {
 	json, err := ioutil.ReadFile(filename)
 
 	if err != nil {

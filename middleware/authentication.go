@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/gbrlsnchs/jwt"
 )
 
@@ -17,7 +18,7 @@ import (
 // If there is no such header, the request is not allowed.
 // If the password is correct, the username is added into the context:
 //   - username: username extracted from the token
-func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger cs.Logger) func(http.Handler) http.Handler {
+func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var authorizationHeader = req.Header.Get("Authorization")
@@ -84,7 +85,7 @@ type KeycloakClient interface {
 //   - access_token: the recieved access token in raw format
 //   - realm: realm name extracted from the Issuer information of the token
 //   - username: username extracted from the token
-func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequired string, logger cs.Logger) func(http.Handler) http.Handler {
+func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var authorizationHeader = req.Header.Get("Authorization")
@@ -103,13 +104,8 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 				return
 			}
 
-			var splitToken = strings.Split(authorizationHeader, "Bearer ")
-
-			if len(splitToken) < 2 {
-				splitToken = strings.Split(authorizationHeader, "bearer ")
-			}
-
-			var accessToken = splitToken[1]
+			// match[0] is the global matched group. match[1] is the first captured group
+			var accessToken = match[1]
 
 			payload, _, err := jwt.Parse(accessToken)
 			if err != nil {

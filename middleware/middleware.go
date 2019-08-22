@@ -6,16 +6,18 @@ import (
 	"time"
 
 	cs "github.com/cloudtrust/common-service"
-	cshttp "github.com/cloudtrust/common-service/http"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/metrics"
 )
 
 // MakeEndpointLoggingMW makes a logging middleware.
-func MakeEndpointLoggingMW(logger cs.Logger) cs.Middleware {
+func MakeEndpointLoggingMW(logger log.Logger) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
-			logger.Log("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string))
-			return next(ctx, req)
+			logger.Debug("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string), "req", req)
+			res, err := next(ctx, req)
+			logger.Debug("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string), "res", res)
+			return res, err
 		}
 	}
 }

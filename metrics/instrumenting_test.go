@@ -7,9 +7,8 @@ import (
 	"testing"
 
 	"github.com/cloudtrust/common-service/database/mock"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/golang/mock/gomock"
-
-	"github.com/go-kit/kit/log"
 	"github.com/stretchr/testify/assert"
 )
 

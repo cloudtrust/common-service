@@ -1,6 +1,6 @@
 package middleware
 
-//go:generate mockgen -destination=./mock/logging.go -package=mock -mock_names=Logger=Logger github.com/go-kit/kit/log Logger
+//go:generate mockgen -destination=./mock/logging.go -package=mock -mock_names=Logger=Logger github.com/cloudtrust/common-service/log Logger
 //go:generate mockgen -destination=./mock/tracing.go -package=mock -mock_names=OpentracingClient=OpentracingClient github.com/cloudtrust/common-service/tracing OpentracingClient
 //go:generate mockgen -destination=./mock/metrics.go -package=mock -mock_names=Metrics=Metrics,Histogram=Histogram github.com/cloudtrust/common-service/metrics Metrics,Histogram
 //go:generate mockgen -destination=./mock/idGenerator.go -package=mock -mock_names=IDGenerator=IDGenerator github.com/cloudtrust/common-service/idgenerator IDGenerator
@@ -38,8 +38,10 @@ func TestEndpointLoggingMW(t *testing.T) {
 	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
 
 	// With correlation ID.
-	mockLogger.EXPECT().Log("correlation_id", corrID).Return(nil).Times(1)
-	m(ctx, nil)
+	var req = "req"
+	mockLogger.EXPECT().Debug("correlation_id", corrID, "req", req).Return(nil).Times(1)
+	mockLogger.EXPECT().Debug("correlation_id", corrID, "res", nil).Return(nil).Times(1)
+	m(ctx, req)
 
 	// Without correlation ID.
 	var f = func() {
