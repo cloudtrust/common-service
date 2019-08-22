@@ -153,14 +153,14 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 						return
 					}
 				} else {
-					logger.Log("Authorization Error", err)
+					logger.Info("Authorization Error", err)
 					httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("invalidToken"), w)
 					return
 				}
 			}
 
 			if err = keycloakClient.VerifyToken(realm, accessToken); err != nil {
-				logger.Log("Authorization Error", err)
+				logger.Info("Authorization Error", err)
 				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New("invalidToken"), w)
 				return
 			}
