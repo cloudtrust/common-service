@@ -1,8 +1,22 @@
-package http
+package errorhandler
 
 import (
 	"fmt"
 	"net/http"
+)
+
+const (
+	MsgErrMissingMandatoryParam = "missingMandatoryParameter"
+	MsgErrMissingAuthHeader     = "missingAuthorizationHeader"
+	MsgErrMissingBasicToken     = "missingBasicToken"
+	MsgErrMissingBearerToken    = "missingBearerToken"
+
+	MsgErrInvalidQueryParam = "invalidQueryParameter"
+	MsgErrInvalidPathParam  = "invalidPathParameter"
+	MsgErrInvalidToken      = "invalidToken"
+	MsgErrInvalidLevel      = "invalidLevel"
+
+	MsgErrOpNotPermitted = "operationNotPermitted"
 )
 
 var emitter string
@@ -39,7 +53,7 @@ func CreateInternalServerError(message string) Error {
 func CreateMissingParameterError(name string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: fmt.Sprintf("%s.missingMandatoryParameter.%s", GetEmitter(), name),
+		Message: fmt.Sprintf("%s.%s.%s", GetEmitter(), MsgErrMissingMandatoryParam, name),
 	}
 }
 
@@ -47,7 +61,7 @@ func CreateMissingParameterError(name string) Error {
 func CreateInvalidQueryParameterError(paramName string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: fmt.Sprintf("%s.invalidQueryParameter.%s", GetEmitter(), paramName),
+		Message: fmt.Sprintf("%s.%s.%s", GetEmitter(), MsgErrInvalidQueryParam, paramName),
 	}
 }
 
@@ -55,7 +69,7 @@ func CreateInvalidQueryParameterError(paramName string) Error {
 func CreateInvalidPathParameterError(paramName string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: fmt.Sprintf("%s.invalidPathParameter.%s", GetEmitter(), paramName),
+		Message: fmt.Sprintf("%s.%s.%s", GetEmitter(), MsgErrInvalidPathParam, paramName),
 	}
 }
 

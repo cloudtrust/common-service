@@ -6,7 +6,7 @@ package tracing
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"errors"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"

@@ -4,7 +4,7 @@ package security
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	cs "github.com/cloudtrust/common-service"
