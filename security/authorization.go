@@ -26,13 +26,13 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 	var groupsRep []string
 	var err error
 	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(accessToken, targetRealm, userID); err != nil {
-		am.logger.Info("ForbiddenError", err.Error(), "infos", infos)
+		am.logger.Info("ForbiddenError", err.Error(), "infos", string(infos))
 		return ForbiddenError{}
 	}
 
 	if groupsRep == nil || len(groupsRep) == 0 {
 		// No groups assigned, nothing allowed
-		am.logger.Info("ForbiddenError", "No groups assigned to this user, nothing allowed", "infos", infos)
+		am.logger.Info("ForbiddenError", "No groups assigned to this user, nothing allowed", "infos", string(infos))
 		return ForbiddenError{}
 	}
 
@@ -42,7 +42,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 		}
 	}
 
-	am.logger.Info("ForbiddenError", "Not allowed to perform the action on user with such groups", "infos", infos)
+	am.logger.Info("ForbiddenError", "Not allowed to perform the action on user with such groups", "infos", string(infos))
 	return ForbiddenError{}
 }
 
@@ -64,12 +64,12 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 	var err error
 	var targetGroup string
 	if targetGroup, err = am.keycloakClient.GetGroupName(accessToken, targetRealm, targetGroupID); err != nil {
-		am.logger.Info("ForbiddenError", err.Error(), "infos", infos)
+		am.logger.Info("ForbiddenError", err.Error(), "infos", string(infos))
 		return ForbiddenError{}
 	}
 
 	if targetGroup == "" {
-		am.logger.Info("ForbiddenError", "Group not found", "infos", infos)
+		am.logger.Info("ForbiddenError", "Group not found", "infos", string(infos))
 		return ForbiddenError{}
 	}
 
@@ -124,7 +124,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 		}
 	}
 
-	am.logger.Info("ForbiddenError", "Not allowed to perform the action on this group", "infos", infos)
+	am.logger.Info("ForbiddenError", "Not allowed to perform the action on this group", "infos", string(infos))
 	return ForbiddenError{}
 }
 
@@ -150,7 +150,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Cont
 		}
 	}
 
-	am.logger.Info("ForbiddenError", "Not allowed to perform the action on this realm", "infos", infos)
+	am.logger.Info("ForbiddenError", "Not allowed to perform the action on this realm", "infos", string(infos))
 
 	return ForbiddenError{}
 }

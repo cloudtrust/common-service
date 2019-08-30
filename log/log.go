@@ -49,9 +49,9 @@ func AllowLevel(logger Logger, level kit_level.Option) Logger {
 
 var levels = map[string]kit_level.Option{
 	"debug": kit_level.AllowDebug(),
-	"info":  kit_level.AllowDebug(),
-	"warn":  kit_level.AllowDebug(),
-	"error": kit_level.AllowDebug(),
+	"info":  kit_level.AllowInfo(),
+	"warn":  kit_level.AllowWarn(),
+	"error": kit_level.AllowError(),
 }
 
 // ConvertToLevel transform string value in level
