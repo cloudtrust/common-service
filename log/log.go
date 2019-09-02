@@ -59,7 +59,7 @@ func ConvertToLevel(strLevel string) (kit_level.Option, error) {
 	var level, ok = levels[strLevel]
 
 	if !ok {
-		return nil, errors.New(errorhandler.MsgErrInvalidLevel)
+		return nil, errors.New(errorhandler.MsgErrInvalidParam + errorhandler.Level)
 	}
 
 	return level, nil

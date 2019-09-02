@@ -6,17 +6,18 @@ import (
 )
 
 const (
-	MsgErrMissingMandatoryParam = "missingMandatoryParameter"
-	MsgErrMissingAuthHeader     = "missingAuthorizationHeader"
-	MsgErrMissingBasicToken     = "missingBasicToken"
-	MsgErrMissingBearerToken    = "missingBearerToken"
+	MsgErrMissingParam = "missingParameter"
 
 	MsgErrInvalidQueryParam = "invalidQueryParameter"
 	MsgErrInvalidPathParam  = "invalidPathParameter"
-	MsgErrInvalidToken      = "invalidToken"
-	MsgErrInvalidLevel      = "invalidLevel"
+	MsgErrInvalidParam      = "invalidParameter"
 
 	MsgErrOpNotPermitted = "operationNotPermitted"
+	AuthHeader           = "authorizationHeader"
+	BasicToken           = "basicToken"
+	BearerToken          = "bearerToken"
+	Token                = "token"
+	Level                = "level"
 )
 
 var emitter string
@@ -53,7 +54,7 @@ func CreateInternalServerError(message string) Error {
 func CreateMissingParameterError(name string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: fmt.Sprintf("%s.%s.%s", GetEmitter(), MsgErrMissingMandatoryParam, name),
+		Message: fmt.Sprintf("%s.%s.%s", GetEmitter(), MsgErrMissingParam, name),
 	}
 }
 

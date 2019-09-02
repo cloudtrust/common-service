@@ -198,7 +198,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 	{
 		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info("Authorization Error", gomock.Any()).Return(nil).Times(1)
-		mockKeycloakClient.EXPECT().VerifyToken("master", tokenAudString).Return(errors.New(errorhandler.MsgErrInvalidToken)).Times(1)
+		mockKeycloakClient.EXPECT().VerifyToken("master", tokenAudString).Return(errors.New(errorhandler.MsgErrInvalidParam + "." + errorhandler.Token)).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
