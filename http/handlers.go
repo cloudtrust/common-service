@@ -157,7 +157,7 @@ func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseW
 			// You should really take care of what you are sending here : e.Message should not leak any sensitive information
 			w.Write([]byte(e.Message))
 		default:
-			logger.Error("ErrorHandler", http.StatusInternalServerError, "msg", e.Error())
+			logger.Error("errorHandler", http.StatusInternalServerError, "msg", e.Error())
 			if err == ratelimit.ErrLimited {
 				w.WriteHeader(http.StatusTooManyRequests)
 			} else {
