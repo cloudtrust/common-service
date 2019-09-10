@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	cs "github.com/cloudtrust/common-service"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
 )
 
@@ -210,7 +211,7 @@ type authorizations map[string]map[string]map[string]map[string]map[string]struc
 //   '*' can be used to express all target groups are allowed
 func loadAuthorizations(jsonAuthz string) (authorizations, error) {
 	if jsonAuthz == "" {
-		return nil, errors.New("JSON structure expected")
+		return nil, errors.New(errorhandler.JSONExpected)
 	}
 	var authz = make(authorizations)
 

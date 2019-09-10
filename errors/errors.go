@@ -11,13 +11,14 @@ const (
 	MsgErrInvalidQueryParam = "invalidQueryParameter"
 	MsgErrInvalidPathParam  = "invalidPathParameter"
 	MsgErrInvalidParam      = "invalidParameter"
+	MsgErrOpNotPermitted    = "operationNotPermitted"
 
-	MsgErrOpNotPermitted = "operationNotPermitted"
-	AuthHeader           = "authorizationHeader"
-	BasicToken           = "basicToken"
-	BearerToken          = "bearerToken"
-	Token                = "token"
-	Level                = "level"
+	AuthHeader   = "authorizationHeader"
+	BasicToken   = "basicToken"
+	BearerToken  = "bearerToken"
+	Token        = "token"
+	Level        = "level"
+	JSONExpected = "JSONExpected"
 )
 
 var emitter string
