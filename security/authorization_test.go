@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	cs "github.com/cloudtrust/common-service"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/security/mock"
 	"github.com/golang/mock/gomock"
@@ -328,11 +329,11 @@ func TestLoadAuthorizations(t *testing.T) {
 		var jsonAuthz = ""
 		_, err := loadAuthorizations(jsonAuthz)
 		assert.NotNil(t, err)
-		assert.Equal(t, "JSON structure expected", err.Error())
+		assert.Equal(t, errorhandler.JSONExpected, err.Error())
 
 		_, err = NewAuthorizationManager(nil, log.NewNopLogger(), jsonAuthz)
 		assert.NotNil(t, err)
-		assert.Equal(t, "JSON structure expected", err.Error())
+		assert.Equal(t, errorhandler.JSONExpected, err.Error())
 	}
 
 	// Empty JSON
