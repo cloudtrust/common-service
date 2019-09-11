@@ -76,25 +76,25 @@ func CreateInvalidPathParameterError(paramName string) Error {
 }
 
 // CreateBadRequestError creates an error relative to a bad request
-func CreateBadRequestError(publicMessage string) Error {
+func CreateBadRequestError(messageKey string) Error {
 	return Error{
 		Status:  http.StatusBadRequest,
-		Message: GetEmitter() + "." + publicMessage,
+		Message: GetEmitter() + "." + messageKey,
 	}
 }
 
 // CreateNotAllowedError creates an error relative to a not allowed request
-func CreateNotAllowedError(publicMessage string) Error {
+func CreateNotAllowedError(messageKey string) Error {
 	return Error{
 		Status:  http.StatusMethodNotAllowed,
-		Message: GetEmitter() + "." + publicMessage,
+		Message: GetEmitter() + "." + messageKey,
 	}
 }
 
 // CreateNotFoundError creates an error relative to a not found request
-func CreateNotFoundError(publicMessage string) Error {
+func CreateNotFoundError(messageKey string) Error {
 	return Error{
 		Status:  http.StatusNotFound,
-		Message: GetEmitter() + "." + publicMessage,
+		Message: GetEmitter() + "." + messageKey,
 	}
 }
