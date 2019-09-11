@@ -3,11 +3,12 @@ package security
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"strings"
 
 	cs "github.com/cloudtrust/common-service"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
 )
 
@@ -210,7 +211,7 @@ type authorizations map[string]map[string]map[string]map[string]map[string]struc
 //   '*' can be used to express all target groups are allowed
 func loadAuthorizations(jsonAuthz string) (authorizations, error) {
 	if jsonAuthz == "" {
-		return nil, fmt.Errorf("JSON structure expected")
+		return nil, errors.New(errorhandler.JSONExpected)
 	}
 	var authz = make(authorizations)
 

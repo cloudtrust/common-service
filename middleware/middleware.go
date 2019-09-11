@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"time"
 
 	cs "github.com/cloudtrust/common-service"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/metrics"
 )
@@ -41,6 +41,5 @@ func httpErrorHandler(_ context.Context, statusCode int, err error, w http.Respo
 	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	var reply, _ = json.MarshalIndent(map[string]string{"error": err.Error()}, "", "  ")
-	w.Write(reply)
+	w.Write([]byte(errorhandler.GetEmitter() + "." + err.Error()))
 }

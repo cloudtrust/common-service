@@ -1,8 +1,9 @@
 package log
 
 import (
-	"fmt"
+	"errors"
 
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	kit_log "github.com/go-kit/kit/log"
 	kit_level "github.com/go-kit/kit/log/level"
 )
@@ -58,7 +59,7 @@ func ConvertToLevel(strLevel string) (kit_level.Option, error) {
 	var level, ok = levels[strLevel]
 
 	if !ok {
-		return nil, fmt.Errorf("Invalid level")
+		return nil, errors.New(errorhandler.MsgErrInvalidParam + errorhandler.Level)
 	}
 
 	return level, nil

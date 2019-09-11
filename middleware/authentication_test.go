@@ -5,12 +5,13 @@ package middleware
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	cs "github.com/cloudtrust/common-service"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	comhttp "github.com/cloudtrust/common-service/http"
 	"github.com/cloudtrust/common-service/middleware/mock"
 	http_transport "github.com/go-kit/kit/transport/http"
@@ -135,7 +136,7 @@ func checkContextEndpoint(ctx context.Context, request interface{}) (response in
 		return "", nil
 	}
 
-	return "", comhttp.Error{Status: 500}
+	return "", errorhandler.Error{Status: 500}
 }
 
 func TestHTTPOIDCTokenValidationMW(t *testing.T) {
@@ -197,7 +198,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 	{
 		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info("Authorization Error", gomock.Any()).Return(nil).Times(1)
-		mockKeycloakClient.EXPECT().VerifyToken("master", tokenAudString).Return(fmt.Errorf("Invalid token")).Times(1)
+		mockKeycloakClient.EXPECT().VerifyToken("master", tokenAudString).Return(errors.New(errorhandler.MsgErrInvalidParam + "." + errorhandler.Token)).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)

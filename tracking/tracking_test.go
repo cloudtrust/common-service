@@ -3,7 +3,7 @@ package tracking
 //go:generate mockgen -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service Configuration
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/cloudtrust/common-service/metrics/mock"
@@ -23,7 +23,7 @@ func TestNoopSentry(t *testing.T) {
 
 	// CaptureError
 	assert.Zero(t, sentry.CaptureError(nil, nil))
-	assert.Zero(t, sentry.CaptureError(fmt.Errorf("fail"), map[string]string{"key": "val"}))
+	assert.Zero(t, sentry.CaptureError(errors.New("fail"), map[string]string{"key": "val"}))
 
 	// URL
 	assert.Zero(t, sentry.URL())

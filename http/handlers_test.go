@@ -15,9 +15,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/cloudtrust/common-service/security"
-
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/http/mock"
+	"github.com/cloudtrust/common-service/security"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
 	http_transport "github.com/go-kit/kit/transport/http"
@@ -310,12 +310,13 @@ func TestErrorHandler(t *testing.T) {
 	// ForbiddenError
 	{
 		mockRespWriter.EXPECT().WriteHeader(http.StatusForbidden).Times(1)
+		mockRespWriter.EXPECT().Write(gomock.Any()).Times(1)
 		ErrorHandlerNoLog()(context.Background(), security.ForbiddenError{}, mockRespWriter)
 	}
 
 	// HTTPError
 	{
-		err := Error{
+		err := errorhandler.Error{
 			Status:  123,
 			Message: "abc",
 		}

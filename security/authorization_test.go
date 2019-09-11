@@ -4,10 +4,11 @@ package security
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	cs "github.com/cloudtrust/common-service"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/security/mock"
 	"github.com/golang/mock/gomock"
@@ -125,7 +126,7 @@ func TestCheckAuthorizationOnTargetGroupID(t *testing.T) {
 		ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
 		ctx = context.WithValue(ctx, cs.CtContextRealm, realm)
 
-		mockKeycloakClient.EXPECT().GetGroupName(accessToken, targetRealm, targetGroupID).Return("", fmt.Errorf("ERROR")).Times(1)
+		mockKeycloakClient.EXPECT().GetGroupName(accessToken, targetRealm, targetGroupID).Return("", errors.New("ERROR")).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetGroupID(ctx, "DeleteUser", "master", targetGroupID)
 		assert.Equal(t, ForbiddenError{}, err)
@@ -266,7 +267,7 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 		ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
 		ctx = context.WithValue(ctx, cs.CtContextRealm, realm)
 
-		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{}, fmt.Errorf("Error")).Times(1)
+		mockKeycloakClient.EXPECT().GetGroupNamesOfUser(accessToken, targetRealm, targetUserID).Return([]string{}, errors.New("Error")).Times(1)
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", targetUserID)
 		assert.Equal(t, ForbiddenError{}, err)
@@ -328,11 +329,11 @@ func TestLoadAuthorizations(t *testing.T) {
 		var jsonAuthz = ""
 		_, err := loadAuthorizations(jsonAuthz)
 		assert.NotNil(t, err)
-		assert.Equal(t, "JSON structure expected", err.Error())
+		assert.Equal(t, errorhandler.JSONExpected, err.Error())
 
 		_, err = NewAuthorizationManager(nil, log.NewNopLogger(), jsonAuthz)
 		assert.NotNil(t, err)
-		assert.Equal(t, "JSON structure expected", err.Error())
+		assert.Equal(t, errorhandler.JSONExpected, err.Error())
 	}
 
 	// Empty JSON

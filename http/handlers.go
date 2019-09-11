@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/security"
 	"github.com/go-kit/kit/ratelimit"
@@ -80,7 +81,7 @@ func DecodeRequest(_ context.Context, req *http.Request, pathParams map[string]s
 	for key, validationRegExp := range pathParams {
 		if v, ok := m[key]; ok {
 			if matched, _ := regexp.Match(validationRegExp, []byte(v)); !matched {
-				return nil, CreateInvalidQueryParameterError(key)
+				return nil, errorhandler.CreateInvalidQueryParameterError(key)
 			}
 			request[key] = m[key]
 		}
@@ -98,7 +99,7 @@ func DecodeRequest(_ context.Context, req *http.Request, pathParams map[string]s
 	for key, validationRegExp := range queryParams {
 		if value := req.URL.Query().Get(key); value != "" {
 			if matched, _ := regexp.Match(validationRegExp, []byte(value)); !matched {
-				return nil, CreateInvalidPathParameterError(key)
+				return nil, errorhandler.CreateInvalidPathParameterError(key)
 			}
 
 			request[key] = value
@@ -150,7 +151,8 @@ func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseW
 		switch e := errors.Cause(err).(type) {
 		case security.ForbiddenError:
 			w.WriteHeader(http.StatusForbidden)
-		case Error:
+			w.Write([]byte(errorhandler.GetEmitter() + "." + errorhandler.MsgErrOpNotPermitted))
+		case errorhandler.Error:
 			w.WriteHeader(e.Status)
 			// You should really take care of what you are sending here : e.Message should not leak any sensitive information
 			w.Write([]byte(e.Message))
