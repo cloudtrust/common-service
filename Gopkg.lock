@@ -84,7 +84,7 @@
   version = "v1.7.3"
 
 [[projects]]
-  digest = "1:3c6faaeb500b7e6fadbe52c0b3fd62b6eed7801ed0d74bb3bd9577017df8d2f4"
+  digest = "1:4ffdbf6b310da314d1d171f356012e16157ceb43869c7e43e0f3c438c0c3d5d3"
   name = "github.com/influxdata/influxdb"
   packages = [
     "client/v2",
@@ -92,8 +92,8 @@
     "pkg/escape",
   ]
   pruneopts = "UT"
-  revision = "f8fdf652f348fc9980997fe1c972e2b79ddd13b0"
-  version = "v1.7.7"
+  revision = "ff383cdc0420217e3460dabe17db54f8557d95b6"
+  version = "v1.7.8"
 
 [[projects]]
   branch = "master"
@@ -140,7 +140,7 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:042f4318540f23144e86fece78332544c90aab9d3acc477f24623ffe3642ae31"
+  digest = "1:f53b962835b372abf1166fd3c8c19002960e75d7a75336257cbc27e36fa67899"
   name = "github.com/uber/jaeger-client-go"
   packages = [
     ".",
@@ -162,16 +162,16 @@
     "utils",
   ]
   pruneopts = "UT"
-  revision = "85825f3f682a6fb24b12a4604be2a101432c7534"
-  version = "v2.17.0"
+  revision = "258182f41c1950c24e0acd5407abd810b6174d87"
+  version = "v2.18.0"
 
 [[projects]]
-  digest = "1:c9d69a04f7fa171f50360bbcc32196b4de8ab8837ef772f6302d0140a1e3e7f6"
+  digest = "1:d7b6fd08442b8d26882fae2c859a0d63962d72a533476a217d46743ed30cb803"
   name = "github.com/uber/jaeger-lib"
   packages = ["metrics"]
   pruneopts = "UT"
-  revision = "0e30338a695636fe5bcf7301e8030ce8dd2a8530"
-  version = "v2.0.0"
+  revision = "ddfc2ce1aed400905f44214f07a8ed78a20bff44"
+  version = "v2.1.1"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
