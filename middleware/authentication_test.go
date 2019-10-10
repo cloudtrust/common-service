@@ -186,7 +186,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 	// Valid authorization token.
 	{
 		var w = httptest.NewRecorder()
-		mockKeycloakClient.EXPECT().VerifyToken("master", tokenAudString).Return(nil).Times(1)
+		mockKeycloakClient.EXPECT().VerifyToken(gomock.Any(), "master", tokenAudString).Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 200, result.StatusCode)
@@ -198,7 +198,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 	{
 		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info("Authorization Error", gomock.Any()).Return(nil).Times(1)
-		mockKeycloakClient.EXPECT().VerifyToken("master", tokenAudString).Return(errors.New(errorhandler.MsgErrInvalidParam + "." + errorhandler.Token)).Times(1)
+		mockKeycloakClient.EXPECT().VerifyToken(gomock.Any(), "master", tokenAudString).Return(errors.New(errorhandler.MsgErrInvalidParam + "." + errorhandler.Token)).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
@@ -231,7 +231,7 @@ func testAuthentication(t *testing.T, audienceRequired string, token string, exp
 
 	var w = httptest.NewRecorder()
 	if verifyToken {
-		mockKeycloakClient.EXPECT().VerifyToken("master", token).Return(nil).Times(1)
+		mockKeycloakClient.EXPECT().VerifyToken(gomock.Any(), "master", token).Return(nil).Times(1)
 	} else {
 		mockLogger.EXPECT().Info(gomock.Any()).AnyTimes()
 	}
