@@ -140,7 +140,7 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:f53b962835b372abf1166fd3c8c19002960e75d7a75336257cbc27e36fa67899"
+  digest = "1:b0fcdb2b7d3f20b60e024bb8c8be5a47d72c353f21e9a083fb1a226de4a94c43"
   name = "github.com/uber/jaeger-client-go"
   packages = [
     ".",
@@ -162,24 +162,24 @@
     "utils",
   ]
   pruneopts = "UT"
-  revision = "258182f41c1950c24e0acd5407abd810b6174d87"
-  version = "v2.18.0"
+  revision = "d4d621cd6ed9aa5f1fc91eb0d0211d336bd6b79d"
+  version = "v2.19.0"
 
 [[projects]]
   digest = "1:d7b6fd08442b8d26882fae2c859a0d63962d72a533476a217d46743ed30cb803"
   name = "github.com/uber/jaeger-lib"
   packages = ["metrics"]
   pruneopts = "UT"
-  revision = "ddfc2ce1aed400905f44214f07a8ed78a20bff44"
-  version = "v2.1.1"
+  revision = "a87ae9d84fb038a8d79266298970720be7c80fcd"
+  version = "v2.2.0"
 
 [[projects]]
-  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
+  digest = "1:59f10c1537d2199d9115d946927fe31165959a95190849c82ff11e05803528b0"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
-  version = "v2.2.2"
+  revision = "f221b8435cfb71e54062f6c6e99e9ade30b124d5"
+  version = "v2.2.4"
 
 [solve-meta]
   analyzer-name = "dep"
