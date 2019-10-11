@@ -18,4 +18,6 @@ const (
 	CtContextGroups CtContext = iota
 	// CtContextCorrelationID is the correlation id context key
 	CtContextCorrelationID CtContext = iota
+	// CtContextIssuerDomain is the issuer domain context key
+	CtContextIssuerDomain CtContext = iota
 )

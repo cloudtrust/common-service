@@ -76,7 +76,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 
 // KeycloakClient is the interface of the keycloak client.
 type KeycloakClient interface {
-	VerifyToken(realmName string, accessToken string) error
+	VerifyToken(ctx context.Context, realmName string, accessToken string) error
 }
 
 // MakeHTTPOIDCTokenValidationMW retrieve the oidc token from the HTTP header 'Bearer' and
@@ -115,7 +115,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 				return
 			}
 
-			var userID, username, issuer, realm string
+			var userID, username, issuer, issuerDomain, realm string
 			var groups []string
 
 			// The audience in JWT may be a string array or a string.
@@ -127,6 +127,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 					username = jot.Username
 					issuer = jot.Issuer
 					var splitIssuer = strings.Split(issuer, "/auth/realms/")
+					issuerDomain = splitIssuer[0]
 					realm = splitIssuer[1]
 					groups = extractGroups(jot.Groups)
 
@@ -145,6 +146,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 					username = jot.Username
 					issuer = jot.Issuer
 					var splitIssuer = strings.Split(issuer, "/auth/realms/")
+					issuerDomain = splitIssuer[0]
 					realm = splitIssuer[1]
 					groups = extractGroups(jot.Groups)
 
@@ -160,17 +162,18 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 				}
 			}
 
-			if err = keycloakClient.VerifyToken(realm, accessToken); err != nil {
-				logger.Info("Authorization Error", err)
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-				return
-			}
-
 			var ctx = context.WithValue(req.Context(), cs.CtContextAccessToken, accessToken)
 			ctx = context.WithValue(ctx, cs.CtContextRealm, realm)
 			ctx = context.WithValue(ctx, cs.CtContextUserID, userID)
 			ctx = context.WithValue(ctx, cs.CtContextUsername, username)
 			ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
+			ctx = context.WithValue(ctx, cs.CtContextIssuerDomain, issuerDomain)
+
+			if err = keycloakClient.VerifyToken(ctx, realm, accessToken); err != nil {
+				logger.Info("Authorization Error", err)
+				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				return
+			}
 
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
