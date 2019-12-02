@@ -94,16 +94,20 @@ func (l *ctLogger) ToGoKitLogger() kit_log.Logger {
 func extractInfoFromContext(ctx context.Context) []interface{} {
 	var keyvals = []interface{}{}
 
+	if ctx == nil {
+		return keyvals
+	}
+
 	if ctx.Value(cs.CtContextUserID) != nil {
-		keyvals = append(keyvals, "user_id", ctx.Value(cs.CtContextUserID))
+		keyvals = append(keyvals, "user_id", ctx.Value(cs.CtContextUserID).(string))
 	}
 
 	if ctx.Value(cs.CtContextRealmID) != nil {
-		keyvals = append(keyvals, "realm_id", ctx.Value(cs.CtContextRealmID))
+		keyvals = append(keyvals, "realm_id", ctx.Value(cs.CtContextRealmID).(string))
 	}
 
 	if ctx.Value(cs.CtContextCorrelationID) != nil {
-		keyvals = append(keyvals, "corr_id", ctx.Value(cs.CtContextCorrelationID))
+		keyvals = append(keyvals, "corr_id", ctx.Value(cs.CtContextCorrelationID).(string))
 	}
 
 	return keyvals
