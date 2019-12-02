@@ -94,7 +94,6 @@ func (l *ctLogger) ToGoKitLogger() kit_log.Logger {
 func extractInfoFromContext(ctx context.Context) []interface{} {
 	var keyvals = []interface{}{}
 
-<<<<<<< HEAD
 	if ctx == nil {
 		return keyvals
 	}
@@ -109,18 +108,6 @@ func extractInfoFromContext(ctx context.Context) []interface{} {
 
 	if ctx.Value(cs.CtContextCorrelationID) != nil {
 		keyvals = append(keyvals, "corr_id", ctx.Value(cs.CtContextCorrelationID).(string))
-=======
-	if ctx.Value(cs.CtContextUserID) != nil {
-		keyvals = append(keyvals, "user_id", ctx.Value(cs.CtContextUserID))
-	}
-
-	if ctx.Value(cs.CtContextRealmID) != nil {
-		keyvals = append(keyvals, "realm_id", ctx.Value(cs.CtContextRealmID))
-	}
-
-	if ctx.Value(cs.CtContextCorrelationID) != nil {
-		keyvals = append(keyvals, "corr_id", ctx.Value(cs.CtContextCorrelationID))
->>>>>>> Add context in logging
 	}
 
 	return keyvals
