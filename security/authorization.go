@@ -3,12 +3,10 @@ package security
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"io/ioutil"
 	"strings"
 
 	cs "github.com/cloudtrust/common-service"
-	errorhandler "github.com/cloudtrust/common-service/errors"
+	"github.com/cloudtrust/common-service/configuration"
 	"github.com/cloudtrust/common-service/log"
 )
 
@@ -91,7 +89,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 	})
 
 	for _, group := range currentGroups {
-		targetGroupAllowed, wildcard := am.authorizations[currentRealm][group][action]["*"]
+		targetGroupAllowed, wildcard := (*am.authorizations)[currentRealm][group][action]["*"]
 
 		if wildcard {
 			_, allGroupsAllowed := targetGroupAllowed["*"]
@@ -102,7 +100,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 			}
 		}
 
-		targetGroupAllowed, nonMasterRealmAllowed := am.authorizations[currentRealm][group][action]["/"]
+		targetGroupAllowed, nonMasterRealmAllowed := (*am.authorizations)[currentRealm][group][action]["/"]
 
 		if targetRealm != "master" && nonMasterRealmAllowed {
 			_, allGroupsAllowed := targetGroupAllowed["*"]
@@ -113,7 +111,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 			}
 		}
 
-		targetGroupAllowed, realmAllowed := am.authorizations[currentRealm][group][action][targetRealm]
+		targetGroupAllowed, realmAllowed := (*am.authorizations)[currentRealm][group][action][targetRealm]
 
 		if realmAllowed {
 			_, allGroupsAllowed := targetGroupAllowed["*"]
@@ -142,9 +140,9 @@ func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Cont
 	})
 
 	for _, group := range currentGroups {
-		_, wildcard := am.authorizations[currentRealm][group][action]["*"]
-		_, nonMasterRealmAllowed := am.authorizations[currentRealm][group][action]["/"]
-		_, realmAllowed := am.authorizations[currentRealm][group][action][targetRealm]
+		_, wildcard := (*am.authorizations)[currentRealm][group][action]["*"]
+		_, nonMasterRealmAllowed := (*am.authorizations)[currentRealm][group][action]["/"]
+		_, realmAllowed := (*am.authorizations)[currentRealm][group][action][targetRealm]
 
 		if wildcard || realmAllowed || (targetRealm != "master" && nonMasterRealmAllowed) {
 			return nil
@@ -176,7 +174,7 @@ func (am *authorizationManager) GetRightsOfCurrentUser(ctx context.Context) map[
 	var rights = map[string]map[string]map[string]map[string]struct{}{}
 
 	for _, group := range currentGroups {
-		rightsForGroup, exist := am.authorizations[currentRealm][group]
+		rightsForGroup, exist := (*am.authorizations)[currentRealm][group]
 
 		if exist {
 			rights[group] = rightsForGroup
@@ -193,9 +191,9 @@ func (e ForbiddenError) Error() string {
 	return "ForbiddenError: Operation not permitted"
 }
 
-// Authorizations data structure
+// AuthorizationsMatrix data structure
 // 4 dimensions table to express authorizations (realm_of_user, group_of_user, action, target_realm) -> target_group for which the action is allowed
-type authorizations map[string]map[string]map[string]map[string]map[string]struct{}
+type AuthorizationsMatrix map[string]map[string]map[string]map[string]map[string]struct{}
 
 // LoadAuthorizations loads the authorization JSON into the data structure
 // Authorization matrix is a 4 dimensions table :
@@ -209,29 +207,71 @@ type authorizations map[string]map[string]map[string]map[string]map[string]struc
 //   '*' can be used to express all target realms
 //   '/' can be used to express all non master realms
 //   '*' can be used to express all target groups are allowed
-func loadAuthorizations(jsonAuthz string) (authorizations, error) {
-	if jsonAuthz == "" {
-		return nil, errors.New(errorhandler.JSONExpected)
-	}
-	var authz = make(authorizations)
-
-	if err := json.Unmarshal([]byte(jsonAuthz), &authz); err != nil {
-		return nil, err
+func (am *authorizationManager) ReloadAuthorizations(ctx context.Context) error {
+	authorizations, err := am.authorizationDBReader.GetAuthorizations(context.Background())
+	if err != nil {
+		return err
 	}
 
-	return authz, nil
+	var matrix = make(AuthorizationsMatrix)
+
+	for _, authz := range authorizations {
+		// Realm of user
+		_, ok := matrix[*authz.RealmID]
+		if !ok {
+			matrix[*authz.RealmID] = make(map[string]map[string]map[string]map[string]struct{})
+		}
+
+		// Group of user
+		_, ok = matrix[*authz.RealmID][*authz.GroupName]
+		if !ok {
+			matrix[*authz.RealmID][*authz.GroupName] = make(map[string]map[string]map[string]struct{})
+		}
+
+		// Action
+		_, ok = matrix[*authz.RealmID][*authz.GroupName][*authz.Action]
+		if !ok {
+			matrix[*authz.RealmID][*authz.GroupName][*authz.Action] = make(map[string]map[string]struct{})
+		}
+
+		// Target Realm
+		if authz.TargetRealmID == nil {
+			continue
+		}
+
+		_, ok = matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID]
+		if !ok {
+			matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID] = make(map[string]struct{})
+		}
+
+		// Target Group
+		if authz.TargetGroupName == nil {
+			continue
+		}
+
+		matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID][*authz.TargetGroupName] = struct{}{}
+	}
+
+	am.authorizations = &matrix
+
+	return nil
 }
 
 type authorizationManager struct {
-	authorizations authorizations
-	keycloakClient KeycloakClient
-	logger         log.Logger
+	authorizations        *AuthorizationsMatrix
+	authorizationDBReader AuthorizationDBReader
+	keycloakClient        KeycloakClient
+	logger                log.Logger
 }
 
 // KeycloakClient is the minimum interface required to access Keycloak
 type KeycloakClient interface {
 	GetGroupNamesOfUser(ctx context.Context, accessToken string, realmName, userID string) ([]string, error)
 	GetGroupName(ctx context.Context, accessToken string, realmName, groupID string) (string, error)
+}
+
+type AuthorizationDBReader interface {
+	GetAuthorizations(context.Context) ([]configuration.Authorization, error)
 }
 
 // AuthorizationManager interface
@@ -241,11 +281,12 @@ type AuthorizationManager interface {
 	CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error
 	CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error
 	GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{}
+	ReloadAuthorizations(ctx context.Context) error
 }
 
 // Authorizations data structure
 
-// NewAuthorizationManager loads the authorization JSON into the data structure and create an AuthorizationManager instance.
+// NewAuthorizationManager loads the authorization from DB into a cache data structure and create an AuthorizationManager instance.
 // Authorization matrix is a 4 dimensions table :
 //   - realm_of_user
 //   - role_of_user
@@ -257,28 +298,19 @@ type AuthorizationManager interface {
 //   '*' can be used to express all target realms
 //   '/' can be used to express all non master realms
 //   '*' can be used to express all target groups are allowed
-func NewAuthorizationManager(keycloakClient KeycloakClient, logger log.Logger, jsonAuthz string) (AuthorizationManager, error) {
-	matrix, err := loadAuthorizations(jsonAuthz)
+func NewAuthorizationManager(authorizationDBReader AuthorizationDBReader, keycloakClient KeycloakClient, logger log.Logger) (AuthorizationManager, error) {
+	var manager = &authorizationManager{
+		authorizationDBReader: authorizationDBReader,
+		keycloakClient:        keycloakClient,
+		logger:                logger,
+	}
 
+	err := manager.ReloadAuthorizations(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	return &authorizationManager{
-		authorizations: matrix,
-		keycloakClient: keycloakClient,
-		logger:         logger,
-	}, nil
-}
-
-// NewAuthorizationManagerFromFile creates an authorization manager from a file
-func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger log.Logger, filename string) (AuthorizationManager, error) {
-	json, err := ioutil.ReadFile(filename)
-
-	if err != nil {
-		return nil, err
-	}
-	return NewAuthorizationManager(keycloakClient, logger, string(json))
+	return manager, nil
 }
 
 type Action struct {
