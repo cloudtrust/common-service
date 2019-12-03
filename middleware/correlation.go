@@ -22,6 +22,10 @@ func MakeHTTPCorrelationIDMW(idGenerator gen.IDGenerator, tracer tracing.Opentra
 			}
 
 			var ctx = context.WithValue(req.Context(), cs.CtContextCorrelationID, correlationID)
+
+			// Set X-Correlation-ID header for future response
+			w.Header().Set("X-Correlation-ID", correlationID)
+
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
