@@ -1,8 +1,10 @@
 package log
 
 import (
+	"context"
 	"errors"
 
+	cs "github.com/cloudtrust/common-service"
 	errorhandler "github.com/cloudtrust/common-service/errors"
 	kit_log "github.com/go-kit/kit/log"
 	kit_level "github.com/go-kit/kit/log/level"
@@ -10,10 +12,10 @@ import (
 
 // Logger interface for logging with level
 type Logger interface {
-	Debug(keyvals ...interface{}) error
-	Info(keyvals ...interface{}) error
-	Warn(keyvals ...interface{}) error
-	Error(keyvals ...interface{}) error
+	Debug(ctx context.Context, keyvals ...interface{}) error
+	Info(ctx context.Context, keyvals ...interface{}) error
+	Warn(ctx context.Context, keyvals ...interface{}) error
+	Error(ctx context.Context, keyvals ...interface{}) error
 	ToGoKitLogger() kit_log.Logger
 }
 
@@ -65,22 +67,48 @@ func ConvertToLevel(strLevel string) (kit_level.Option, error) {
 	return level, nil
 }
 
-func (l *ctLogger) Debug(keyvals ...interface{}) error {
+func (l *ctLogger) Debug(ctx context.Context, keyvals ...interface{}) error {
+	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
 	return kit_level.Debug(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Info(keyvals ...interface{}) error {
+func (l *ctLogger) Info(ctx context.Context, keyvals ...interface{}) error {
+	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
 	return kit_level.Info(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Warn(keyvals ...interface{}) error {
+func (l *ctLogger) Warn(ctx context.Context, keyvals ...interface{}) error {
+	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
 	return kit_level.Warn(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Error(keyvals ...interface{}) error {
+func (l *ctLogger) Error(ctx context.Context, keyvals ...interface{}) error {
+	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
 	return kit_level.Error(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) ToGoKitLogger() kit_log.Logger {
 	return l.logger
+}
+
+func extractInfoFromContext(ctx context.Context) []interface{} {
+	var keyvals = []interface{}{}
+
+	if ctx == nil {
+		return keyvals
+	}
+
+	if ctx.Value(cs.CtContextUserID) != nil {
+		keyvals = append(keyvals, "user_id", ctx.Value(cs.CtContextUserID).(string))
+	}
+
+	if ctx.Value(cs.CtContextRealmID) != nil {
+		keyvals = append(keyvals, "realm_id", ctx.Value(cs.CtContextRealmID).(string))
+	}
+
+	if ctx.Value(cs.CtContextCorrelationID) != nil {
+		keyvals = append(keyvals, "corr_id", ctx.Value(cs.CtContextCorrelationID).(string))
+	}
+
+	return keyvals
 }
