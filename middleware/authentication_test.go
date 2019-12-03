@@ -43,7 +43,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	// Missing authorization token.
 	{
 		var w = httptest.NewRecorder()
-		mockLogger.EXPECT().Info(context.TODO(), "Authorization Error", "Missing Authorization header").Return(nil).Times(1)
+		mockLogger.EXPECT().Info(gomock.Any(), "Authorization Error", "Missing Authorization header").Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
@@ -54,7 +54,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	// Missing basic token.
 	{
 		var w = httptest.NewRecorder()
-		mockLogger.EXPECT().Info(context.TODO(), "Authorization Error", "Missing basic token").Return(nil).Times(1)
+		mockLogger.EXPECT().Info(gomock.Any(), "Authorization Error", "Missing basic token").Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
@@ -64,7 +64,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	// Invalid base64 token.
 	{
 		var w = httptest.NewRecorder()
-		mockLogger.EXPECT().Info(context.TODO(), "Authorization Error", "Invalid base64 token").Return(nil).Times(1)
+		mockLogger.EXPECT().Info(gomock.Any(), "Authorization Error", "Invalid base64 token").Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
@@ -153,7 +153,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 	// Missing authorization token.
 	{
 		var w = httptest.NewRecorder()
-		mockLogger.EXPECT().Info(context.TODO(), "Authorization Error", "Missing Authorization header").Return(nil).Times(1)
+		mockLogger.EXPECT().Info(gomock.Any(), "Authorization Error", "Missing Authorization header").Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
@@ -164,7 +164,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 	// Missing bearer token.
 	{
 		var w = httptest.NewRecorder()
-		mockLogger.EXPECT().Info(context.TODO(), "Authorization Error", "Missing bearer token").Return(nil).Times(1)
+		mockLogger.EXPECT().Info(gomock.Any(), "Authorization Error", "Missing bearer token").Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
@@ -175,7 +175,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 	// Invalid bearer token.
 	{
 		var w = httptest.NewRecorder()
-		mockLogger.EXPECT().Info(context.TODO(), "Authorization Error", "Missing bearer token").Return(nil).Times(1)
+		mockLogger.EXPECT().Info(gomock.Any(), "Authorization Error", "Missing bearer token").Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
 		assert.Equal(t, 403, result.StatusCode)
