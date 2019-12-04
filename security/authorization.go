@@ -26,7 +26,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 
 	var groupsRep []string
 	var err error
-	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(accessToken, targetRealm, userID); err != nil {
+	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(ctx, accessToken, targetRealm, userID); err != nil {
 		am.logger.Info(ctx, "ForbiddenError", err.Error(), "infos", string(infos))
 		return ForbiddenError{}
 	}
@@ -64,7 +64,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 	// Retrieve the name of the target group
 	var err error
 	var targetGroup string
-	if targetGroup, err = am.keycloakClient.GetGroupName(accessToken, targetRealm, targetGroupID); err != nil {
+	if targetGroup, err = am.keycloakClient.GetGroupName(ctx, accessToken, targetRealm, targetGroupID); err != nil {
 		am.logger.Info(ctx, "ForbiddenError", err.Error(), "infos", string(infos))
 		return ForbiddenError{}
 	}
@@ -230,8 +230,8 @@ type authorizationManager struct {
 
 // KeycloakClient is the minimum interface required to access Keycloak
 type KeycloakClient interface {
-	GetGroupNamesOfUser(accessToken string, realmName, userID string) ([]string, error)
-	GetGroupName(accessToken string, realmName, groupID string) (string, error)
+	GetGroupNamesOfUser(ctx context.Context, accessToken string, realmName, userID string) ([]string, error)
+	GetGroupName(ctx context.Context, accessToken string, realmName, groupID string) (string, error)
 }
 
 // AuthorizationManager interface
