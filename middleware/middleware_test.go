@@ -39,8 +39,8 @@ func TestEndpointLoggingMW(t *testing.T) {
 
 	// With correlation ID.
 	var req = "req"
-	mockLogger.EXPECT().Debug("correlation_id", corrID, "req", req).Return(nil).Times(1)
-	mockLogger.EXPECT().Debug("correlation_id", corrID, "res", nil).Return(nil).Times(1)
+	mockLogger.EXPECT().Debug(gomock.Any(), "req", req).Return(nil).Times(1)
+	mockLogger.EXPECT().Debug(gomock.Any(), "res", nil).Return(nil).Times(1)
 	m(ctx, req)
 
 	// Without correlation ID.
@@ -61,7 +61,7 @@ func TestEndpointInstrumentingMW(t *testing.T) {
 	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
 
 	mockMetrics.EXPECT().NewHistogram(histoName).Return(mockHisto).Times(1)
-	mockHisto.EXPECT().With("correlation_id", corrID).Return(mockHisto).Times(1)
+	mockHisto.EXPECT().With("corr_id", corrID).Return(mockHisto).Times(1)
 	mockHisto.EXPECT().Observe(gomock.Any())
 
 	var m = MakeEndpointInstrumentingMW(mockMetrics, histoName)(dummyEndpoint)

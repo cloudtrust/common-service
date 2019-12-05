@@ -147,7 +147,7 @@ func ErrorHandlerNoLog() func(context.Context, error, http.ResponseWriter) {
 
 // ErrorHandler encodes the reply when there is an error.
 func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseWriter) {
-	return func(_ context.Context, err error, w http.ResponseWriter) {
+	return func(ctx context.Context, err error, w http.ResponseWriter) {
 		switch e := errors.Cause(err).(type) {
 		case security.ForbiddenError:
 			w.WriteHeader(http.StatusForbidden)
@@ -157,7 +157,7 @@ func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseW
 			// You should really take care of what you are sending here : e.Message should not leak any sensitive information
 			w.Write([]byte(e.Message))
 		default:
-			logger.Error("errorHandler", http.StatusInternalServerError, "msg", e.Error())
+			logger.Error(ctx, "errorHandler", http.StatusInternalServerError, "msg", e.Error())
 			if err == ratelimit.ErrLimited {
 				w.WriteHeader(http.StatusTooManyRequests)
 			} else {

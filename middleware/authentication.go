@@ -23,10 +23,11 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var authorizationHeader = req.Header.Get("Authorization")
+			var ctx = context.TODO()
 
 			if authorizationHeader == "" {
-				logger.Info("Authorization Error", "Missing Authorization header")
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.AuthHeader), w)
+				logger.Info(ctx, "Authorization Error", "Missing Authorization header")
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.AuthHeader), w)
 				return
 			}
 
@@ -34,8 +35,8 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			var r = regexp.MustCompile(regexpBasicAuth)
 			var match = r.FindStringSubmatch(authorizationHeader)
 			if match == nil {
-				logger.Info("Authorization Error", "Missing basic token")
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.BasicToken), w)
+				logger.Info(ctx, "Authorization Error", "Missing basic token")
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.BasicToken), w)
 				return
 			}
 
@@ -43,8 +44,8 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			decodedToken, err := base64.StdEncoding.DecodeString(match[1])
 
 			if err != nil {
-				logger.Info("Authorization Error", "Invalid base64 token")
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				logger.Info(ctx, "Authorization Error", "Invalid base64 token")
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
 
@@ -52,22 +53,22 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			var tokenSubparts = strings.Split(string(decodedToken), ":")
 
 			if len(tokenSubparts) != 2 {
-				logger.Info("Authorization Error", "Invalid token format (username:password)")
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				logger.Info(ctx, "Authorization Error", "Invalid token format (username:password)")
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
 
 			var username = tokenSubparts[0]
 			var password = tokenSubparts[1]
 
+			ctx = context.WithValue(req.Context(), cs.CtContextUsername, username)
+
 			// Check password match
 			if password != passwordToMatch {
-				logger.Info("Authorization Error", "Invalid password value")
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				logger.Info(ctx, "Authorization Error", "Invalid password value")
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
-
-			var ctx = context.WithValue(req.Context(), cs.CtContextUsername, username)
 
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
@@ -90,18 +91,19 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var authorizationHeader = req.Header.Get("Authorization")
+			var ctx = context.TODO()
 
 			if authorizationHeader == "" {
-				logger.Info("Authorization Error", "Missing Authorization header")
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.AuthHeader), w)
+				logger.Info(ctx, "Authorization Error", "Missing Authorization header")
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.AuthHeader), w)
 				return
 			}
 
 			var r = regexp.MustCompile(`^[Bb]earer +([^ ]+)$`)
 			var match = r.FindStringSubmatch(authorizationHeader)
 			if match == nil {
-				logger.Info("Authorization Error", "Missing bearer token")
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.BearerToken), w)
+				logger.Info(ctx, "Authorization Error", "Missing bearer token")
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.BearerToken), w)
 				return
 			}
 
@@ -110,8 +112,8 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 
 			payload, _, err := jwt.Parse(accessToken)
 			if err != nil {
-				logger.Info("Authorization Error", err)
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				logger.Info(ctx, "Authorization Error", err)
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
 
@@ -132,8 +134,8 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 					groups = extractGroups(jot.Groups)
 
 					if !assertMatchingAudience(jot.Audience, audienceRequired) {
-						logger.Info("Authorization Error", "Incorrect audience")
-						httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+						logger.Info(ctx, "Authorization Error", "Incorrect audience")
+						httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 						return
 					}
 				}
@@ -151,18 +153,18 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 					groups = extractGroups(jot.Groups)
 
 					if jot.Audience != audienceRequired {
-						logger.Info("Authorization Error", "Incorrect audience")
-						httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+						logger.Info(ctx, "Authorization Error", "Incorrect audience")
+						httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 						return
 					}
 				} else {
-					logger.Info("Authorization Error", err)
-					httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+					logger.Info(ctx, "Authorization Error", err)
+					httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 					return
 				}
 			}
 
-			var ctx = context.WithValue(req.Context(), cs.CtContextAccessToken, accessToken)
+			ctx = context.WithValue(req.Context(), cs.CtContextAccessToken, accessToken)
 			ctx = context.WithValue(ctx, cs.CtContextRealm, realm)
 			ctx = context.WithValue(ctx, cs.CtContextUserID, userID)
 			ctx = context.WithValue(ctx, cs.CtContextUsername, username)
@@ -170,8 +172,8 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			ctx = context.WithValue(ctx, cs.CtContextIssuerDomain, issuerDomain)
 
 			if err = keycloakClient.VerifyToken(ctx, realm, accessToken); err != nil {
-				logger.Info("Authorization Error", err)
-				httpErrorHandler(context.TODO(), http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				logger.Info(ctx, "Authorization Error", err)
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
 

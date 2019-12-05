@@ -15,9 +15,9 @@ import (
 func MakeEndpointLoggingMW(logger log.Logger) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
-			logger.Debug("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string), "req", req)
+			logger.Debug(ctx, "req", req)
 			res, err := next(ctx, req)
-			logger.Debug("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string), "res", res)
+			logger.Debug(ctx, "res", res)
 			return res, err
 		}
 	}
@@ -30,7 +30,7 @@ func MakeEndpointInstrumentingMW(m metrics.Metrics, histoName string) cs.Middlew
 	return func(next cs.Endpoint) cs.Endpoint {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
 			defer func(begin time.Time) {
-				h.With("correlation_id", ctx.Value(cs.CtContextCorrelationID).(string)).Observe(time.Since(begin).Seconds())
+				h.With("corr_id", ctx.Value(cs.CtContextCorrelationID).(string)).Observe(time.Since(begin).Seconds())
 			}(time.Now())
 			return next(ctx, req)
 		}
