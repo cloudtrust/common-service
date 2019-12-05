@@ -171,7 +171,7 @@ func CreateEvent(apiCall string, origin string) ReportEventDetails {
 	event.details = make(map[string]string)
 	event.details[CtEventType] = apiCall
 	event.details[CtEventOrigin] = origin
-	event.details[CtEventAuditTime] = time.Now().Local().Format(time.RFC3339)
+	event.details[CtEventAuditTime] = time.Now().UTC().Format(time.RFC3339)
 
 	return event
 }
