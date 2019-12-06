@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	timeFormat  = "2006-01-02 15:04:05.000"
 	insertEvent = `INSERT INTO audit (
 		audit_time,
 		origin,
@@ -171,7 +172,7 @@ func CreateEvent(apiCall string, origin string) ReportEventDetails {
 	event.details = make(map[string]string)
 	event.details[CtEventType] = apiCall
 	event.details[CtEventOrigin] = origin
-	event.details[CtEventAuditTime] = time.Now().UTC().Format(time.RFC3339)
+	event.details[CtEventAuditTime] = time.Now().UTC().Format(timeFormat)
 
 	return event
 }
