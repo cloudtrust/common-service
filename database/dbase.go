@@ -42,6 +42,7 @@ type CloudtrustDB interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
 	QueryRow(query string, args ...interface{}) *sql.Row
+	Ping() error
 	SetMaxOpenConns(n int)
 	SetMaxIdleConns(n int)
 	SetConnMaxLifetime(d time.Duration)
@@ -194,6 +195,9 @@ func (db *NoopDB) Query(query string, args ...interface{}) (*sql.Rows, error) { 
 
 // QueryRow does nothing.
 func (db *NoopDB) QueryRow(query string, args ...interface{}) *sql.Row { return nil }
+
+// Ping does nothing
+func (db *NoopDB) Ping() error { return nil }
 
 // SetMaxOpenConns does nothing.
 func (db *NoopDB) SetMaxOpenConns(n int) {}

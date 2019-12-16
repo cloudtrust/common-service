@@ -89,6 +89,7 @@ func TestOpenDatabaseNoop(t *testing.T) {
 
 	db.Exec("select 1 from dual")
 	db.QueryRow("select count(1) from dual")
+	db.Ping()
 	db.SetConnMaxLifetime(time.Duration(1))
 	db.SetMaxIdleConns(1)
 	db.SetMaxOpenConns(1)
