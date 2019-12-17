@@ -1,5 +1,7 @@
 package database
 
+import "github.com/cloudtrust/common-service/database/sqltypes"
+
 // Transaction interface
 type Transaction interface {
 	Commit() error
@@ -10,12 +12,12 @@ type Transaction interface {
 }
 
 type dbTransaction struct {
-	db     CloudtrustDB
+	db     sqltypes.CloudtrustDB
 	closed bool
 }
 
 // NewTransaction creates a transaction
-func NewTransaction(db CloudtrustDB) (Transaction, error) {
+func NewTransaction(db sqltypes.CloudtrustDB) (Transaction, error) {
 	var _, err = db.Exec("START TRANSACTION")
 	if err != nil {
 		return nil, err

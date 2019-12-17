@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/cloudtrust/common-service/healthcheck/mock"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEmptyHealthCheck(t *testing.T) {
-	var hc = NewHealthChecker("test-module")
+	var hc = NewHealthChecker("test-module", log.NewNopLogger())
 	var res = hc.CheckStatus()
 	assert.Nil(t, res.Details)
 }
@@ -29,7 +30,7 @@ func TestHealthCheckHandler(t *testing.T) {
 
 	var alias1 = "alias-localhost"
 	var alias2 = "alias-db"
-	var hc = NewHealthChecker("http-test-module")
+	var hc = NewHealthChecker("http-test-module", log.NewNopLogger())
 	hc.AddDatabase(alias1, mockDB, 15*time.Second)
 
 	r := mux.NewRouter()
@@ -71,4 +72,18 @@ func httpGet(targetURL string) (string, int, error) {
 	buf.ReadFrom(res.Body)
 
 	return buf.String(), res.StatusCode, nil
+}
+
+func TestHealthStatusCache(t *testing.T) {
+	var hs = HealthStatus{CacheDuration: 50 * time.Millisecond}
+	assert.True(t, hs.hasExpired())
+
+	hs.touch()
+	assert.False(t, hs.hasExpired())
+
+	time.Sleep(2 * time.Millisecond)
+	assert.False(t, hs.hasExpired())
+
+	time.Sleep(50 * time.Millisecond)
+	assert.True(t, hs.hasExpired())
 }

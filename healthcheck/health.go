@@ -6,6 +6,7 @@ import (
 	"time"
 
 	commonhttp "github.com/cloudtrust/common-service/http"
+	log "github.com/cloudtrust/common-service/log"
 )
 
 // HealthChecker is a tool used to perform health checks
@@ -20,6 +21,7 @@ type HealthChecker interface {
 type healthchecker struct {
 	name     string
 	checkers []BasicChecker
+	logger   log.Logger
 }
 
 // BasicChecker is a basic health check processor
@@ -73,8 +75,11 @@ func (hs *HealthStatus) stateUp() {
 }
 
 // NewHealthChecker Creates a new health checker
-func NewHealthChecker(name string) HealthChecker {
-	return &healthchecker{name: name}
+func NewHealthChecker(name string, logger log.Logger) HealthChecker {
+	return &healthchecker{
+		name:   name,
+		logger: log.With(logger, "healthchecker", name),
+	}
 }
 
 func (hc *healthchecker) CheckStatus() HealthResponse {
@@ -93,6 +98,7 @@ func (hc *healthchecker) CheckStatus() HealthResponse {
 		if "DOWN" == *status.State {
 			res.Healthy = false
 			res.State = "DOWN"
+			hc.logger.Info(context.Background(), "processor", status.Name, "status", *status.State, "message", *status.Message)
 		}
 		res.Details = append(res.Details, status)
 	}
@@ -108,10 +114,12 @@ func (hc *healthchecker) AddHealthChecker(name string, checker BasicChecker) {
 }
 
 func (hc *healthchecker) AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) {
+	hc.logger.Info(context.Background(), "processor", name, "url", targetURL, "message", "Adding HTTP endpoint")
 	hc.AddHealthChecker(name, newHTTPEndpointChecker(name, targetURL, timeoutDuration, expectedStatus, cacheDuration))
 }
 
 func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration) {
+	hc.logger.Info(context.Background(), "processor", name, "message", "Adding database")
 	hc.AddHealthChecker(name, newDatabaseChecker(name, db, cacheDuration))
 }
 
