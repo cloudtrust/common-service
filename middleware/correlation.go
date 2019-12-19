@@ -3,11 +3,16 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"regexp"
 
 	cs "github.com/cloudtrust/common-service"
 	gen "github.com/cloudtrust/common-service/idgenerator"
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/tracing"
+)
+
+const (
+	regExpCorrelationID = `^[\w\d_#@-]{1,70}$`
 )
 
 // MakeHTTPCorrelationIDMW retrieve the correlation ID from the HTTP header 'X-Correlation-ID'.
@@ -17,7 +22,7 @@ func MakeHTTPCorrelationIDMW(idGenerator gen.IDGenerator, tracer tracing.Opentra
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var correlationID = req.Header.Get("X-Correlation-ID")
 
-			if correlationID == "" {
+			if match, _ := regexp.MatchString(regExpCorrelationID, correlationID); !match {
 				correlationID = idGenerator.NextID()
 			}
 
