@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 
 	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/database/sqltypes"
 )
 
 // Define an internal structure to manage DB versions
@@ -37,14 +39,28 @@ func (v *dbVersion) matchesRequired(required *dbVersion) bool {
 	return !(v.major < required.major || (v.major == required.major && v.minor < required.minor))
 }
 
-// CloudtrustDB interface
-type CloudtrustDB interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	QueryRow(query string, args ...interface{}) *sql.Row
-	SetMaxOpenConns(n int)
-	SetMaxIdleConns(n int)
-	SetConnMaxLifetime(d time.Duration)
+type basicCoudtrustDB struct {
+	dbConn *sql.DB
+}
+
+func (db *basicCoudtrustDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return db.dbConn.Exec(query, args...)
+}
+
+func (db *basicCoudtrustDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
+	return db.dbConn.Query(query, args...)
+}
+
+func (db *basicCoudtrustDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
+	return db.dbConn.QueryRow(query, args...)
+}
+
+func (db *basicCoudtrustDB) Ping() error {
+	return db.dbConn.Ping()
+}
+
+func (db *basicCoudtrustDB) Close() error {
+	return db.dbConn.Close()
 }
 
 // DbConfig Db configuration parameters
@@ -120,15 +136,16 @@ func (cfg *DbConfig) getDbConnectionString() string {
 
 // OpenDatabase gets an access to a database
 // If cfg.Noop is true, a Noop access will be provided
-func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
+func (cfg *DbConfig) OpenDatabase() (sqltypes.CloudtrustDB, error) {
 	if cfg.Noop {
 		return &NoopDB{}, nil
 	}
 
-	dbConn, err := sql.Open("mysql", cfg.getDbConnectionString())
+	sqlConn, err := sql.Open("mysql", cfg.getDbConnectionString())
 	if err != nil {
 		return nil, err
 	}
+	dbConn := &basicCoudtrustDB{dbConn: sqlConn}
 
 	// DB migration version
 	// checking that the flyway_schema_history has the minimum imposed migration version
@@ -149,15 +166,15 @@ func (cfg *DbConfig) OpenDatabase() (CloudtrustDB, error) {
 
 	// the config of the DB should have a max_connections > SetMaxOpenConns
 	if err == nil {
-		dbConn.SetMaxOpenConns(cfg.MaxOpenConns)
-		dbConn.SetMaxIdleConns(cfg.MaxIdleConns)
-		dbConn.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
+		sqlConn.SetMaxOpenConns(cfg.MaxOpenConns)
+		sqlConn.SetMaxIdleConns(cfg.MaxIdleConns)
+		sqlConn.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
 	}
 
 	return dbConn, err
 }
 
-func (cfg *DbConfig) checkMigrationVersion(conn CloudtrustDB) error {
+func (cfg *DbConfig) checkMigrationVersion(conn sqltypes.CloudtrustDB) error {
 	var flywayVersion string
 	row := conn.QueryRow(`SELECT version FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 1`)
 	err := row.Scan(&flywayVersion)
@@ -190,10 +207,16 @@ func (db *NoopDB) Exec(query string, args ...interface{}) (sql.Result, error) {
 }
 
 // Query does nothing.
-func (db *NoopDB) Query(query string, args ...interface{}) (*sql.Rows, error) { return nil, nil }
+func (db *NoopDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) { return nil, nil }
 
 // QueryRow does nothing.
-func (db *NoopDB) QueryRow(query string, args ...interface{}) *sql.Row { return nil }
+func (db *NoopDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow { return nil }
+
+// Ping does nothing
+func (db *NoopDB) Ping() error { return nil }
+
+// Close does nothing
+func (db *NoopDB) Close() error { return nil }
 
 // SetMaxOpenConns does nothing.
 func (db *NoopDB) SetMaxOpenConns(n int) {}
@@ -212,3 +235,129 @@ func (NoopResult) LastInsertId() (int64, error) { return 0, nil }
 
 // RowsAffected does nothing.
 func (NoopResult) RowsAffected() (int64, error) { return 0, nil }
+
+// ReconnectableCloudtrustDB implements an auto-reconnect mechanism
+type ReconnectableCloudtrustDB struct {
+	dbConnFactory sqltypes.CloudtrustDBFactory
+	connection    sqltypes.CloudtrustDB
+	mutex         *sync.Mutex
+}
+
+// NewReconnectableCloudtrustDB opens a connection to a database. This connection will be renewed if necessary
+func NewReconnectableCloudtrustDB(dbConnFactory sqltypes.CloudtrustDBFactory) (sqltypes.CloudtrustDB, error) {
+	dbConn, err := dbConnFactory.OpenDatabase()
+	if err != nil {
+		return nil, err
+	}
+	return &ReconnectableCloudtrustDB{
+		dbConnFactory: dbConnFactory,
+		connection:    dbConn,
+		mutex:         &sync.Mutex{},
+	}, nil
+}
+
+func (rcdb *ReconnectableCloudtrustDB) getActiveConnection() (sqltypes.CloudtrustDB, error) {
+	var err error
+	if rcdb.connection == nil {
+		rcdb.mutex.Lock()
+		// Ensure connection has not already been reopened by another thread
+		if rcdb.connection == nil {
+			rcdb.connection, err = rcdb.dbConnFactory.OpenDatabase()
+		}
+		rcdb.mutex.Unlock()
+	}
+
+	return rcdb.connection, err
+}
+
+func (rcdb *ReconnectableCloudtrustDB) resetConnection(reconnect bool) error {
+	var err error
+
+	if rcdb.connection != nil {
+		rcdb.mutex.Lock()
+		if rcdb.connection != nil {
+			err = rcdb.connection.Close()
+			rcdb.connection = nil
+			if reconnect {
+				// Reconnect later
+				defer rcdb.asyncReconnect()
+			}
+		}
+		rcdb.mutex.Unlock()
+	}
+
+	return err
+}
+
+func (rcdb *ReconnectableCloudtrustDB) asyncReconnect() {
+	// Try to reconnect in asynchronously
+	go rcdb.getActiveConnection()
+}
+
+func (rcdb *ReconnectableCloudtrustDB) checkError(err error) {
+	connection := rcdb.connection
+	if err != nil && connection != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return
+		}
+		if connection.Ping() != nil {
+			rcdb.resetConnection(true)
+		}
+	}
+}
+
+// Exec an SQL query
+func (rcdb *ReconnectableCloudtrustDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+	dbConn, err := rcdb.getActiveConnection()
+	if err != nil {
+		return nil, err
+	}
+
+	var res sql.Result
+	res, err = dbConn.Exec(query, args...)
+	rcdb.checkError(err)
+
+	return res, err
+}
+
+// Query a multiple-rows SQL result
+func (rcdb *ReconnectableCloudtrustDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
+	dbConn, err := rcdb.getActiveConnection()
+	if err != nil {
+		return nil, err
+	}
+
+	var res sqltypes.SQLRows
+	res, err = dbConn.Query(query, args...)
+	rcdb.checkError(err)
+
+	return res, err
+}
+
+// QueryRow a single-row SQL result
+func (rcdb *ReconnectableCloudtrustDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
+	dbConn, err := rcdb.getActiveConnection()
+	if err != nil {
+		return sqltypes.NewSQLRowError(err)
+	}
+	return dbConn.QueryRow(query, args...)
+}
+
+// Ping check the connection with the database
+func (rcdb *ReconnectableCloudtrustDB) Ping() error {
+	dbConn, err := rcdb.getActiveConnection()
+	if err != nil {
+		return err
+	}
+	err = dbConn.Ping()
+	if err != nil {
+		rcdb.resetConnection(true)
+	}
+	return err
+}
+
+// Close the connection with the database
+func (rcdb *ReconnectableCloudtrustDB) Close() error {
+	return rcdb.resetConnection(false)
+}
