@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	cs "github.com/cloudtrust/common-service"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	gen "github.com/cloudtrust/common-service/idgenerator"
 	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/tracing"
@@ -22,8 +23,11 @@ func MakeHTTPCorrelationIDMW(idGenerator gen.IDGenerator, tracer tracing.Opentra
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var correlationID = req.Header.Get("X-Correlation-ID")
 
-			if match, _ := regexp.MatchString(regExpCorrelationID, correlationID); !match {
+			if correlationID == "" {
 				correlationID = idGenerator.NextID()
+			} else if match, _ := regexp.MatchString(regExpCorrelationID, correlationID); !match {
+				httpErrorHandler(context.Background(), http.StatusBadRequest, errorhandler.CreateInvalidQueryParameterError("X-Correlation-ID"), w)
+				return
 			}
 
 			var ctx = context.WithValue(req.Context(), cs.CtContextCorrelationID, correlationID)

@@ -39,11 +39,25 @@ func TestHTTPCorrelationIDMW(t *testing.T) {
 			assert.Equal(t, corrID, id)
 		})
 
+		// HTTP request with valid correlation ID
 		var m = MakeHTTPCorrelationIDMW(mockIDGenerator, mockTracer, mockLogger, componentName, componentID)(mockHandler)
 
-		// HTTP request.
 		var req = httptest.NewRequest("GET", "http://cloudtrust.io/getusers", bytes.NewReader([]byte{}))
 		req.Header.Add("X-Correlation-ID", corrID)
+		var w = httptest.NewRecorder()
+
+		m.ServeHTTP(w, req)
+	}
+
+	// HTTP request with invalid correlation ID
+	{
+		var mockHandler = http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+			assert.Fail(t, "should not be executed")
+		})
+		var m = MakeHTTPCorrelationIDMW(mockIDGenerator, mockTracer, mockLogger, componentName, componentID)(mockHandler)
+
+		var req = httptest.NewRequest("GET", "http://cloudtrust.io/getusers", bytes.NewReader([]byte{}))
+		req.Header.Add("X-Correlation-ID", "<$+invalid+$>")
 		var w = httptest.NewRecorder()
 
 		m.ServeHTTP(w, req)
