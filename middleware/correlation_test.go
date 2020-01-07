@@ -39,9 +39,9 @@ func TestHTTPCorrelationIDMW(t *testing.T) {
 			assert.Equal(t, corrID, id)
 		})
 
-		// HTTP request with valid correlation ID
 		var m = MakeHTTPCorrelationIDMW(mockIDGenerator, mockTracer, mockLogger, componentName, componentID)(mockHandler)
 
+		// HTTP request with valid correlation ID
 		var req = httptest.NewRequest("GET", "http://cloudtrust.io/getusers", bytes.NewReader([]byte{}))
 		req.Header.Add("X-Correlation-ID", corrID)
 		var w = httptest.NewRecorder()
