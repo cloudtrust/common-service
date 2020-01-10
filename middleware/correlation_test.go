@@ -41,7 +41,7 @@ func TestHTTPCorrelationIDMW(t *testing.T) {
 
 		var m = MakeHTTPCorrelationIDMW(mockIDGenerator, mockTracer, mockLogger, componentName, componentID)(mockHandler)
 
-		// HTTP request.
+		// HTTP request with valid correlation ID
 		var req = httptest.NewRequest("GET", "http://cloudtrust.io/getusers", bytes.NewReader([]byte{}))
 		req.Header.Add("X-Correlation-ID", corrID)
 		var w = httptest.NewRecorder()
@@ -49,11 +49,26 @@ func TestHTTPCorrelationIDMW(t *testing.T) {
 		m.ServeHTTP(w, req)
 	}
 
+	// HTTP request with invalid correlation ID
+	{
+		var mockHandler = http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+			assert.Fail(t, "should not be executed")
+		})
+		var m = MakeHTTPCorrelationIDMW(mockIDGenerator, mockTracer, mockLogger, componentName, componentID)(mockHandler)
+
+		var req = httptest.NewRequest("GET", "http://cloudtrust.io/getusers", bytes.NewReader([]byte{}))
+		req.Header.Add("X-Correlation-ID", "<$+invalid+$>")
+		var w = httptest.NewRecorder()
+
+		m.ServeHTTP(w, req)
+	}
+
 	// Without header 'X-Correlation-ID', so there is a call to IDGenerator.
 	{
+		var mockCorrID = "keycloak_bridge-123456789-12645316163-45641615174715"
 		var mockHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var id = req.Context().Value(cs.CtContextCorrelationID).(string)
-			assert.Equal(t, "keycloak_brdige-123456789-12645316163-45641615174715", id)
+			assert.Equal(t, mockCorrID, id)
 		})
 		var m = MakeHTTPCorrelationIDMW(mockIDGenerator, mockTracer, mockLogger, componentName, componentID)(mockHandler)
 
@@ -61,7 +76,7 @@ func TestHTTPCorrelationIDMW(t *testing.T) {
 		var req = httptest.NewRequest("GET", "http://cloudtrust.io/getusers", bytes.NewReader([]byte{}))
 		var w = httptest.NewRecorder()
 
-		mockIDGenerator.EXPECT().NextID().Return("keycloak_brdige-123456789-12645316163-45641615174715").Times(1)
+		mockIDGenerator.EXPECT().NextID().Return(mockCorrID).Times(1)
 		m.ServeHTTP(w, req)
 	}
 }
