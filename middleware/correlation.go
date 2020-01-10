@@ -26,7 +26,7 @@ func MakeHTTPCorrelationIDMW(idGenerator gen.IDGenerator, tracer tracing.Opentra
 			if correlationID == "" {
 				correlationID = idGenerator.NextID()
 			} else if match, _ := regexp.MatchString(regExpCorrelationID, correlationID); !match {
-				httpErrorHandler(context.Background(), http.StatusBadRequest, errorhandler.CreateInvalidQueryParameterError("X-Correlation-ID"), w)
+				httpErrorHandler(req.Context(), http.StatusBadRequest, errorhandler.CreateInvalidQueryParameterError("X-Correlation-ID"), w)
 				return
 			}
 
