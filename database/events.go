@@ -34,6 +34,8 @@ const (
 	CtEventAgentUsername   = "agent_username"
 	CtEventAgentRealmName  = "agent_realm_name"
 	CtEventUserID          = "user_id"
+	CtEventGroupID         = "group_id"
+	CtEventGroupName       = "group_name"
 	CtEventOrigin          = "origin"
 	CtEventAuditTime       = "audit_time"
 	CtEventRealmName       = "realm_name"
