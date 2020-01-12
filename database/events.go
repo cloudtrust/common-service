@@ -6,6 +6,7 @@ import (
 	"time"
 
 	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/database/sqltypes"
 )
 
 const (
@@ -58,7 +59,7 @@ type EventsDBModule interface {
 }
 
 type eventsDBModule struct {
-	db CloudtrustDB
+	db sqltypes.CloudtrustDB
 }
 
 func isInArray(array []string, value string) bool {
@@ -88,7 +89,7 @@ func CreateAdditionalInfo(values ...string) string {
 }
 
 // NewEventsDBModule returns a Console module.
-func NewEventsDBModule(db CloudtrustDB) EventsDBModule {
+func NewEventsDBModule(db sqltypes.CloudtrustDB) EventsDBModule {
 	//db.Exec(createTable)
 	return &eventsDBModule{
 		db: db,
