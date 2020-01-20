@@ -280,3 +280,20 @@ func NewAuthorizationManagerFromFile(keycloakClient KeycloakClient, logger log.L
 	}
 	return NewAuthorizationManager(keycloakClient, logger, string(json))
 }
+
+type Action struct {
+	Id    int
+	Name  string
+	Scope Scope
+}
+type Scope string
+
+var (
+	ScopeGlobal = Scope("global")
+	ScopeRealm  = Scope("realm")
+	ScopeGroup  = Scope("group")
+)
+
+func (a Action) String() string {
+	return a.Name
+}
