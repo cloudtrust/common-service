@@ -10,12 +10,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:fed1f537c2f1269fe475a8556c393fe466641682d73ef8fd0491cd3aa1e47bad"
+  digest = "1:c659a6247d43eca4d74b53fade2e032a8882b055ba5aad02d154189b18ae3739"
   name = "github.com/certifi/gocertifi"
   packages = ["."]
   pruneopts = "UT"
-  revision = "deb3ae2ef2610fde3330947281941c562861188b"
-  version = "2018.01.18"
+  revision = "a6d78f326758ac5f79e9c3eddc38723d07216c3a"
+  version = "2020.01.04"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -60,12 +60,12 @@
   version = "v0.8.0"
 
 [[projects]]
-  digest = "1:4062bc6de62d73e2be342243cf138cf499b34d558876db8d9430e2149388a4d8"
+  digest = "1:522a207de5459ab329732b5df6bb6dd7592da9fddf8a99e9f82609e370d82f9b"
   name = "github.com/go-logfmt/logfmt"
   packages = ["."]
   pruneopts = "UT"
-  revision = "07c9b44f60d7ffdfb7d8efe1ad539965737836dc"
-  version = "v0.4.0"
+  revision = "3be5f6aae7db841d31dc5e1b3bb7b4cff19200b3"
+  version = "v0.5.0"
 
 [[projects]]
   digest = "1:be408f349cae090a7c17a279633d6e62b00068e64af66a582cae0983de8890ea"
@@ -96,14 +96,6 @@
   version = "v1.7.9"
 
 [[projects]]
-  branch = "master"
-  digest = "1:a64e323dc06b73892e5bb5d040ced475c4645d456038333883f58934abbf6f72"
-  name = "github.com/kr/logfmt"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
-
-[[projects]]
   digest = "1:11e62d6050198055e6cd87ed57e5d8c669e84f839c16e16f192374d913d1a70d"
   name = "github.com/opentracing/opentracing-go"
   packages = [
@@ -132,21 +124,22 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:972c2427413d41a1e06ca4897e8528e5a1622894050e2f527b38ddf0f343f759"
+  digest = "1:8548c309c65a85933a625be5e7d52b6ac927ca30c56869fae58123b8a77a75e1"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
   pruneopts = "UT"
-  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
-  version = "v1.3.0"
+  revision = "221dbe5ed46703ee255b1da0dec05086f5035f62"
+  version = "v1.4.0"
 
 [[projects]]
-  digest = "1:b0fcdb2b7d3f20b60e024bb8c8be5a47d72c353f21e9a083fb1a226de4a94c43"
+  digest = "1:54bf58828a4074c2304fcc52f018eb19fc02d5853ebd5121817330792c776734"
   name = "github.com/uber/jaeger-client-go"
   packages = [
     ".",
     "config",
     "internal/baggage",
     "internal/baggage/remote",
+    "internal/reporterstats",
     "internal/spanlog",
     "internal/throttler",
     "internal/throttler/remote",
@@ -162,8 +155,8 @@
     "utils",
   ]
   pruneopts = "UT"
-  revision = "d4d621cd6ed9aa5f1fc91eb0d0211d336bd6b79d"
-  version = "v2.19.0"
+  revision = "2d55657eac169e2a86b4fcc1a421e26a9a485b63"
+  version = "v2.22.1"
 
 [[projects]]
   digest = "1:d7b6fd08442b8d26882fae2c859a0d63962d72a533476a217d46743ed30cb803"
@@ -172,6 +165,25 @@
   pruneopts = "UT"
   revision = "a87ae9d84fb038a8d79266298970720be7c80fcd"
   version = "v2.2.0"
+
+[[projects]]
+  digest = "1:c708d00d1097e62bf4f3a72f239efa7dafc257581421b0b7d3789e1ff5299f30"
+  name = "go.uber.org/atomic"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "40ae6a40a970ef4cdbffa7b24b280e316db8accc"
+  version = "v1.5.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:334b27eac455cb6567ea28cd424230b07b1a64334a2f861a8075ac26ce10af43"
+  name = "golang.org/x/lint"
+  packages = [
+    ".",
+    "golint",
+  ]
+  pruneopts = "UT"
+  revision = "fdd1cda4f05fd1fd86124f0ef9ce31a0b72c8448"
 
 [[projects]]
   branch = "master"
@@ -210,6 +222,19 @@
   version = "v0.3.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:375bbce2bbd503937b18f404fe297d6d723ac2387097a0425e3316f20324f491"
+  name = "golang.org/x/tools"
+  packages = [
+    "go/ast/astutil",
+    "go/gcexportdata",
+    "go/internal/gcimporter",
+    "go/types/typeutil",
+  ]
+  pruneopts = "UT"
+  revision = "eb0d8dd85bcce4e3c0c1da6bbc384d5ad84035bf"
+
+[[projects]]
   digest = "1:fdc801e94ddbe703f6b4263ee96ed12fc9e1d754369bf9de874c7567ea2c9686"
   name = "gopkg.in/h2non/gentleman.v2"
   packages = [
@@ -231,6 +256,14 @@
   pruneopts = "UT"
   revision = "e0f81be2f4064ea7aa7470e9daddd2dc8e8152c7"
   version = "v2.0.3"
+
+[[projects]]
+  digest = "1:b75b3deb2bce8bc079e16bb2aecfe01eb80098f5650f9e93e5643ca8b7b73737"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1f64d6156d11335c3f22d9330b0ad14fc1e789ce"
+  version = "v2.2.7"
 
 [solve-meta]
   analyzer-name = "dep"
