@@ -39,7 +39,7 @@ func makeHandler(e endpoint.Endpoint) *http_transport.Server {
 func TestHttpGenericResponse(t *testing.T) {
 	r := mux.NewRouter()
 	// Test with JSON content
-	r.Handle("/path/to/mime", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
+	r.Handle("/path/to/json", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
 		return GenericResponse{
 			StatusCode:       http.StatusNotFound,
 			Headers:          map[string]string{"Location": "here"},
@@ -61,12 +61,16 @@ func TestHttpGenericResponse(t *testing.T) {
 			JSONableResponse: nil,
 		}, nil
 	}))
+	// Test with neither JSON content nor MimeContent
+	r.Handle("/path/to/empty", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
+		return GenericResponse{StatusCode: http.StatusNoContent}, nil
+	}))
 
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	{
-		res, err := http.Get(ts.URL + "/path/to/mime")
+	t.Run("JSON test", func(t *testing.T) {
+		res, err := http.Get(ts.URL + "/path/to/json")
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusNotFound, res.StatusCode)
 		assert.Equal(t, "here", res.Header.Get("Location"))
@@ -74,9 +78,9 @@ func TestHttpGenericResponse(t *testing.T) {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(res.Body)
 		assert.Equal(t, "[]", buf.String())
-	}
+	})
 
-	{
+	t.Run("MIME test", func(t *testing.T) {
 		res, err := http.Get(ts.URL + "/path/to/jpeg")
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusCreated, res.StatusCode)
@@ -84,7 +88,17 @@ func TestHttpGenericResponse(t *testing.T) {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(res.Body)
 		assert.Equal(t, "not a real jpeg", buf.String())
-	}
+	})
+
+	t.Run("Empty test", func(t *testing.T) {
+		res, err := http.Get(ts.URL + "/path/to/empty")
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusNoContent, res.StatusCode)
+
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(res.Body)
+		assert.Equal(t, "", buf.String())
+	})
 }
 
 type nonJsonable struct {
