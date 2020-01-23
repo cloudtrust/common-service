@@ -53,6 +53,8 @@ func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
 		w.Write(r.MimeContent.Content)
 	} else if r.JSONableResponse != nil {
 		writeJSON(r.JSONableResponse, w, r.StatusCode)
+	} else {
+		w.WriteHeader(r.StatusCode)
 	}
 }
 
