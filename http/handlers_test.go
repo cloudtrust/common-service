@@ -180,6 +180,10 @@ func checkInvalidPathParameter(t *testing.T, url string) {
 }
 
 func genericTestDecodeRequest(ctx context.Context, tls *tls.ConnectionState, xFwdProto *string, rawQuery string) (map[string]string, error) {
+	return genericTestDecodeRequestWithHeader(ctx, tls, xFwdProto, rawQuery, nil)
+}
+
+func genericTestDecodeRequestWithHeader(ctx context.Context, tls *tls.ConnectionState, xFwdProto *string, rawQuery string, headers map[string]string) (map[string]string, error) {
 	input := "the body"
 	var req http.Request
 	var url url.URL
@@ -201,7 +205,17 @@ func genericTestDecodeRequest(ctx context.Context, tls *tls.ConnectionState, xFw
 		"queryParam2": "^[a-zA-Z0-9-]+$",
 	}
 
-	r, err := DecodeRequest(ctx, &req, pathParams, queryParams)
+	var r interface{}
+	var err error
+
+	if headers != nil {
+		for key, value := range headers {
+			req.Header.Add(key, value)
+		}
+		r, err = DecodeRequestWithHeaders(ctx, &req, pathParams, queryParams, []string{"Authorization"})
+	} else {
+		r, err = DecodeRequest(ctx, &req, pathParams, queryParams)
+	}
 
 	if err != nil {
 		return nil, err
@@ -253,11 +267,22 @@ func TestDecodeRequestQueryParams(t *testing.T) {
 	assert.Equal(t, value, request["queryParam2"])
 }
 
-func TestDecodeEventsRequestInvalidQueryParams(t *testing.T) {
+func TestDecodeRequestInvalidQueryParams(t *testing.T) {
 	value := "valueX!"
 	_, err := genericTestDecodeRequest(context.Background(), nil, nil, "queryParam2="+value)
 
 	assert.NotNil(t, err)
+}
+
+func TestDecodeRequestWithHeaders(t *testing.T) {
+	var auth = "Basic ABC="
+	var headers = map[string]string{"Content-Type": "text/plain", "Authorization": auth}
+	request, err := genericTestDecodeRequestWithHeader(context.Background(), nil, nil, "", headers)
+
+	assert.Nil(t, err)
+	assert.NotContains(t, request, "Content-Type")
+	assert.Contains(t, request, "Authorization")
+	assert.Equal(t, auth, request["Authorization"])
 }
 
 func TestEncodeReplyNilResponse(t *testing.T) {
