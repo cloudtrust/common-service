@@ -71,11 +71,16 @@ func writeJSON(jsonableResponse interface{}, w http.ResponseWriter, statusCode i
 
 // BasicDecodeRequest does not expect parameters
 func BasicDecodeRequest(ctx context.Context, req *http.Request) (interface{}, error) {
-	return DecodeRequest(ctx, req, map[string]string{}, map[string]string{})
+	return DecodeRequestWithHeaders(ctx, req, map[string]string{}, map[string]string{}, nil)
 }
 
 // DecodeRequest gets the HTTP parameters and body content
-func DecodeRequest(_ context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string) (interface{}, error) {
+func DecodeRequest(ctx context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string) (interface{}, error) {
+	return DecodeRequestWithHeaders(ctx, req, pathParams, queryParams, nil)
+}
+
+// DecodeRequestWithHeaders gets the HTTP parameters, headers and body content
+func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string, headers []string) (interface{}, error) {
 	var request = map[string]string{}
 
 	// Fetch and validate path parameter such as realm, userID, ...
@@ -108,6 +113,11 @@ func DecodeRequest(_ context.Context, req *http.Request, pathParams map[string]s
 		}
 	}
 
+	if headers != nil {
+		for _, headerKey := range headers {
+			request[headerKey] = req.Header.Get(headerKey)
+		}
+	}
 	return request, nil
 }
 
