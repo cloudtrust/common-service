@@ -217,20 +217,17 @@ func (am *authorizationManager) ReloadAuthorizations(ctx context.Context) error 
 
 	for _, authz := range authorizations {
 		// Realm of user
-		_, ok := matrix[*authz.RealmID]
-		if !ok {
+		if _, ok := matrix[*authz.RealmID]; !ok {
 			matrix[*authz.RealmID] = make(map[string]map[string]map[string]map[string]struct{})
 		}
 
 		// Group of user
-		_, ok = matrix[*authz.RealmID][*authz.GroupName]
-		if !ok {
+		if _, ok := matrix[*authz.RealmID][*authz.GroupName]; !ok {
 			matrix[*authz.RealmID][*authz.GroupName] = make(map[string]map[string]map[string]struct{})
 		}
 
 		// Action
-		_, ok = matrix[*authz.RealmID][*authz.GroupName][*authz.Action]
-		if !ok {
+		if _, ok := matrix[*authz.RealmID][*authz.GroupName][*authz.Action]; !ok {
 			matrix[*authz.RealmID][*authz.GroupName][*authz.Action] = make(map[string]map[string]struct{})
 		}
 
@@ -239,8 +236,7 @@ func (am *authorizationManager) ReloadAuthorizations(ctx context.Context) error 
 			continue
 		}
 
-		_, ok = matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID]
-		if !ok {
+		if _, ok := matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID]; !ok {
 			matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID] = make(map[string]struct{})
 		}
 
@@ -314,7 +310,6 @@ func NewAuthorizationManager(authorizationDBReader AuthorizationDBReader, keyclo
 }
 
 type Action struct {
-	Id    int
 	Name  string
 	Scope Scope
 }

@@ -14,11 +14,6 @@ const (
 	selectAllAuthzStmt = `SELECT realm_id, group_name, action, target_realm_id, target_group_name FROM authorizations;`
 )
 
-// Scanner used to get data from SQL cursors
-type Scanner interface {
-	Scan(...interface{}) error
-}
-
 type ConfigurationReaderDBModule struct {
 	db     sqltypes.CloudtrustDB
 	logger log.Logger
@@ -75,7 +70,7 @@ func (c *ConfigurationReaderDBModule) GetAuthorizations(ctx context.Context) ([]
 	return res, nil
 }
 
-func (c *ConfigurationReaderDBModule) scanAuthorization(scanner Scanner) (Authorization, error) {
+func (c *ConfigurationReaderDBModule) scanAuthorization(scanner sqltypes.SQLRow) (Authorization, error) {
 	var (
 		realmID         string
 		groupName       string
@@ -104,11 +99,4 @@ func (c *ConfigurationReaderDBModule) scanAuthorization(scanner Scanner) (Author
 	}
 
 	return authz, nil
-}
-
-func nullableString(value *string) interface{} {
-	if value != nil {
-		return value
-	}
-	return nil
 }

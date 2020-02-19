@@ -622,7 +622,6 @@ func TestReloadAuthorizations(t *testing.T) {
 
 func TestAction(t *testing.T) {
 	var action = Action{
-		Id:    1,
 		Name:  "test",
 		Scope: ScopeGlobal,
 	}
