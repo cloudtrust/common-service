@@ -10,12 +10,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:c659a6247d43eca4d74b53fade2e032a8882b055ba5aad02d154189b18ae3739"
+  digest = "1:875c90e39ff3e917c933c3f611bc61657bda8834e7fc59498f1a4ff0e23edefb"
   name = "github.com/certifi/gocertifi"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a6d78f326758ac5f79e9c3eddc38723d07216c3a"
-  version = "2020.01.04"
+  revision = "c7c1fbc02894e7114f06f6a4d9ab31eee2225bdb"
+  version = "2020.02.11"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -84,15 +84,15 @@
   version = "v1.3.3"
 
 [[projects]]
-  digest = "1:cbec35fe4d5a4fba369a656a8cd65e244ea2c743007d8f6c1ccb132acf9d1296"
+  digest = "1:25ebe6496abb289ef977c081b2d49f56dd97c32db4ca083d37f95923909ced02"
   name = "github.com/gorilla/mux"
   packages = ["."]
   pruneopts = "UT"
-  revision = "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
-  version = "v1.7.3"
+  revision = "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+  version = "v1.7.4"
 
 [[projects]]
-  digest = "1:c266355b17e65dc0128f4a9df906567b28e135b774e0b395aab3d748af0871e2"
+  digest = "1:9b73396bc7a21f88702fe3d314ca7860843c08f9c787bb47f008075f840df23d"
   name = "github.com/influxdata/influxdb"
   packages = [
     "client/v2",
@@ -140,12 +140,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:8548c309c65a85933a625be5e7d52b6ac927ca30c56869fae58123b8a77a75e1"
+  digest = "1:5e8f46b412421d2d6cceea845d28ac46f3f5a5f60a6e86f0ee75e24fd43a02a9"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
   pruneopts = "UT"
-  revision = "221dbe5ed46703ee255b1da0dec05086f5035f62"
-  version = "v1.4.0"
+  revision = "3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9"
+  version = "v1.5.1"
 
 [[projects]]
   digest = "1:54bf58828a4074c2304fcc52f018eb19fc02d5853ebd5121817330792c776734"
@@ -183,23 +183,12 @@
   version = "v2.2.0"
 
 [[projects]]
-  digest = "1:c708d00d1097e62bf4f3a72f239efa7dafc257581421b0b7d3789e1ff5299f30"
+  digest = "1:a5158647b553c61877aa9ae74f4015000294e47981e6b8b07525edcbb0747c81"
   name = "go.uber.org/atomic"
   packages = ["."]
   pruneopts = "UT"
-  revision = "40ae6a40a970ef4cdbffa7b24b280e316db8accc"
-  version = "v1.5.1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:802fc3c45ff4507b6e4a5c0c5ea55836242aeac3b8eddfe31d5d80a3cac50731"
-  name = "golang.org/x/lint"
-  packages = [
-    ".",
-    "golint",
-  ]
-  pruneopts = "UT"
-  revision = "910be7a94367618fd0fd25eaabbee4fdc0ac7092"
+  revision = "df976f2515e274675050de7b3f42545de80594fd"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
@@ -210,7 +199,7 @@
     "publicsuffix",
   ]
   pruneopts = "UT"
-  revision = "16171245cfb220d5317888b716d69c1fb4e7992b"
+  revision = "46282727080fcf56da5781d0a9ef2fda184be5e6"
 
 [[projects]]
   digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
@@ -238,20 +227,7 @@
   version = "v0.3.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:1050c11c1d756701b8a247428e7af6cdc4f45b5bca163ae8b9c78ea0e2455e87"
-  name = "golang.org/x/tools"
-  packages = [
-    "go/ast/astutil",
-    "go/gcexportdata",
-    "go/internal/gcimporter",
-    "go/types/typeutil",
-  ]
-  pruneopts = "UT"
-  revision = "2de505fc5306574bc26fdcf5aca1e37ed187421e"
-
-[[projects]]
-  digest = "1:fdc801e94ddbe703f6b4263ee96ed12fc9e1d754369bf9de874c7567ea2c9686"
+  digest = "1:8a982874c5980269b7e0d398fb07b5d0385657dd56ff2df3fec2959ddde52133"
   name = "gopkg.in/h2non/gentleman.v2"
   packages = [
     ".",
@@ -270,8 +246,8 @@
     "utils",
   ]
   pruneopts = "UT"
-  revision = "e0f81be2f4064ea7aa7470e9daddd2dc8e8152c7"
-  version = "v2.0.3"
+  revision = "34f7caeaf69f4668a88f8294ec18665fd2756b84"
+  version = "v2.0.4"
 
 [[projects]]
   digest = "1:55b110c99c5fdc4f14930747326acce56b52cfce60b24b1c03ef686ac0e46bb1"
