@@ -3,7 +3,6 @@ package configuration
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/cloudtrust/common-service/database/sqltypes"
 	"github.com/cloudtrust/common-service/log"
@@ -14,12 +13,13 @@ const (
 	selectAllAuthzStmt = `SELECT realm_id, group_name, action, target_realm_id, target_group_name FROM authorizations;`
 )
 
+// ConfigurationReaderDBModule struct
 type ConfigurationReaderDBModule struct {
 	db     sqltypes.CloudtrustDB
 	logger log.Logger
 }
 
-// NewConfigurationDBModule returns a ConfigurationDB module.
+// NewConfigurationReaderDBModule returns a ConfigurationDB module.
 func NewConfigurationReaderDBModule(db sqltypes.CloudtrustDB, logger log.Logger) *ConfigurationReaderDBModule {
 	return &ConfigurationReaderDBModule{
 		db:     db,
@@ -27,26 +27,26 @@ func NewConfigurationReaderDBModule(db sqltypes.CloudtrustDB, logger log.Logger)
 	}
 }
 
+// GetConfiguration returns a realm configuration
 func (c *ConfigurationReaderDBModule) GetConfiguration(ctx context.Context, realmID string) (RealmConfiguration, error) {
 	var configJSON string
-	var config = RealmConfiguration{}
 	row := c.db.QueryRow(selectConfigStmt, realmID)
 
 	switch err := row.Scan(&configJSON); err {
 	case sql.ErrNoRows:
 		c.logger.Warn(ctx, "msg", "Realm Configuration not found in DB", "error", err.Error())
-		return config, err
+		return RealmConfiguration{}, err
 
 	default:
 		if err != nil {
-			return config, err
+			return RealmConfiguration{}, err
 		}
 
-		err = json.Unmarshal([]byte(configJSON), &config)
-		return config, err
+		return NewRealmConfiguration(configJSON)
 	}
 }
 
+// GetAuthorizations returns authorizations
 func (c *ConfigurationReaderDBModule) GetAuthorizations(ctx context.Context) ([]Authorization, error) {
 	// Get Authorizations from DB
 	rows, err := c.db.Query(selectAllAuthzStmt)
