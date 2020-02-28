@@ -130,7 +130,9 @@ func TestValidateParameterPhoneNumber(t *testing.T) {
 
 func TestValidateParameterDate(t *testing.T) {
 	var dateLayout = "02.01.2006"
+	var multipleLayouts = []string{dateLayout, "2006/01/02"}
 	var invalidDate = "57.13.2017"
+	var alternateFormatDate = "2020/04/12"
 	var summer = "21.06.2020"
 	var easter, _ = time.Parse(dateLayout, "12.04.2020")
 	var halloween, _ = time.Parse(dateLayout, "31.10.2020")
@@ -147,6 +149,10 @@ func TestValidateParameterDate(t *testing.T) {
 	})
 	t.Run("Invalid date", func(t *testing.T) {
 		assert.NotNil(t, NewParameterValidator().ValidateParameterDate("param", &invalidDate, dateLayout, true).Status())
+	})
+	t.Run("Multiple layouts", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterDate("param", &alternateFormatDate, dateLayout, true).Status())
+		assert.Nil(t, NewParameterValidator().ValidateParameterDateMultipleLayout("param", &alternateFormatDate, multipleLayouts, true).Status())
 	})
 	t.Run("After", func(t *testing.T) {
 		assert.Nil(t, NewParameterValidator().ValidateParameterDateAfter("param", &summer, dateLayout, easter, true).Status())
@@ -168,6 +174,9 @@ func TestValidateParameterDate(t *testing.T) {
 	})
 	t.Run("Valid check after failed validation-Date", func(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterDate("param", nil, dateLayout, false).Status())
+	})
+	t.Run("Valid check after failed validation-DateMultipleLayout", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterDateMultipleLayout("param", nil, multipleLayouts, false).Status())
 	})
 	t.Run("Valid check after failed validation-After", func(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterDateAfter("param", nil, dateLayout, easter, false).Status())
