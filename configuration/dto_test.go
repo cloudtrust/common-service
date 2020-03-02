@@ -22,3 +22,14 @@ func TestNewRealmConfiguration(t *testing.T) {
 		assert.False(t, *conf.APISelfAccountEditingEnabled)
 	})
 }
+
+func TestNewRealmAdminConfiguration(t *testing.T) {
+	t.Run("Invalid JSON", func(t *testing.T) {
+		var _, err = NewRealmAdminConfiguration(`{`)
+		assert.NotNil(t, err)
+	})
+	t.Run("Valid JSON", func(t *testing.T) {
+		var _, err = NewRealmAdminConfiguration(`{}`)
+		assert.Nil(t, err)
+	})
+}
