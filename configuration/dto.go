@@ -19,6 +19,8 @@ type RealmConfiguration struct {
 	RegisterExecuteActions              *[]string `json:"register_execute_actions,omitempty"`
 	RedirectCancelledRegistrationURL    *string   `json:"redirect_cancelled_registration_url,omitempty"`
 	RedirectSuccessfulRegistrationURL   *string   `json:"redirect_successful_registration_url,omitempty"`
+	PhysicalIdentification              *bool     `json:"physical_identification,omitempty"`
+	AccreditationType                   *string   `json:"accreditation_type,omitempty"`
 }
 
 // Authorization struct
