@@ -72,16 +72,16 @@
   name = "github.com/golang/mock"
   packages = ["gomock"]
   pruneopts = "UT"
-  revision = "3dcdcb6994c4de42a73bd2e4790178be3ed4554b"
-  version = "v1.4.0"
+  revision = "b48cb6623c04dae64c28537143aca42d16561daf"
+  version = "v1.4.1"
 
 [[projects]]
   digest = "1:d1e35b720b5f5156502ffdd174000c81295919293735342da78582e4dc7a8bcd"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   pruneopts = "UT"
-  revision = "d23c5127dc24889085f8ccea5c9d560a57a879d8"
-  version = "v1.3.3"
+  revision = "5d5b4c10bd43f85e63bd9e4a3fa9b1ea2ef88af2"
+  version = "v1.3.4"
 
 [[projects]]
   digest = "1:25ebe6496abb289ef977c081b2d49f56dd97c32db4ca083d37f95923909ced02"
@@ -140,12 +140,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:5e8f46b412421d2d6cceea845d28ac46f3f5a5f60a6e86f0ee75e24fd43a02a9"
+  digest = "1:972c2427413d41a1e06ca4897e8528e5a1622894050e2f527b38ddf0f343f759"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
   pruneopts = "UT"
-  revision = "3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9"
-  version = "v1.5.1"
+  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:54bf58828a4074c2304fcc52f018eb19fc02d5853ebd5121817330792c776734"
@@ -183,23 +183,23 @@
   version = "v2.2.0"
 
 [[projects]]
-  digest = "1:a5158647b553c61877aa9ae74f4015000294e47981e6b8b07525edcbb0747c81"
+  digest = "1:19525e48b45af69339bd7c2812137dbd1e650a78fc09c7c75482e307d51aa28d"
   name = "go.uber.org/atomic"
   packages = ["."]
   pruneopts = "UT"
-  revision = "df976f2515e274675050de7b3f42545de80594fd"
-  version = "v1.4.0"
+  revision = "845920076a298bdb984fb0f1b86052e4ca0a281c"
+  version = "v1.6.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:64bf36b06fd69367f28726281e3c9d9a541eae5b89225dfd282c18f03ec9da19"
+  digest = "1:4d02b57b109d7a6a87d9ed6bf8026f32bfb04f86e5bf49e0d81e1c98cf46a965"
   name = "golang.org/x/net"
   packages = [
     "idna",
     "publicsuffix",
   ]
   pruneopts = "UT"
-  revision = "46282727080fcf56da5781d0a9ef2fda184be5e6"
+  revision = "244492dfa37ae2ce87222fd06250a03160745faa"
 
 [[projects]]
   digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
@@ -248,14 +248,6 @@
   pruneopts = "UT"
   revision = "34f7caeaf69f4668a88f8294ec18665fd2756b84"
   version = "v2.0.4"
-
-[[projects]]
-  digest = "1:55b110c99c5fdc4f14930747326acce56b52cfce60b24b1c03ef686ac0e46bb1"
-  name = "gopkg.in/yaml.v2"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "53403b58ad1b561927d19068c655246f2db79d48"
-  version = "v2.2.8"
 
 [solve-meta]
   analyzer-name = "dep"
