@@ -1,18 +1,21 @@
 package middleware
 
-//go:generate mockgen -destination=./mock/logging.go -package=mock -mock_names=Logger=Logger github.com/cloudtrust/common-service/log Logger
-//go:generate mockgen -destination=./mock/tracing.go -package=mock -mock_names=OpentracingClient=OpentracingClient github.com/cloudtrust/common-service/tracing OpentracingClient
-//go:generate mockgen -destination=./mock/metrics.go -package=mock -mock_names=Metrics=Metrics,Histogram=Histogram github.com/cloudtrust/common-service/metrics Metrics,Histogram
-//go:generate mockgen -destination=./mock/idGenerator.go -package=mock -mock_names=IDGenerator=IDGenerator github.com/cloudtrust/common-service/idgenerator IDGenerator
-
 import (
+	"bytes"
 	"context"
+	"errors"
 	"math/rand"
+	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
 
+	errorhandler "github.com/cloudtrust/common-service/errors"
+
 	cs "github.com/cloudtrust/common-service"
+	"github.com/cloudtrust/common-service/configuration"
+	"github.com/cloudtrust/common-service/log"
 	"github.com/cloudtrust/common-service/middleware/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -66,12 +69,78 @@ func TestEndpointInstrumentingMW(t *testing.T) {
 
 	var m = MakeEndpointInstrumentingMW(mockMetrics, histoName)(dummyEndpoint)
 
-	// With correlation ID.
-	m(ctx, nil)
+	t.Run("With correlation ID", func(t *testing.T) {
+		m(ctx, nil)
+	})
+	t.Run("Without correlation ID", func(t *testing.T) {
+		var f = func() {
+			m(context.Background(), nil)
+		}
+		assert.Panics(t, f)
+	})
+}
 
-	// Without correlation ID.
-	var f = func() {
-		m(context.Background(), nil)
-	}
-	assert.Panics(t, f)
+func TestEndpointAvailableMW(t *testing.T) {
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	var mockIDRetriever = mock.NewIDRetriever(mockCtrl)
+	var mockConfRetriever = mock.NewAdminConfigurationRetriever(mockCtrl)
+	var logger = log.NewNopLogger()
+
+	var accessToken = "jwtaccesstoken"
+	var realmName = "myrealm"
+	var realmID = "abcdefgh-1234-5678"
+	var ctx = context.TODO()
+	var expectedError = errors.New("the error")
+	var feature = configuration.CheckKeyPhysical
+	var adminConfig configuration.RealmAdminConfiguration
+	var dummyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	var m = MakeEndpointAvailableCheckMW(feature, mockIDRetriever, mockConfRetriever, logger)(dummyHandler)
+
+	// HTTP request
+	var req = httptest.NewRequest("POST", "http://cloudtrust.io/api", bytes.NewReader([]byte{}))
+	ctx = context.WithValue(ctx, cs.CtContextAccessToken, accessToken)
+	ctx = context.WithValue(ctx, cs.CtContextRealm, realmName)
+	req = req.WithContext(ctx)
+
+	t.Run("Can't get realmID - unexpected error", func(t *testing.T) {
+		var w = httptest.NewRecorder()
+		mockIDRetriever.EXPECT().GetID(accessToken, realmName).Return(realmID, expectedError)
+		m.ServeHTTP(w, req)
+		var result = w.Result()
+		assert.Equal(t, http.StatusInternalServerError, result.StatusCode)
+	})
+	t.Run("Can't get realmID - unauthorized", func(t *testing.T) {
+		var w = httptest.NewRecorder()
+		mockIDRetriever.EXPECT().GetID(accessToken, realmName).Return(realmID, errorhandler.Error{Status: http.StatusForbidden})
+		m.ServeHTTP(w, req)
+		var result = w.Result()
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
+	})
+	t.Run("Get admin configuration fails", func(t *testing.T) {
+		var w = httptest.NewRecorder()
+		mockIDRetriever.EXPECT().GetID(accessToken, realmName).Return(realmID, nil)
+		mockConfRetriever.EXPECT().GetAdminConfiguration(ctx, realmID).Return(adminConfig, expectedError)
+		m.ServeHTTP(w, req)
+		var result = w.Result()
+		assert.Equal(t, http.StatusInternalServerError, result.StatusCode)
+	})
+	t.Run("Feature is not enabled", func(t *testing.T) {
+		var w = httptest.NewRecorder()
+		mockIDRetriever.EXPECT().GetID(accessToken, realmName).Return(realmID, nil)
+		mockConfRetriever.EXPECT().GetAdminConfiguration(ctx, realmID).Return(adminConfig, nil)
+		m.ServeHTTP(w, req)
+		var result = w.Result()
+		assert.Equal(t, http.StatusConflict, result.StatusCode)
+	})
+	t.Run("Feature is enabled", func(t *testing.T) {
+		var w = httptest.NewRecorder()
+		adminConfig.AvailableChecks = map[string]bool{feature: true}
+		mockIDRetriever.EXPECT().GetID(accessToken, realmName).Return(realmID, nil)
+		mockConfRetriever.EXPECT().GetAdminConfiguration(ctx, realmID).Return(adminConfig, nil)
+		m.ServeHTTP(w, req)
+		var result = w.Result()
+		assert.Equal(t, http.StatusOK, result.StatusCode)
+	})
 }

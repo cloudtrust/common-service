@@ -12,6 +12,7 @@ const (
 	MsgErrInvalidPathParam  = "invalidPathParameter"
 	MsgErrInvalidParam      = "invalidParameter"
 	MsgErrOpNotPermitted    = "operationNotPermitted"
+	MsgErrDisabledEndpoint  = "disabledEndpoint"
 
 	AuthHeader   = "authorizationHeader"
 	BasicToken   = "basicToken"
@@ -96,5 +97,13 @@ func CreateNotFoundError(messageKey string) Error {
 	return Error{
 		Status:  http.StatusNotFound,
 		Message: GetEmitter() + "." + messageKey,
+	}
+}
+
+// CreateEndpointNotEnabled creates an error relative to an attempt to access a not enabled endpoint
+func CreateEndpointNotEnabled(param string) Error {
+	return Error{
+		Status:  http.StatusConflict,
+		Message: fmt.Sprintf("%s.%s.%s", GetEmitter(), MsgErrDisabledEndpoint, param),
 	}
 }

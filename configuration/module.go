@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	selectConfigStmt   = `SELECT configuration FROM realm_configuration WHERE (realm_id = ?)`
-	selectAllAuthzStmt = `SELECT realm_id, group_name, action, target_realm_id, target_group_name FROM authorizations;`
+	selectConfigStmt      = `SELECT configuration FROM realm_configuration WHERE realm_id = ? AND configuration IS NOT NULL`
+	selectAdminConfigStmt = `SELECT admin_configuration FROM realm_configuration WHERE realm_id = ? AND admin_configuration IS NOT NULL`
+	selectAllAuthzStmt    = `SELECT realm_id, group_name, action, target_realm_id, target_group_name FROM authorizations;`
 )
 
 // ConfigurationReaderDBModule struct
@@ -44,6 +45,21 @@ func (c *ConfigurationReaderDBModule) GetConfiguration(ctx context.Context, real
 
 		return NewRealmConfiguration(configJSON)
 	}
+}
+
+// GetAdminConfiguration returns a realm admin configuration
+func (c *ConfigurationReaderDBModule) GetAdminConfiguration(ctx context.Context, realmID string) (RealmAdminConfiguration, error) {
+	var configJSON string
+	row := c.db.QueryRow(selectAdminConfigStmt, realmID)
+
+	var err = row.Scan(&configJSON)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.logger.Warn(ctx, "msg", "Realm Admin Configuration not found in DB", "error", err.Error())
+		}
+		return RealmAdminConfiguration{}, err
+	}
+	return NewRealmAdminConfiguration(configJSON)
 }
 
 // GetAuthorizations returns authorizations

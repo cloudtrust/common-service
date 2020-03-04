@@ -1,7 +1,5 @@
 package middleware
 
-//go:generate mockgen -destination=./mock/keycloak_client.go -package=mock -mock_names=KeycloakClient=KeycloakClient github.com/cloudtrust/common-service/middleware KeycloakClient
-
 import (
 	"bytes"
 	"context"
