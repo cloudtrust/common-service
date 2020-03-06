@@ -8,6 +8,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsStringInSlice(t *testing.T) {
+	t.Run("Empty slice", func(t *testing.T) {
+		assert.False(t, IsStringInSlice([]string{}, "sunday"))
+	})
+	t.Run("String is not in slice", func(t *testing.T) {
+		assert.False(t, IsStringInSlice([]string{"saturday", "sunday"}, "monday"))
+	})
+	t.Run("String is in slice", func(t *testing.T) {
+		assert.True(t, IsStringInSlice([]string{"saturday", "sunday"}, "sunday"))
+	})
+}
+
 func failingValidator() Validator {
 	return &failedValidator{err: errors.New("unknown reason")}
 }
@@ -43,6 +55,40 @@ func TestValidator(t *testing.T) {
 
 type mystruct struct {
 	OneField *time.Time
+}
+
+func (ms *mystruct) Validate() error {
+	if ms.OneField == nil {
+		return errors.New("invalid")
+	}
+	return nil
+}
+
+func TestValidateParameterAndFunc(t *testing.T) {
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameter("param", nil, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameter("param", nil, true).Status())
+	})
+
+	var ms mystruct
+
+	t.Run("Invalid value", func(t *testing.T) {
+		ms.OneField = nil
+		assert.NotNil(t, NewParameterValidator().ValidateParameter("param", &ms, true).Status())
+	})
+	t.Run("Valid value", func(t *testing.T) {
+		var now = time.Now()
+		ms.OneField = &now
+		assert.Nil(t, NewParameterValidator().ValidateParameter("param", &ms, true).Status())
+	})
+	t.Run("Valid check after failed validation - Validator", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameter("param", nil, false).Status())
+	})
+	t.Run("Valid check after failed validation - Func", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterFunc(func() error { return nil }).Status())
+	})
 }
 
 func TestValidateParameterNotNil(t *testing.T) {
@@ -186,5 +232,30 @@ func TestValidateParameterDate(t *testing.T) {
 	})
 	t.Run("Valid check after failed validation-Between", func(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterDateBetween("param", nil, dateLayout, easter, halloween, false).Status())
+	})
+}
+
+func TestValidateParameterLargeDuration(t *testing.T) {
+	var validValue = "2y4m7w3d"
+	var zeroDurationValue = "2y0m7d"
+	var invalidValue = "2y4"
+
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterLargeDuration("param", nil, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterLargeDuration("param", nil, true).Status())
+	})
+	t.Run("Valid value", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterLargeDuration("param", &validValue, true).Status())
+	})
+	t.Run("Invalid value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterLargeDuration("param", &invalidValue, true).Status())
+	})
+	t.Run("Contains zero", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterLargeDuration("param", &zeroDurationValue, true).Status())
+	})
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterLargeDuration("param", nil, false).Status())
 	})
 }
