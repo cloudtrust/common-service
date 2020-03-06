@@ -1,6 +1,7 @@
 package sqltypes
 
 import (
+	"context"
 	"database/sql"
 )
 
@@ -33,6 +34,7 @@ func (sre *sqlRowError) Scan(dest ...interface{}) error {
 
 // CloudtrustDB interface
 type CloudtrustDB interface {
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (Transaction, error)
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (SQLRows, error)
 	QueryRow(query string, args ...interface{}) SQLRow
@@ -43,4 +45,17 @@ type CloudtrustDB interface {
 // CloudtrustDBFactory interface
 type CloudtrustDBFactory interface {
 	OpenDatabase() (CloudtrustDB, error)
+}
+
+// Transaction interface
+type Transaction interface {
+	Commit() error
+	Rollback() error
+
+	// Close: if not explicitely Commited or Rolled back, Rollback the transaction
+	Close() error
+
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Query(query string, args ...interface{}) (SQLRows, error)
+	QueryRow(query string, args ...interface{}) SQLRow
 }
