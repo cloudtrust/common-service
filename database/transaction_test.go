@@ -13,20 +13,39 @@ func TestTransaction(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	var tx Transaction
-	var mockDB = mock.NewCloudtrustDB(mockCtrl)
+	var mockTx = mock.NewDbTransactionIntf(mockCtrl)
+	var sqlError = errors.New("I'm a SQL error")
+	var query = "select columns from table"
+	var param1 = "param1"
 
-	mockDB.EXPECT().Exec("START TRANSACTION").Return(nil, errors.New("db error")).Times(1)
-	_, err := NewTransaction(mockDB)
-	assert.NotNil(t, err)
+	t.Run("Exec", func(t *testing.T) {
+		var tx = NewTransaction(mockTx)
+		defer tx.Close()
 
-	mockDB.EXPECT().Exec("START TRANSACTION").Return(nil, nil).Times(1)
-	tx, err = NewTransaction(mockDB)
-	assert.Nil(t, err)
+		mockTx.EXPECT().Exec(query, param1).Return(nil, sqlError)
+		mockTx.EXPECT().Rollback().Return(nil)
+		var _, err = tx.Exec(query, param1)
+		assert.Equal(t, sqlError, err)
+	})
+	t.Run("Query", func(t *testing.T) {
+		var tx = NewTransaction(mockTx)
+		defer tx.Close()
 
-	mockDB.EXPECT().Exec("COMMIT").Return(nil, nil).Times(1)
-	assert.Nil(t, tx.Commit())
+		mockTx.EXPECT().Query(query, param1).Return(nil, sqlError)
+		mockTx.EXPECT().Rollback().Return(nil)
+		var _, err = tx.Query(query, param1)
+		assert.Equal(t, sqlError, err)
+		// Force rollback... tx.Close() won't have to do it
+		tx.Rollback()
+	})
+	t.Run("QueryRow", func(t *testing.T) {
+		var tx = NewTransaction(mockTx)
+		defer tx.Close()
 
-	// Already closed
-	assert.Nil(t, tx.Close())
+		mockTx.EXPECT().QueryRow(query, param1).Return(nil)
+		mockTx.EXPECT().Commit().Return(nil)
+		assert.Nil(t, tx.QueryRow(query, param1))
+		// Force commit... tx.Close() won't have to rollback
+		tx.Commit()
+	})
 }

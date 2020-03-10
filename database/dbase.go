@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -41,6 +42,14 @@ func (v *dbVersion) matchesRequired(required *dbVersion) bool {
 
 type basicCoudtrustDB struct {
 	dbConn *sql.DB
+}
+
+func (db *basicCoudtrustDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (sqltypes.Transaction, error) {
+	var tx, err = db.dbConn.BeginTx(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	return NewTransaction(tx), nil
 }
 
 func (db *basicCoudtrustDB) Exec(query string, args ...interface{}) (sql.Result, error) {
@@ -201,6 +210,11 @@ func (cfg *DbConfig) checkMigrationVersion(conn sqltypes.CloudtrustDB) error {
 // NoopDB is a database client that does nothing.
 type NoopDB struct{}
 
+// BeginTx creates a transaction
+func (db *NoopDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (sqltypes.Transaction, error) {
+	return nil, nil
+}
+
 // Exec does nothing.
 func (db *NoopDB) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return NoopResult{}, nil
@@ -305,6 +319,20 @@ func (rcdb *ReconnectableCloudtrustDB) checkError(err error) {
 			rcdb.resetConnection(true)
 		}
 	}
+}
+
+// BeginTx creates a transaction
+func (rcdb *ReconnectableCloudtrustDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (sqltypes.Transaction, error) {
+	dbConn, err := rcdb.getActiveConnection()
+	if err != nil {
+		return nil, err
+	}
+	var tx sqltypes.Transaction
+	tx, err = dbConn.BeginTx(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
 }
 
 // Exec an SQL query

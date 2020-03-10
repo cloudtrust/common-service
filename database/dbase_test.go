@@ -129,22 +129,25 @@ func TestCheckMigrationVersion(t *testing.T) {
 	}
 }
 
-func TestOpenDatabaseNoop(t *testing.T) {
+func TestNoop(t *testing.T) {
 	var cfg = GetDbConfig(nil, "mydb", true)
-	db, _ := cfg.OpenDatabase()
-	_, err := db.Query("real database would return an error")
-	assert.Nil(t, err)
 
-	db.Exec("select 1 from dual")
-	db.QueryRow("select count(1) from dual")
-	db.Ping()
-	db.Close()
-}
+	t.Run("Database", func(t *testing.T) {
+		db, _ := cfg.OpenDatabase()
+		_, err := db.Query("real database would return an error")
+		assert.Nil(t, err)
 
-func TestNoopResult(t *testing.T) {
-	var result NoopResult
-	result.LastInsertId()
-	result.RowsAffected()
+		db.BeginTx(nil, nil)
+		db.Exec("select 1 from dual")
+		db.QueryRow("select count(1) from dual")
+		db.Ping()
+		db.Close()
+	})
+	t.Run("NoopResult", func(t *testing.T) {
+		var result NoopResult
+		result.LastInsertId()
+		result.RowsAffected()
+	})
 }
 
 func TestReconnectableCloudtrustDB(t *testing.T) {
@@ -155,80 +158,73 @@ func TestReconnectableCloudtrustDB(t *testing.T) {
 	var mockDBFactory = mock.NewCloudtrustDBFactory(mockCtrl)
 	var expectedError = errors.New("error")
 
-	{
-		// Try to connect to the DB with no success
+	t.Run("Try to connect to the DB with no success", func(t *testing.T) {
 		mockDBFactory.EXPECT().OpenDatabase().Return(nil, expectedError)
 		_, err := NewReconnectableCloudtrustDB(mockDBFactory)
 		assert.NotNil(t, err)
-	}
+	})
 
-	// Get a connection to the DB
 	mockDBFactory.EXPECT().OpenDatabase().Return(mockDB, nil)
 	db, err := NewReconnectableCloudtrustDB(mockDBFactory)
 	assert.Nil(t, err)
 
-	{
-		// Exec success
+	t.Run("Exec success", func(t *testing.T) {
 		mockDB.EXPECT().Exec(gomock.Any()).Return(nil, nil)
 		_, err := db.Exec("request")
 		assert.Nil(t, err)
-
-		// Exec failure... Ping still ok
+	})
+	t.Run("Exec failure... Ping still ok", func(t *testing.T) {
 		mockDB.EXPECT().Exec(gomock.Any()).Return(nil, expectedError)
 		mockDB.EXPECT().Ping().Return(nil)
-		_, err = db.Exec("request")
+		_, err := db.Exec("request")
 		assert.NotNil(t, err)
-
-		// Exec failure... Ping fails too...
+	})
+	t.Run("Exec failure... Ping fails too...", func(t *testing.T) {
 		mockDB.EXPECT().Exec(gomock.Any()).Return(nil, expectedError)
 		mockDB.EXPECT().Ping().Return(expectedError)
 		mockDB.EXPECT().Close()
 		mockDBFactory.EXPECT().OpenDatabase().Return(mockDB, nil)
-		_, err = db.Exec("request")
+		_, err := db.Exec("request")
 		assert.NotNil(t, err)
-	}
+	})
 
-	{
-		// Query success
+	t.Run("Query success", func(t *testing.T) {
 		mockDB.EXPECT().Query(gomock.Any()).Return(nil, nil)
 		_, err := db.Query("request")
 		assert.Nil(t, err)
-
-		// Query failure... Ping still ok
+	})
+	t.Run("Query failure... Ping still ok", func(t *testing.T) {
 		mockDB.EXPECT().Query(gomock.Any()).Return(nil, expectedError)
 		mockDB.EXPECT().Ping().Return(nil)
-		_, err = db.Query("request")
+		_, err := db.Query("request")
 		assert.NotNil(t, err)
-
-		// Query failure... Ping fails too...
+	})
+	t.Run("Query failure... Ping fails too...", func(t *testing.T) {
 		mockDB.EXPECT().Query(gomock.Any()).Return(nil, expectedError)
 		mockDB.EXPECT().Ping().Return(expectedError)
 		mockDB.EXPECT().Close()
 		mockDBFactory.EXPECT().OpenDatabase().Return(mockDB, nil)
-		_, err = db.Query("request")
+		_, err := db.Query("request")
 		assert.NotNil(t, err)
-	}
+	})
 
-	{
+	t.Run("QueryRow success", func(t *testing.T) {
 		var sqlRow = sqltypes.NewSQLRowError(errors.New(""))
-
-		// QueryRow success
 		mockDB.EXPECT().QueryRow(gomock.Any()).Return(sqlRow)
 		row := db.QueryRow("request")
 		assert.Equal(t, sqlRow, row)
-	}
+	})
 
-	{
-		// Ping success
+	t.Run("Ping success", func(t *testing.T) {
 		mockDB.EXPECT().Ping().Return(nil)
 		assert.Nil(t, db.Ping())
-
-		// Ping failure
+	})
+	t.Run("Ping failure", func(t *testing.T) {
 		mockDB.EXPECT().Ping().Return(expectedError)
 		mockDB.EXPECT().Close()
 		mockDBFactory.EXPECT().OpenDatabase().Return(mockDB, nil)
 		assert.NotNil(t, db.Ping())
-	}
+	})
 
 	{
 		db.Close()
