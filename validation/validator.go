@@ -9,8 +9,15 @@ import (
 	"github.com/nyaruka/phonenumbers"
 )
 
+// Validatable interface
+type Validatable interface {
+	Validate() error
+}
+
 // Validator interface
 type Validator interface {
+	ValidateParameter(prmName string, validatable Validatable, mandatory bool) Validator
+	ValidateParameterFunc(validator func() error) Validator
 	ValidateParameterNotNil(prmName string, value interface{}) Validator
 	ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator
 	ValidateParameterRegExp(prmName string, value *string, regExp string, mandatory bool) Validator
@@ -20,6 +27,7 @@ type Validator interface {
 	ValidateParameterDateAfter(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateBefore(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateBetween(prmName string, value *string, dateLayout string, refAfter time.Time, refBetween time.Time, mandatory bool) Validator
+	ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator
 	Status() error
 }
 
@@ -30,9 +38,37 @@ type failedValidator struct {
 	err error
 }
 
+// IsStringInSlice tells if a searched value is part of a slice or not
+func IsStringInSlice(slice []string, searched string) bool {
+	for _, value := range slice {
+		if value == searched {
+			return true
+		}
+	}
+	return false
+}
+
 // NewParameterValidator creates a validator ready to check multiple parameters
 func NewParameterValidator() Validator {
 	return &successValidator{}
+}
+
+func (v *successValidator) ValidateParameter(prmName string, validatable Validatable, mandatory bool) Validator {
+	if validatable == nil {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+	} else {
+		return v.ValidateParameterFunc(validatable.Validate)
+	}
+	return v
+}
+
+func (v *successValidator) ValidateParameterFunc(validator func() error) Validator {
+	if err := validator(); err != nil {
+		return &failedValidator{err: err}
+	}
+	return v
 }
 
 func (v *successValidator) ValidateParameterNotNil(prmName string, value interface{}) Validator {
@@ -127,6 +163,19 @@ func (v *successValidator) validateParameterDate(prmName string, value *string, 
 	return v
 }
 
+func (v *successValidator) ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator {
+	if value == nil {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+	} else {
+		if _, err := parseLargeDuration(*value); err != nil {
+			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+	}
+	return v
+}
+
 func (v *successValidator) parseDate(dateLayouts []string, value string) (time.Time, error) {
 	var resError error
 	for _, layout := range dateLayouts {
@@ -143,6 +192,14 @@ func (v *successValidator) parseDate(dateLayouts []string, value string) (time.T
 
 func (v *successValidator) Status() error {
 	return nil
+}
+
+func (v *failedValidator) ValidateParameter(prmName string, validatable Validatable, mandatory bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterFunc(validator func() error) Validator {
+	return v
 }
 
 func (v *failedValidator) ValidateParameterNotNil(_ string, _ interface{}) Validator {
@@ -178,6 +235,10 @@ func (v *failedValidator) ValidateParameterDateBefore(_ string, _ *string, _ str
 }
 
 func (v *failedValidator) ValidateParameterDateBetween(_ string, _ *string, _ string, _, _ time.Time, _ bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator {
 	return v
 }
 
