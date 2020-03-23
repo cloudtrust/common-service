@@ -7,6 +7,7 @@ import (
 
 	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/configuration"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
 )
 
@@ -26,7 +27,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 	var err error
 	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(ctx, accessToken, targetRealm, userID); err != nil {
 		am.logger.Info(ctx, "ForbiddenError", err.Error(), "infos", string(infos))
-		return ForbiddenError{}
+		return errorhandler.CommonErrorOrDefault(err, ForbiddenError{})
 	}
 
 	if groupsRep == nil || len(groupsRep) == 0 {
@@ -64,7 +65,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 	var targetGroup string
 	if targetGroup, err = am.keycloakClient.GetGroupName(ctx, accessToken, targetRealm, targetGroupID); err != nil {
 		am.logger.Info(ctx, "ForbiddenError", err.Error(), "infos", string(infos))
-		return ForbiddenError{}
+		return errorhandler.CommonErrorOrDefault(err, ForbiddenError{})
 	}
 
 	if targetGroup == "" {
@@ -266,6 +267,7 @@ type KeycloakClient interface {
 	GetGroupName(ctx context.Context, accessToken string, realmName, groupID string) (string, error)
 }
 
+// AuthorizationDBReader interface
 type AuthorizationDBReader interface {
 	GetAuthorizations(context.Context) ([]configuration.Authorization, error)
 }
@@ -309,12 +311,16 @@ func NewAuthorizationManager(authorizationDBReader AuthorizationDBReader, keyclo
 	return manager, nil
 }
 
+// Action type
 type Action struct {
 	Name  string
 	Scope Scope
 }
+
+// Scope type
 type Scope string
 
+// Scope constants
 var (
 	ScopeGlobal = Scope("global")
 	ScopeRealm  = Scope("realm")

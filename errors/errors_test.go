@@ -1,6 +1,7 @@
 package errorhandler
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,4 +35,16 @@ func TestEmitter(t *testing.T) {
 	var emitter = "component"
 	SetEmitter(emitter)
 	assert.Equal(t, GetEmitter(), emitter)
+}
+
+func TestCommonErrorOrDefault(t *testing.T) {
+	var defErr = errors.New("default error")
+	t.Run("First param is not an errorhandler.Error", func(t *testing.T) {
+		var err = errors.New("any error")
+		assert.Equal(t, defErr, CommonErrorOrDefault(err, defErr))
+	})
+	t.Run("First param is an errorhandler.Error", func(t *testing.T) {
+		var err = CreateNotFoundError("xxx")
+		assert.Equal(t, err, CommonErrorOrDefault(err, defErr))
+	})
 }
