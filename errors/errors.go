@@ -108,13 +108,3 @@ func CreateEndpointNotEnabled(param string) Error {
 		Message: fmt.Sprintf("%s.%s.%s", GetEmitter(), MsgErrDisabledEndpoint, param),
 	}
 }
-
-// CommonErrorOrDefault returns actualError if it is an Error from this package, returns defaultError otherwise
-func CommonErrorOrDefault(actualError, defaultError error) error {
-	switch actualError.(type) {
-	case Error:
-		return actualError
-	default:
-		return defaultError
-	}
-}

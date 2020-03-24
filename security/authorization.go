@@ -7,7 +7,6 @@ import (
 
 	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/configuration"
-	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
 )
 
@@ -27,7 +26,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 	var err error
 	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(ctx, accessToken, targetRealm, userID); err != nil {
 		am.logger.Info(ctx, "ForbiddenError", err.Error(), "infos", string(infos))
-		return errorhandler.CommonErrorOrDefault(err, ForbiddenError{})
+		return ForbiddenError{}
 	}
 
 	if groupsRep == nil || len(groupsRep) == 0 {
@@ -65,7 +64,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 	var targetGroup string
 	if targetGroup, err = am.keycloakClient.GetGroupName(ctx, accessToken, targetRealm, targetGroupID); err != nil {
 		am.logger.Info(ctx, "ForbiddenError", err.Error(), "infos", string(infos))
-		return errorhandler.CommonErrorOrDefault(err, ForbiddenError{})
+		return ForbiddenError{}
 	}
 
 	if targetGroup == "" {
