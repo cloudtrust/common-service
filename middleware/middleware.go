@@ -25,6 +25,28 @@ func MakeEndpointLoggingMW(logger log.Logger) cs.Middleware {
 	}
 }
 
+// MakeEndpointLoggingNoInputMW makes a logging middleware.
+func MakeEndpointLoggingNoInputMW(logger log.Logger) cs.Middleware {
+	return func(next cs.Endpoint) cs.Endpoint {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			res, err := next(ctx, req)
+			logger.Debug(ctx, "res", res)
+			return res, err
+		}
+	}
+}
+
+// MakeEndpointLoggingNoOutputMW makes a logging middleware.
+func MakeEndpointLoggingNoOutputMW(logger log.Logger) cs.Middleware {
+	return func(next cs.Endpoint) cs.Endpoint {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			logger.Debug(ctx, "req", req)
+			res, err := next(ctx, req)
+			return res, err
+		}
+	}
+}
+
 // MakeEndpointInstrumentingMW makes a middleware that measure the endpoints response time and
 // send the metrics to influx DB.
 func MakeEndpointInstrumentingMW(m metrics.Metrics, histoName string) cs.Middleware {
