@@ -13,13 +13,17 @@ const (
 	MsgErrInvalidParam      = "invalidParameter"
 	MsgErrOpNotPermitted    = "operationNotPermitted"
 	MsgErrDisabledEndpoint  = "disabledEndpoint"
+	MsgErrInvalidLength     = "invalidLength"
+	MsgErrUnknown           = "unknowError"
 
-	AuthHeader   = "authorizationHeader"
-	BasicToken   = "basicToken"
-	BearerToken  = "bearerToken"
-	Token        = "token"
-	Level        = "level"
-	JSONExpected = "JSONExpected"
+	EncryptDecrypt = "encrypt/decrypt"
+	Ciphertext     = "ciphertext"
+	AuthHeader     = "authorizationHeader"
+	BasicToken     = "basicToken"
+	BearerToken    = "bearerToken"
+	Token          = "token"
+	Level          = "level"
+	JSONExpected   = "JSONExpected"
 )
 
 var emitter string
