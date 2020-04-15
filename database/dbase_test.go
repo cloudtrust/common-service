@@ -55,6 +55,7 @@ func TestConfigureDbDefault(t *testing.T) {
 	var envUser = "the env user"
 	var envPass = "the env password"
 
+	mockConf.EXPECT().SetDefault(prefix+"-enabled", gomock.Any()).Times(1)
 	for _, suffix := range []string{"-host-port", "-username", "-password", "-database", "-protocol", "-parameters", "-max-open-conns", "-max-idle-conns", "-conn-max-lifetime", "-migration", "-migration-version", "-connection-check"} {
 		mockConf.EXPECT().SetDefault(prefix+suffix, gomock.Any()).Times(1)
 	}
@@ -77,11 +78,12 @@ func TestGetDbConfig(t *testing.T) {
 	for _, suffix := range []string{"-max-open-conns", "-max-idle-conns", "-conn-max-lifetime"} {
 		mockConf.EXPECT().GetInt(prefix + suffix).Return(1).Times(1)
 	}
+	mockConf.EXPECT().GetBool(prefix + "-enabled").Return(true).Times(1)
 	mockConf.EXPECT().GetBool(prefix + "-migration").Return(false).Times(1)
 	mockConf.EXPECT().GetBool(prefix + "-connection-check").Return(true).Times(1)
 	mockConf.EXPECT().GetString(prefix + "-migration-version").Return("1.0").Times(1)
 
-	var cfg = GetDbConfig(mockConf, prefix, false)
+	var cfg = GetDbConfig(mockConf, prefix)
 	assert.Equal(t, "value-host-port", cfg.HostPort)
 }
 
@@ -127,27 +129,6 @@ func TestCheckMigrationVersion(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.True(t, strings.Contains(err.Error(), "not up-to-date"))
 	}
-}
-
-func TestNoop(t *testing.T) {
-	var cfg = GetDbConfig(nil, "mydb", true)
-
-	t.Run("Database", func(t *testing.T) {
-		db, _ := cfg.OpenDatabase()
-		_, err := db.Query("real database would return an error")
-		assert.Nil(t, err)
-
-		db.BeginTx(nil, nil)
-		db.Exec("select 1 from dual")
-		db.QueryRow("select count(1) from dual")
-		db.Ping()
-		db.Close()
-	})
-	t.Run("NoopResult", func(t *testing.T) {
-		var result NoopResult
-		result.LastInsertId()
-		result.RowsAffected()
-	})
 }
 
 func TestReconnectableCloudtrustDB(t *testing.T) {

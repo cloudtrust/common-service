@@ -95,6 +95,7 @@ type DbConfig struct {
 // If a parameter exists only named with the given prefix and if its value if false, the database connection
 // will be a Noop one
 func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
+	v.SetDefault(prefix+"-enabled", true)
 	v.SetDefault(prefix+"-host-port", "")
 	v.SetDefault(prefix+"-username", "")
 	v.SetDefault(prefix+"-password", "")
@@ -113,7 +114,13 @@ func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
 }
 
 // GetDbConfig reads db configuration parameters
-func GetDbConfig(v cs.Configuration, prefix string, noop bool) *DbConfig {
+// Check the parameter {prefix}-enabled to know if the connection to the database should be enabled
+func GetDbConfig(v cs.Configuration, prefix string) *DbConfig {
+	return GetDbConfigExt(v, prefix, !v.GetBool(prefix+"-enabled"))
+}
+
+// GetDbConfigExt is an extension of GetDbConfig for cases where we want to force the connection to be enabled/disabled
+func GetDbConfigExt(v cs.Configuration, prefix string, noop bool) *DbConfig {
 	var cfg DbConfig
 
 	cfg.Noop = noop
@@ -206,49 +213,6 @@ func (cfg *DbConfig) checkMigrationVersion(conn sqltypes.CloudtrustDB) error {
 
 	return err
 }
-
-// NoopDB is a database client that does nothing.
-type NoopDB struct{}
-
-// BeginTx creates a transaction
-func (db *NoopDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (sqltypes.Transaction, error) {
-	return nil, nil
-}
-
-// Exec does nothing.
-func (db *NoopDB) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return NoopResult{}, nil
-}
-
-// Query does nothing.
-func (db *NoopDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) { return nil, nil }
-
-// QueryRow does nothing.
-func (db *NoopDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow { return nil }
-
-// Ping does nothing
-func (db *NoopDB) Ping() error { return nil }
-
-// Close does nothing
-func (db *NoopDB) Close() error { return nil }
-
-// SetMaxOpenConns does nothing.
-func (db *NoopDB) SetMaxOpenConns(n int) {}
-
-// SetMaxIdleConns does nothing.
-func (db *NoopDB) SetMaxIdleConns(n int) {}
-
-// SetConnMaxLifetime does nothing.
-func (db *NoopDB) SetConnMaxLifetime(d time.Duration) {}
-
-// NoopResult is a sql.Result that does nothing.
-type NoopResult struct{}
-
-// LastInsertId does nothing.
-func (NoopResult) LastInsertId() (int64, error) { return 0, nil }
-
-// RowsAffected does nothing.
-func (NoopResult) RowsAffected() (int64, error) { return 0, nil }
 
 // ReconnectableCloudtrustDB implements an auto-reconnect mechanism
 type ReconnectableCloudtrustDB struct {
