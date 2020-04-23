@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// Constants for error messages
 const (
 	MsgErrMissingParam = "missingParameter"
 

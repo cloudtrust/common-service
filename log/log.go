@@ -12,10 +12,10 @@ import (
 
 // Logger interface for logging with level
 type Logger interface {
-	Debug(ctx context.Context, keyvals ...interface{}) error
-	Info(ctx context.Context, keyvals ...interface{}) error
-	Warn(ctx context.Context, keyvals ...interface{}) error
-	Error(ctx context.Context, keyvals ...interface{}) error
+	Debug(ctx context.Context, keyvals ...interface{})
+	Info(ctx context.Context, keyvals ...interface{})
+	Warn(ctx context.Context, keyvals ...interface{})
+	Error(ctx context.Context, keyvals ...interface{})
 	ToGoKitLogger() kit_log.Logger
 }
 
@@ -67,29 +67,37 @@ func ConvertToLevel(strLevel string) (kit_level.Option, error) {
 	return level, nil
 }
 
-func (l *ctLogger) Debug(ctx context.Context, keyvals ...interface{}) error {
+func (l *ctLogger) Debug(ctx context.Context, keyvals ...interface{}) {
 	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
-	return kit_level.Debug(l.logger).Log(keyvals...)
+	_ = kit_level.Debug(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Info(ctx context.Context, keyvals ...interface{}) error {
+func (l *ctLogger) Info(ctx context.Context, keyvals ...interface{}) {
 	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
-	return kit_level.Info(l.logger).Log(keyvals...)
+	_ = kit_level.Info(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Warn(ctx context.Context, keyvals ...interface{}) error {
+func (l *ctLogger) Warn(ctx context.Context, keyvals ...interface{}) {
 	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
-	return kit_level.Warn(l.logger).Log(keyvals...)
+	_ = kit_level.Warn(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Error(ctx context.Context, keyvals ...interface{}) error {
+func (l *ctLogger) Error(ctx context.Context, keyvals ...interface{}) {
 	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
-	return kit_level.Error(l.logger).Log(keyvals...)
+	_ = kit_level.Error(l.logger).Log(keyvals...)
 }
 
 func (l *ctLogger) ToGoKitLogger() kit_log.Logger {
 	return l.logger
 }
+
+var (
+	contextInfo = map[string]cs.CtContext{
+		"user_id":  cs.CtContextUserID,
+		"realm_id": cs.CtContextRealmID,
+		"corr_id":  cs.CtContextCorrelationID,
+	}
+)
 
 func extractInfoFromContext(ctx context.Context) []interface{} {
 	var keyvals = []interface{}{}
@@ -98,16 +106,11 @@ func extractInfoFromContext(ctx context.Context) []interface{} {
 		return keyvals
 	}
 
-	if ctx.Value(cs.CtContextUserID) != nil {
-		keyvals = append(keyvals, "user_id", ctx.Value(cs.CtContextUserID).(string))
-	}
-
-	if ctx.Value(cs.CtContextRealmID) != nil {
-		keyvals = append(keyvals, "realm_id", ctx.Value(cs.CtContextRealmID).(string))
-	}
-
-	if ctx.Value(cs.CtContextCorrelationID) != nil {
-		keyvals = append(keyvals, "corr_id", ctx.Value(cs.CtContextCorrelationID).(string))
+	for k, v := range contextInfo {
+		var value = ctx.Value(v)
+		if value != nil {
+			keyvals = append(keyvals, k, value.(string))
+		}
 	}
 
 	return keyvals

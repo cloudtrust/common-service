@@ -172,7 +172,7 @@ func (cfg *DbConfig) OpenDatabase() (sqltypes.CloudtrustDB, error) {
 		}
 		err = cfg.checkMigrationVersion(dbConn)
 		if err != nil {
-			dbConn.Close()
+			_ = dbConn.Close()
 			dbConn = nil
 		}
 	} else if cfg.ConnectionCheck {

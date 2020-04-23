@@ -42,8 +42,8 @@ func TestEndpointLoggingMW(t *testing.T) {
 
 	// With correlation ID.
 	var req = "req"
-	mockLogger.EXPECT().Debug(gomock.Any(), "req", req).Return(nil).Times(1)
-	mockLogger.EXPECT().Debug(gomock.Any(), "res", nil).Return(nil).Times(1)
+	mockLogger.EXPECT().Debug(gomock.Any(), "req", req).Times(1)
+	mockLogger.EXPECT().Debug(gomock.Any(), "res", nil).Times(1)
 	m(ctx, req)
 
 	// Without correlation ID.

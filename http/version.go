@@ -7,7 +7,7 @@ import (
 
 // MakeVersionHandler makes a HTTP handler that returns information about the version of the component.
 func MakeVersionHandler(componentName, ComponentID, version, environment, gitCommit string) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		var info = struct {
 			Name    string `json:"name"`
 			ID      string `json:"id"`
