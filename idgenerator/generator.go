@@ -15,6 +15,7 @@ func New(componentName, componentID string) IDGenerator {
 	}
 }
 
+// IDGenerator interface
 type IDGenerator interface {
 	NextID() string
 }
