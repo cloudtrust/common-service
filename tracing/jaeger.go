@@ -19,7 +19,9 @@ type Finisher interface {
 
 type noopFinisher struct{}
 
-func (f *noopFinisher) Finish() {}
+func (f *noopFinisher) Finish() {
+	// Nothing to do
+}
 
 // OpentracingClient used for Jaeger
 type OpentracingClient interface {
@@ -49,7 +51,9 @@ func (o *noopOpentracingClient) MakeHTTPTracingMW(componentName, operationName s
 		})
 	}
 }
-func (o *noopOpentracingClient) Close() {}
+func (o *noopOpentracingClient) Close() {
+	// Nothing to close
+}
 
 type internalOpentracingClient struct {
 	Tracer opentracing.Tracer
@@ -111,7 +115,7 @@ func (o *internalOpentracingClient) MakeHTTPTracingMW(componentName, operationNa
 
 // Close the jaeger client
 func (o *internalOpentracingClient) Close() {
-	o.closer.Close()
+	_ = o.closer.Close()
 }
 
 // CreateJaegerClient creates an opentracing Jaerger client

@@ -60,4 +60,6 @@ func (s *NoopSentry) CaptureError(err error, tags map[string]string) string {
 func (s *NoopSentry) URL() string { return "" }
 
 // Close does nothing.
-func (s *NoopSentry) Close() {}
+func (s *NoopSentry) Close() {
+	// Nothing to close
+}

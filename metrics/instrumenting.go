@@ -114,7 +114,7 @@ type influxMetrics struct {
 
 // Close closes the influx client
 func (m *influxMetrics) Close() {
-	m.influx.Close()
+	_ = m.influx.Close()
 }
 
 // NewCounter returns a go-kit Counter.
@@ -200,7 +200,9 @@ func (m *influxMetrics) Ping(timeout time.Duration) (time.Duration, string, erro
 type NoopMetrics struct{}
 
 // Close does nothing.
-func (m *NoopMetrics) Close() {}
+func (m *NoopMetrics) Close() {
+	// No operation
+}
 
 // NewCounter returns a Counter that does nothing.
 func (m *NoopMetrics) NewCounter(name string) Counter { return &NoopCounter{} }
@@ -220,7 +222,9 @@ func (m *NoopMetrics) Stats(_ context.Context, name string, tags map[string]stri
 //func (m *NoopMetrics) Write(bp influx.BatchPoints) error { return nil }
 
 // WriteLoop does nothing.
-func (m *NoopMetrics) WriteLoop(c <-chan time.Time) {}
+func (m *NoopMetrics) WriteLoop(c <-chan time.Time) {
+	// No operation
+}
 
 // Ping does nothing.
 func (m *NoopMetrics) Ping(timeout time.Duration) (time.Duration, string, error) {
@@ -234,7 +238,9 @@ type NoopCounter struct{}
 func (c *NoopCounter) With(labelValues ...string) metrics.Counter { return c }
 
 // Add does nothing.
-func (c *NoopCounter) Add(delta float64) {}
+func (c *NoopCounter) Add(delta float64) {
+	// No operation
+}
 
 // NoopGauge is a Gauge that does nothing.
 type NoopGauge struct{}
@@ -243,10 +249,14 @@ type NoopGauge struct{}
 func (g *NoopGauge) With(labelValues ...string) metrics.Gauge { return g }
 
 // Set does nothing.
-func (g *NoopGauge) Set(value float64) {}
+func (g *NoopGauge) Set(value float64) {
+	// No operation
+}
 
 // Add does nothing.
-func (g *NoopGauge) Add(delta float64) {}
+func (g *NoopGauge) Add(delta float64) {
+	// No operation
+}
 
 // NoopHistogram is an Histogram that does nothing.
 type NoopHistogram struct{}
@@ -255,4 +265,6 @@ type NoopHistogram struct{}
 func (h *NoopHistogram) With(labelValues ...string) Histogram { return h }
 
 // Observe does nothing.
-func (h *NoopHistogram) Observe(value float64) {}
+func (h *NoopHistogram) Observe(value float64) {
+	// No operation
+}
