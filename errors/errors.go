@@ -17,7 +17,7 @@ const (
 	MsgErrInvalidLength     = "invalidLength"
 	MsgErrUnknown           = "unknowError"
 
-	EncryptDecrypt = "encrypt/decrypt"
+	EncryptDecrypt = "encryptOrDecrypt"
 	Ciphertext     = "ciphertext"
 	AuthHeader     = "authorizationHeader"
 	BasicToken     = "basicToken"
