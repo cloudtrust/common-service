@@ -175,6 +175,31 @@ func TestValidateParameterPhoneNumber(t *testing.T) {
 	})
 }
 
+func TestValidateParameterLength(t *testing.T) {
+	var validValue = "sunday"
+	var tooShortValue = "cool"
+	var tooLongValue = "freaky friday"
+
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterLength("param", nil, 5, 10, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterLength("param", nil, 5, 10, true).Status())
+	})
+	t.Run("Valid value", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterLength("param", &validValue, 5, 10, true).Status())
+	})
+	t.Run("Too short value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterLength("param", &tooShortValue, 5, 10, true).Status())
+	})
+	t.Run("Too long value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterLength("param", &tooLongValue, 5, 10, true).Status())
+	})
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterLength("param", nil, 5, 10, false).Status())
+	})
+}
+
 func TestValidateParameterDate(t *testing.T) {
 	var dateLayout = "02.01.2006"
 	var multipleLayouts = []string{dateLayout, "2006/01/02"}
