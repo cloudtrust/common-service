@@ -21,6 +21,6 @@ func MakeVersionHandler(componentName, ComponentID, version, environment, gitCom
 			Env:     environment,
 			Commit:  gitCommit,
 		}
-		EncodeReply(context.TODO(), w, info)
+		_ = EncodeReply(context.TODO(), w, info)
 	})
 }

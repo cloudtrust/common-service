@@ -50,7 +50,7 @@ func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
 	// Body
 	if r.MimeContent != nil {
 		w.WriteHeader(r.StatusCode)
-		w.Write(r.MimeContent.Content)
+		_, _ = w.Write(r.MimeContent.Content)
 	} else if r.JSONableResponse != nil {
 		writeJSON(r.JSONableResponse, w, r.StatusCode)
 	} else {
@@ -65,7 +65,7 @@ func writeJSON(jsonableResponse interface{}, w http.ResponseWriter, statusCode i
 	var json, err = json.MarshalIndent(jsonableResponse, "", " ")
 
 	if err == nil {
-		w.Write(json)
+		_, _ = w.Write(json)
 	}
 }
 
@@ -98,7 +98,7 @@ func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams m
 	request["host"] = req.Host
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(req.Body)
+	_, _ = buf.ReadFrom(req.Body)
 	// Input validation of body content should be performed once the content is unmarshalled (Endpoint layer)
 	request["body"] = buf.String()
 
@@ -170,14 +170,14 @@ func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseW
 		switch e := errors.Cause(err).(type) {
 		case security.ForbiddenError:
 			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(errorhandler.GetEmitter() + "." + errorhandler.MsgErrOpNotPermitted))
+			_, _ = w.Write([]byte(errorhandler.GetEmitter() + "." + errorhandler.MsgErrOpNotPermitted))
 		case errorhandler.Error:
 			w.WriteHeader(e.Status)
 			// You should really take care of what you are sending here : e.Message should not leak any sensitive information
-			w.Write([]byte(e.Message))
+			_, _ = w.Write([]byte(e.Message))
 		case ClientError:
 			w.WriteHeader(e.Status())
-			w.Write([]byte(e.ErrorMessage()))
+			_, _ = w.Write([]byte(e.ErrorMessage()))
 		default:
 			logger.Error(ctx, "errorHandler", http.StatusInternalServerError, "msg", e.Error())
 			if err == ratelimit.ErrLimited {

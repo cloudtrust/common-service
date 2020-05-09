@@ -117,58 +117,31 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 				return
 			}
 
-			var userID, username, issuer, issuerDomain, realm string
-			var groups []string
+			var jot tokenAudience
 
-			// The audience in JWT may be a string array or a string.
-			// First we try with a string array, if a failure occurs we try with a string
-			{
-				var jot TokenAudienceStringArray
-				if err = jwt.Unmarshal(payload, &jot); err == nil {
-					userID = jot.Subject
-					username = jot.Username
-					issuer = jot.Issuer
-					var splitIssuer = strings.Split(issuer, "/auth/realms/")
-					issuerDomain = splitIssuer[0]
-					realm = splitIssuer[1]
-					groups = extractGroups(jot.Groups)
-
-					if !assertMatchingAudience(jot.Audience, audienceRequired) {
-						logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
-						httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-						return
-					}
-				}
+			if jot, err = unmarshalTokenAudience(payload); err != nil {
+				logger.Info(ctx, "msg", "Authorization error", "err", err)
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				return
 			}
 
-			if err != nil {
-				var jot TokenAudienceString
-				if err = jwt.Unmarshal(payload, &jot); err == nil {
-					userID = jot.Subject
-					username = jot.Username
-					issuer = jot.Issuer
-					var splitIssuer = strings.Split(issuer, "/auth/realms/")
-					issuerDomain = splitIssuer[0]
-					realm = splitIssuer[1]
-					groups = extractGroups(jot.Groups)
-
-					if jot.Audience != audienceRequired {
-						logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
-						httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-						return
-					}
-				} else {
-					logger.Info(ctx, "msg", "Authorization error", "err", err)
-					httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-					return
-				}
+			if !jot.assertMatchingAudience(audienceRequired) {
+				logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
+				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				return
 			}
+
+			var issuer, issuerDomain, realm string
+			issuer = jot.getIssuer()
+			var splitIssuer = strings.Split(issuer, "/auth/realms/")
+			issuerDomain = splitIssuer[0]
+			realm = splitIssuer[1]
 
 			ctx = context.WithValue(req.Context(), cs.CtContextAccessToken, accessToken)
 			ctx = context.WithValue(ctx, cs.CtContextRealm, realm)
-			ctx = context.WithValue(ctx, cs.CtContextUserID, userID)
-			ctx = context.WithValue(ctx, cs.CtContextUsername, username)
-			ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
+			ctx = context.WithValue(ctx, cs.CtContextUserID, jot.getSubject())
+			ctx = context.WithValue(ctx, cs.CtContextUsername, jot.getUsername())
+			ctx = context.WithValue(ctx, cs.CtContextGroups, extractGroups(jot.getGroups()))
 			ctx = context.WithValue(ctx, cs.CtContextIssuerDomain, issuerDomain)
 
 			if err = keycloakClient.VerifyToken(ctx, realm, accessToken); err != nil {
@@ -232,9 +205,55 @@ type TokenAudienceString struct {
 	Groups         []string `json:"groups,omitempty"`
 }
 
+type tokenAudience interface {
+	getSubject() string
+	getUsername() string
+	getIssuer() string
+	getGroups() []string
+
+	assertMatchingAudience(requiredValue string) bool
+}
+
 type header struct {
 	Algorithm   string `json:"alg,omitempty"`
 	KeyID       string `json:"kid,omitempty"`
 	Type        string `json:"typ,omitempty"`
 	ContentType string `json:"cty,omitempty"`
+}
+
+func unmarshalTokenAudience(payload []byte) (tokenAudience, error) {
+	var err error
+
+	// The audience in JWT may be a string array or a string.
+	// First we try with a string array, if a failure occurs we try with a string
+	{
+		var jot TokenAudienceStringArray
+		if err = jwt.Unmarshal(payload, &jot); err == nil {
+			return &jot, nil
+		}
+	}
+
+	{
+		var jot TokenAudienceString
+		if err = jwt.Unmarshal(payload, &jot); err == nil {
+			return &jot, nil
+		}
+	}
+	return nil, err
+}
+
+func (ta *TokenAudienceStringArray) getSubject() string  { return ta.Subject }
+func (ta *TokenAudienceStringArray) getUsername() string { return ta.Username }
+func (ta *TokenAudienceStringArray) getIssuer() string   { return ta.Issuer }
+func (ta *TokenAudienceStringArray) getGroups() []string { return ta.Groups }
+func (ta *TokenAudienceStringArray) assertMatchingAudience(requiredValue string) bool {
+	return assertMatchingAudience(ta.Audience, requiredValue)
+}
+
+func (ta *TokenAudienceString) getSubject() string  { return ta.Subject }
+func (ta *TokenAudienceString) getUsername() string { return ta.Username }
+func (ta *TokenAudienceString) getIssuer() string   { return ta.Issuer }
+func (ta *TokenAudienceString) getGroups() []string { return ta.Groups }
+func (ta *TokenAudienceString) assertMatchingAudience(requiredValue string) bool {
+	return ta.Audience == requiredValue
 }
