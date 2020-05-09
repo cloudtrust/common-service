@@ -134,6 +134,6 @@ func (hc *healthchecker) MakeHandler() http.HandlerFunc {
 		if !status.Healthy {
 			response.StatusCode = http.StatusServiceUnavailable
 		}
-		commonhttp.EncodeReply(context.TODO(), w, response)
+		_ = commonhttp.EncodeReply(context.TODO(), w, response)
 	})
 }
