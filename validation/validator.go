@@ -22,6 +22,8 @@ type Validator interface {
 	ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator
 	ValidateParameterRegExp(prmName string, value *string, regExp string, mandatory bool) Validator
 	ValidateParameterPhoneNumber(prmName string, value *string, mandatory bool) Validator
+	ValidateParameterLength(prmName string, value *string, min, max int, mandatory bool) Validator
+	ValidateParameterIntBetween(prmName string, value *int, min, max int, mandatory bool) Validator
 	ValidateParameterDate(prmName string, value *string, dateLayout string, mandatory bool) Validator
 	ValidateParameterDateMultipleLayout(prmName string, value *string, dateLayout []string, mandatory bool) Validator
 	ValidateParameterDateAfter(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator
@@ -123,6 +125,28 @@ func (v *successValidator) ValidateParameterPhoneNumber(prmName string, value *s
 	return v
 }
 
+func (v *successValidator) ValidateParameterLength(prmName string, value *string, min, max int, mandatory bool) Validator {
+	var intValue *int
+	if value != nil {
+		var length = len(*value)
+		intValue = &length
+	}
+	return v.ValidateParameterIntBetween(prmName, intValue, min, max, mandatory)
+}
+
+func (v *successValidator) ValidateParameterIntBetween(prmName string, value *int, min, max int, mandatory bool) Validator {
+	if value == nil {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+	} else {
+		if *value < min || *value > max {
+			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+	}
+	return v
+}
+
 func (v *successValidator) ValidateParameterDate(prmName string, value *string, dateLayout string, mandatory bool) Validator {
 	return v.validateParameterDate(prmName, value, []string{dateLayout}, nil, nil, mandatory)
 }
@@ -215,6 +239,14 @@ func (v *failedValidator) ValidateParameterRegExp(prmName string, value *string,
 }
 
 func (v *failedValidator) ValidateParameterPhoneNumber(prmName string, value *string, mandatory bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterLength(prmName string, value *string, min, max int, mandatory bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterIntBetween(prmName string, value *int, min, max int, mandatory bool) Validator {
 	return v
 }
 

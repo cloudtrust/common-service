@@ -109,8 +109,8 @@ func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
 	v.SetDefault(prefix+"-migration-version", "")
 	v.SetDefault(prefix+"-connection-check", true)
 
-	v.BindEnv(prefix+"-username", envUser)
-	v.BindEnv(prefix+"-password", envPasswd)
+	_ = v.BindEnv(prefix+"-username", envUser)
+	_ = v.BindEnv(prefix+"-password", envPasswd)
 }
 
 // GetDbConfig reads db configuration parameters
@@ -280,7 +280,7 @@ func (rcdb *ReconnectableCloudtrustDB) checkError(err error) {
 			return
 		}
 		if connection.Ping() != nil {
-			rcdb.resetConnection(true)
+			_ = rcdb.resetConnection(true)
 		}
 	}
 }
@@ -344,7 +344,7 @@ func (rcdb *ReconnectableCloudtrustDB) Ping() error {
 	}
 	err = dbConn.Ping()
 	if err != nil {
-		rcdb.resetConnection(true)
+		_ = rcdb.resetConnection(true)
 	}
 	return err
 }

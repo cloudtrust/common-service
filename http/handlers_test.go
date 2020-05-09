@@ -1,6 +1,7 @@
 package http
 
 //go:generate mockgen -destination=./mock/responsewriter.go -package=mock -mock_names=ResponseWriter=ResponseWriter net/http ResponseWriter
+//go:generate mockgen -destination=./mock/httpclienterr.go -package=mock -mock_names=ClientError=ClientError github.com/cloudtrust/common-service/http ClientError
 
 import (
 	"bytes"
@@ -346,15 +347,12 @@ func TestErrorHandler(t *testing.T) {
 
 	mockRespWriter := mock.NewResponseWriter(mockCtrl)
 
-	// ForbiddenError
-	{
+	t.Run("ForbiddenError", func(t *testing.T) {
 		mockRespWriter.EXPECT().WriteHeader(http.StatusForbidden).Times(1)
 		mockRespWriter.EXPECT().Write(gomock.Any()).Times(1)
 		ErrorHandlerNoLog()(context.Background(), security.ForbiddenError{}, mockRespWriter)
-	}
-
-	// HTTPError
-	{
+	})
+	t.Run("HTTPError", func(t *testing.T) {
 		err := errorhandler.Error{
 			Status:  123,
 			Message: "abc",
@@ -362,19 +360,25 @@ func TestErrorHandler(t *testing.T) {
 		mockRespWriter.EXPECT().WriteHeader(err.Status).Times(1)
 		mockRespWriter.EXPECT().Write([]byte(err.Message)).Times(1)
 		ErrorHandlerNoLog()(context.Background(), err, mockRespWriter)
-	}
-
-	// ratelimit.ErrLimited
-	{
+	})
+	t.Run("ClientError", func(t *testing.T) {
+		var mockError = mock.NewClientError(mockCtrl)
+		var status = 403
+		var message = "error.message"
+		mockError.EXPECT().Status().Return(status)
+		mockError.EXPECT().ErrorMessage().Return(message)
+		mockRespWriter.EXPECT().WriteHeader(status).Times(1)
+		mockRespWriter.EXPECT().Write([]byte(message)).Times(1)
+		ErrorHandlerNoLog()(context.Background(), mockError, mockRespWriter)
+	})
+	t.Run("ratelimit.ErrLimited", func(t *testing.T) {
 		mockRespWriter.EXPECT().WriteHeader(http.StatusTooManyRequests).Times(1)
 		mockRespWriter.EXPECT().Write(gomock.Any()).Times(0)
 		ErrorHandlerNoLog()(context.Background(), ratelimit.ErrLimited, mockRespWriter)
-	}
-
-	// Internal server error
-	{
+	})
+	t.Run("Internal server error", func(t *testing.T) {
 		message := "500"
 		mockRespWriter.EXPECT().WriteHeader(http.StatusInternalServerError).Times(1)
 		ErrorHandlerNoLog()(context.Background(), errors.New(message), mockRespWriter)
-	}
+	})
 }

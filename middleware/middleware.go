@@ -96,5 +96,5 @@ func httpErrorHandler(_ context.Context, statusCode int, err error, w http.Respo
 	w.WriteHeader(statusCode)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	w.Write([]byte(errorhandler.GetEmitter() + "." + err.Error()))
+	_, _ = w.Write([]byte(errorhandler.GetEmitter() + "." + err.Error()))
 }
