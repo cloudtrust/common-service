@@ -152,6 +152,13 @@ func EncodeReply(_ context.Context, w http.ResponseWriter, rep interface{}) erro
 	return nil
 }
 
+// ClientError interface
+type ClientError interface {
+	Error() string
+	Status() int
+	ErrorMessage() string
+}
+
 // ErrorHandlerNoLog calls ErrorHandler without logger
 func ErrorHandlerNoLog() func(context.Context, error, http.ResponseWriter) {
 	return ErrorHandler(log.NewNopLogger())
@@ -168,6 +175,9 @@ func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseW
 			w.WriteHeader(e.Status)
 			// You should really take care of what you are sending here : e.Message should not leak any sensitive information
 			w.Write([]byte(e.Message))
+		case ClientError:
+			w.WriteHeader(e.Status())
+			w.Write([]byte(e.ErrorMessage()))
 		default:
 			logger.Error(ctx, "errorHandler", http.StatusInternalServerError, "msg", e.Error())
 			if err == ratelimit.ErrLimited {
