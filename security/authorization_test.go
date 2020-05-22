@@ -17,6 +17,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestAppendActionNames(t *testing.T) {
+	assert.Nil(t, AppendActionNames(nil, []Action{}, []Action{}))
+
+	var actions1 = []Action{Action{Name: "1"}}
+	var actions2 = []Action{Action{Name: "2"}, Action{Name: "3"}, Action{Name: "4"}}
+	var actions3 = []Action{Action{Name: "5"}}
+	assert.Equal(t, []string{"1", "2", "3", "4", "5"}, AppendActionNames(nil, actions1, actions2, actions3))
+}
+
 func TestCheckAuthorizationOnRealm(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()

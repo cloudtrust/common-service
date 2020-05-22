@@ -10,6 +10,16 @@ import (
 	"github.com/cloudtrust/common-service/log"
 )
 
+// AppendActionNames appends name of actions to a name slice
+func AppendActionNames(names []string, actions ...[]Action) []string {
+	for _, actionSet := range actions {
+		for _, action := range actionSet {
+			names = append(names, action.Name)
+		}
+	}
+	return names
+}
+
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
 	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
 
