@@ -2,10 +2,12 @@ package security
 
 //go:generate mockgen -destination=./mock/keycloak_client.go -package=mock -mock_names=KeycloakClient=KeycloakClient github.com/cloudtrust/common-service/security KeycloakClient
 //go:generate mockgen -destination=./mock/authentication_db_reader.go -package=mock -mock_names=AuthorizationDBReader=AuthorizationDBReader github.com/cloudtrust/common-service/security AuthorizationDBReader
+//go:generate mockgen -destination=./mock/detailederr.go -package=mock -mock_names=DetailedError=DetailedError github.com/cloudtrust/common-service/errors DetailedError
 
 import (
 	"context"
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/cloudtrust/common-service/configuration"
@@ -563,6 +565,21 @@ func TestGetAuthorization(t *testing.T) {
 		assert.Equal(t, true, ok)
 
 	}
+}
+
+func TestSuggestForbiddenError(t *testing.T) {
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	var mockDetailedError = mock.NewDetailedError(mockCtrl)
+
+	assert.Equal(t, ForbiddenError{}, suggestForbiddenError(errors.New("any error")))
+
+	mockDetailedError.EXPECT().Status().Return(http.StatusBadRequest)
+	assert.Equal(t, ForbiddenError{}, suggestForbiddenError(mockDetailedError))
+
+	mockDetailedError.EXPECT().Status().Return(http.StatusUnauthorized)
+	assert.Equal(t, mockDetailedError, suggestForbiddenError(mockDetailedError))
 }
 
 func TestReloadAuthorizations(t *testing.T) {

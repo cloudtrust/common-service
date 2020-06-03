@@ -3,11 +3,14 @@ package security
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"strings"
 
 	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/configuration"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
+	"github.com/pkg/errors"
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
@@ -26,7 +29,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 	var err error
 	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(ctx, accessToken, targetRealm, userID); err != nil {
 		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "infos", string(infos))
-		return ForbiddenError{}
+		return suggestForbiddenError(err)
 	}
 
 	if groupsRep == nil || len(groupsRep) == 0 {
@@ -64,7 +67,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 	var targetGroup string
 	if targetGroup, err = am.keycloakClient.GetGroupName(ctx, accessToken, targetRealm, targetGroupID); err != nil {
 		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "infos", string(infos))
-		return ForbiddenError{}
+		return suggestForbiddenError(err)
 	}
 
 	if targetGroup == "" {
@@ -184,6 +187,17 @@ func (am *authorizationManager) GetRightsOfCurrentUser(ctx context.Context) map[
 	}
 
 	return rights
+}
+
+func suggestForbiddenError(err error) error {
+	// Caller is suggesting to return a forbidden error except if err is an Unauthorized one
+	switch e := errors.Cause(err).(type) {
+	case errorhandler.DetailedError:
+		if e.Status() == http.StatusUnauthorized {
+			return err
+		}
+	}
+	return ForbiddenError{}
 }
 
 // ForbiddenError when an operation is not permitted.
