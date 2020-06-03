@@ -66,7 +66,7 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			// Check password match
 			if password != passwordToMatch {
 				logger.Info(ctx, "msg", "Authorization error: Invalid password value")
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				httpErrorHandler(ctx, http.StatusUnauthorized, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
 
@@ -146,7 +146,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 
 			if err = keycloakClient.VerifyToken(ctx, realm, accessToken); err != nil {
 				logger.Info(ctx, "msg", "Authorization error", "err", err)
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				httpErrorHandler(ctx, http.StatusUnauthorized, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
 

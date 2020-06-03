@@ -12,6 +12,7 @@ import (
 	errorhandler "github.com/cloudtrust/common-service/errors"
 	comhttp "github.com/cloudtrust/common-service/http"
 	"github.com/cloudtrust/common-service/middleware/mock"
+	"github.com/gbrlsnchs/jwt"
 	http_transport "github.com/go-kit/kit/transport/http"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -25,6 +26,19 @@ const (
 	// aud: test-realm
 	tokenAudString = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJJZTVzcXBLdTNwb1g5d1U3YTBhamxnUFlGRHFTTUF5M2l6NEZpelp4d2dnIn0.eyJqdGkiOiI4MDY4MjZkNy0xZjM4LTQxZjgtYTk5Ni1iYTYzYWI0YTY3MGIiLCJleHAiOjE1NTY2NjY3NzAsIm5iZiI6MCwiaWF0IjoxNTU2NjMwNzcwLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXV0aC9yZWFsbXMvbWFzdGVyIiwiYXVkIjoidGVzdC1yZWFsbSIsInN1YiI6IjczOTNhYjFhLTViMDQtNDNmNS04MDQ5LThhOTQ5MjMyZWQwYSIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsImF1dGhfdGltZSI6MCwic2Vzc2lvbl9zdGF0ZSI6IjFlMmI1Mzk5LTgyNDItNDA1OS05Y2M1LWE5MzI0NDVlY2JkMSIsImFjciI6IjEiLCJyZXNvdXJjZV9hY2Nlc3MiOnsidGVzdC1yZWFsbSI6eyJyb2xlcyI6WyJ2aWV3LXJlYWxtIiwidmlldy1pZGVudGl0eS1wcm92aWRlcnMiLCJtYW5hZ2UtaWRlbnRpdHktcHJvdmlkZXJzIiwiaW1wZXJzb25hdGlvbiIsImNyZWF0ZS1jbGllbnQiLCJtYW5hZ2UtdXNlcnMiLCJxdWVyeS1yZWFsbXMiLCJ2aWV3LWF1dGhvcml6YXRpb24iLCJxdWVyeS1jbGllbnRzIiwicXVlcnktdXNlcnMiLCJtYW5hZ2UtZXZlbnRzIiwibWFuYWdlLXJlYWxtIiwidmlldy1ldmVudHMiLCJ2aWV3LXVzZXJzIiwidmlldy1jbGllbnRzIiwibWFuYWdlLWF1dGhvcml6YXRpb24iLCJtYW5hZ2UtY2xpZW50cyIsInF1ZXJ5LWdyb3VwcyJdfX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZ3JvdXBzIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJncm91cHMiOlsiL3RvZV9hZG1pbmlzdHJhdG9yIl0sInByZWZlcnJlZF91c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiJ0b3RvQHRvdG8uY29tIn0.QXUTPciZYYv8k688D27sOz5thyQH1OWwp-rqTnCQYoAbqXPVgSZxLIepk8JvS9drBl7jOH-M_w2tXMOjV-7kY7p57_9VyWaI42VgBVmJVXSWwMwPtWAwnpKqMh1wrrm_zYJRmZ43o1r6Rp_kELnfgwocFSLc3DTDVEoMuYE45kJg9JwPc2K7DYi6Om5qOm9ez-x8GpyGVy3xJiOa-Qr9oJpKCx02sRVEBIc0AE0pfpxfbBhJU06L4uVnwQ1JxquLKLU77bjPEkAKOnTeG-6D9OtH_K42KujZyhj7FytXAXv9CmISi9aIe7BVANFSu7TyOBjelZHVpI5dOKRc-E2L9w"
 )
+
+func TestUnmarshalTokenAudience(t *testing.T) {
+	t.Run("Valid token", func(t *testing.T) {
+		payload, _, _ := jwt.Parse(tokenAudNone)
+		token, err := unmarshalTokenAudience(payload)
+		assert.Nil(t, err)
+		assert.Equal(t, "admin", token.getUsername())
+	})
+	t.Run("Invalid token", func(t *testing.T) {
+		_, err := unmarshalTokenAudience([]byte{})
+		assert.NotNil(t, err)
+	})
+}
 
 func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	var token = "dXNlcm5hbWU6cGFzc3dvcmQ="
@@ -43,7 +57,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Missing Authorization header").Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Non basic format")
@@ -53,7 +67,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Missing basic token").Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Basic X"+token)
@@ -62,7 +76,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Invalid base64 token").Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Basic "+token)
@@ -71,7 +85,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		var w = httptest.NewRecorder()
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 200, result.StatusCode)
+		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "basic "+token)
@@ -80,7 +94,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		var w = httptest.NewRecorder()
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 200, result.StatusCode)
+		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "basic dXNlcm5hbWU6cGFzc3dvcmQx")
@@ -90,7 +104,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Invalid password value").Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusUnauthorized, result.StatusCode)
 	})
 
 	t.Run("Invalid token format", func(t *testing.T) {
@@ -100,7 +114,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		req.Header.Set("Authorization", "Basic 123456ABCDEF")
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	t.Run("Invalid token format", func(t *testing.T) {
@@ -110,7 +124,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		req.Header.Set("Authorization", "Basic dXNlcm5hbWU=")
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 }
 
@@ -142,7 +156,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Missing Authorization header").Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Non bearer format")
@@ -152,7 +166,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Missing bearer token").Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Bearer    AB CD")
@@ -162,7 +176,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Missing bearer token").Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Bearer "+tokenAudString)
@@ -172,7 +186,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 		mockKeycloakClient.EXPECT().VerifyToken(gomock.Any(), "master", tokenAudString).Return(nil).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 200, result.StatusCode)
+		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "bearer "+tokenAudString)
@@ -183,7 +197,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 		mockKeycloakClient.EXPECT().VerifyToken(gomock.Any(), "master", tokenAudString).Return(errors.New(errorhandler.MsgErrInvalidParam + "." + errorhandler.Token)).Times(1)
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusUnauthorized, result.StatusCode)
 	})
 
 	t.Run("Invalid token format", func(t *testing.T) {
@@ -193,7 +207,7 @@ func TestHTTPOIDCTokenValidationMW(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer 123456ABCDEF")
 		m.ServeHTTP(w, req)
 		var result = w.Result()
-		assert.Equal(t, 403, result.StatusCode)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 }
 
@@ -223,21 +237,21 @@ func testAuthentication(t *testing.T, audienceRequired string, token string, exp
 }
 
 func TestContextHTTPOIDCTokenMissingAudience(t *testing.T) {
-	testAuthentication(t, "audience", tokenAudNone, 403, false)
+	testAuthentication(t, "audience", tokenAudNone, http.StatusForbidden, false)
 }
 
 func TestContextHTTPOIDCTokenAudienceStringArrayValidationMW(t *testing.T) {
-	testAuthentication(t, "rpo-realm", tokenAudArray, 200, true)
+	testAuthentication(t, "rpo-realm", tokenAudArray, http.StatusOK, true)
 }
 
 func TestContextHTTPOIDCTokenInvalidAudienceStringArrayMW(t *testing.T) {
-	testAuthentication(t, "backoffice", tokenAudArray, 403, false)
+	testAuthentication(t, "backoffice", tokenAudArray, http.StatusForbidden, false)
 }
 
 func TestContextHTTPOIDCTokenAudienceStringValidationMW(t *testing.T) {
-	testAuthentication(t, "test-realm", tokenAudString, 200, true)
+	testAuthentication(t, "test-realm", tokenAudString, http.StatusOK, true)
 }
 
 func TestContextHTTPOIDCTokenInvalidAudienceStringMW(t *testing.T) {
-	testAuthentication(t, "backoffice", tokenAudString, 403, false)
+	testAuthentication(t, "backoffice", tokenAudString, http.StatusForbidden, false)
 }
