@@ -16,15 +16,26 @@ const (
 
 // ConfigurationReaderDBModule struct
 type ConfigurationReaderDBModule struct {
-	db     sqltypes.CloudtrustDB
-	logger log.Logger
+	db        sqltypes.CloudtrustDB
+	authScope map[string]bool
+	logger    log.Logger
 }
 
 // NewConfigurationReaderDBModule returns a ConfigurationDB module.
-func NewConfigurationReaderDBModule(db sqltypes.CloudtrustDB, logger log.Logger) *ConfigurationReaderDBModule {
+func NewConfigurationReaderDBModule(db sqltypes.CloudtrustDB, logger log.Logger, actions ...[]string) *ConfigurationReaderDBModule {
+	var authScope map[string]bool
+	if len(actions) > 0 {
+		authScope = make(map[string]bool)
+		for _, actionSet := range actions {
+			for _, filter := range actionSet {
+				authScope[filter] = true
+			}
+		}
+	}
 	return &ConfigurationReaderDBModule{
-		db:     db,
-		logger: logger,
+		db:        db,
+		authScope: authScope,
+		logger:    logger,
 	}
 }
 
@@ -80,7 +91,9 @@ func (c *ConfigurationReaderDBModule) GetAuthorizations(ctx context.Context) ([]
 			c.logger.Warn(ctx, "msg", "Can't get authorizations. Scan failed", "error", err.Error())
 			return nil, err
 		}
-		res = append(res, authz)
+		if c.isInAuthorizationScope(*authz.Action) {
+			res = append(res, authz)
+		}
 	}
 
 	return res, nil
@@ -115,4 +128,13 @@ func (c *ConfigurationReaderDBModule) scanAuthorization(scanner sqltypes.SQLRow)
 	}
 
 	return authz, nil
+}
+
+func (c *ConfigurationReaderDBModule) isInAuthorizationScope(action string) bool {
+	if c.authScope != nil {
+		if _, ok := c.authScope[action]; !ok {
+			return false
+		}
+	}
+	return true
 }
