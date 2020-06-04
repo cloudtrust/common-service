@@ -3,11 +3,14 @@ package security
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"strings"
 
 	cs "github.com/cloudtrust/common-service"
 	"github.com/cloudtrust/common-service/configuration"
+	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
+	"github.com/pkg/errors"
 )
 
 func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
@@ -26,7 +29,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 	var err error
 	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(ctx, accessToken, targetRealm, userID); err != nil {
 		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "infos", string(infos))
-		return ForbiddenError{}
+		return suggestForbiddenError(err)
 	}
 
 	if groupsRep == nil || len(groupsRep) == 0 {
@@ -64,7 +67,7 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 	var targetGroup string
 	if targetGroup, err = am.keycloakClient.GetGroupName(ctx, accessToken, targetRealm, targetGroupID); err != nil {
 		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "infos", string(infos))
-		return ForbiddenError{}
+		return suggestForbiddenError(err)
 	}
 
 	if targetGroup == "" {
@@ -79,6 +82,12 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
 	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
 
+	for _, group := range currentGroups {
+		if authz, ok := (*am.authorizations)[currentRealm][group][action]; ok && am.currentGroupAllowedForTargetGroup(authz, targetRealm, targetGroup) {
+			return nil
+		}
+	}
+
 	infos, _ := json.Marshal(map[string]string{
 		"ThrownBy":      "CheckAuthorizationOnTargetGroup",
 		"Action":        action,
@@ -87,44 +96,40 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 		"currentRealm":  currentRealm,
 		"currentGroups": strings.Join(currentGroups, "|"),
 	})
+	am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to perform the action on this group", "infos", string(infos))
 
-	for _, group := range currentGroups {
-		targetGroupAllowed, wildcard := (*am.authorizations)[currentRealm][group][action]["*"]
+	return ForbiddenError{}
+}
 
-		if wildcard {
-			_, allGroupsAllowed := targetGroupAllowed["*"]
-			_, groupAllowed := targetGroupAllowed[targetGroup]
+func (am *authorizationManager) currentGroupAllowedForTargetGroup(authz map[string]map[string]struct{}, targetRealm, targetGroup string) bool {
+	if targetGroupAllowed, wildcard := authz["*"]; wildcard {
+		_, allGroupsAllowed := targetGroupAllowed["*"]
+		_, groupAllowed := targetGroupAllowed[targetGroup]
 
-			if allGroupsAllowed || groupAllowed {
-				return nil
-			}
-		}
-
-		targetGroupAllowed, nonMasterRealmAllowed := (*am.authorizations)[currentRealm][group][action]["/"]
-
-		if targetRealm != "master" && nonMasterRealmAllowed {
-			_, allGroupsAllowed := targetGroupAllowed["*"]
-			_, groupAllowed := targetGroupAllowed[targetGroup]
-
-			if allGroupsAllowed || groupAllowed {
-				return nil
-			}
-		}
-
-		targetGroupAllowed, realmAllowed := (*am.authorizations)[currentRealm][group][action][targetRealm]
-
-		if realmAllowed {
-			_, allGroupsAllowed := targetGroupAllowed["*"]
-			_, groupAllowed := targetGroupAllowed[targetGroup]
-
-			if allGroupsAllowed || groupAllowed {
-				return nil
-			}
+		if allGroupsAllowed || groupAllowed {
+			return true
 		}
 	}
 
-	am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to perform the action on this group", "infos", string(infos))
-	return ForbiddenError{}
+	if targetGroupAllowed, nonMasterRealmAllowed := authz["/"]; targetRealm != "master" && nonMasterRealmAllowed {
+		_, allGroupsAllowed := targetGroupAllowed["*"]
+		_, groupAllowed := targetGroupAllowed[targetGroup]
+
+		if allGroupsAllowed || groupAllowed {
+			return true
+		}
+	}
+
+	if targetGroupAllowed, realmAllowed := authz[targetRealm]; realmAllowed {
+		_, allGroupsAllowed := targetGroupAllowed["*"]
+		_, groupAllowed := targetGroupAllowed[targetGroup]
+
+		if allGroupsAllowed || groupAllowed {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Context, action, targetRealm string) error {
@@ -182,6 +187,17 @@ func (am *authorizationManager) GetRightsOfCurrentUser(ctx context.Context) map[
 	}
 
 	return rights
+}
+
+func suggestForbiddenError(err error) error {
+	// Caller is suggesting to return a forbidden error except if err is an Unauthorized one
+	switch e := errors.Cause(err).(type) {
+	case errorhandler.DetailedError:
+		if e.Status() == http.StatusUnauthorized {
+			return err
+		}
+	}
+	return ForbiddenError{}
 }
 
 // ForbiddenError when an operation is not permitted.

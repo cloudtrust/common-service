@@ -39,6 +39,13 @@ func GetEmitter() string {
 	return emitter
 }
 
+// DetailedError interface
+type DetailedError interface {
+	Error() string
+	Status() int
+	ErrorMessage() string
+}
+
 // Error can be returned by the API endpoints
 type Error struct {
 	Status  int

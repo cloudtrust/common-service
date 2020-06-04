@@ -1,7 +1,7 @@
 package http
 
 //go:generate mockgen -destination=./mock/responsewriter.go -package=mock -mock_names=ResponseWriter=ResponseWriter net/http ResponseWriter
-//go:generate mockgen -destination=./mock/httpclienterr.go -package=mock -mock_names=ClientError=ClientError github.com/cloudtrust/common-service/http ClientError
+//go:generate mockgen -destination=./mock/detailederr.go -package=mock -mock_names=DetailedError=DetailedError github.com/cloudtrust/common-service/errors DetailedError
 
 import (
 	"bytes"
