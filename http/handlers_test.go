@@ -361,8 +361,8 @@ func TestErrorHandler(t *testing.T) {
 		mockRespWriter.EXPECT().Write([]byte(err.Message)).Times(1)
 		ErrorHandlerNoLog()(context.Background(), err, mockRespWriter)
 	})
-	t.Run("ClientError", func(t *testing.T) {
-		var mockError = mock.NewClientError(mockCtrl)
+	t.Run("DetailedError", func(t *testing.T) {
+		var mockError = mock.NewDetailedError(mockCtrl)
 		var status = 403
 		var message = "error.message"
 		mockError.EXPECT().Status().Return(status)

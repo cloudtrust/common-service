@@ -67,7 +67,7 @@ func (cd *aesGcmCrypting) Encrypt(value []byte, additional []byte) ([]byte, erro
 	}
 
 	var iv = make([]byte, 12)
-	rand.Read(iv)
+	_, _ = rand.Read(iv)
 
 	var aesgcm cipher.AEAD
 	aesgcm, err = cipher.NewGCMWithTagSize(block, cd.tagSize)
