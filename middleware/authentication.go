@@ -22,44 +22,12 @@ import (
 func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			var authorizationHeader = req.Header.Get("Authorization")
 			var ctx = context.TODO()
-
-			if authorizationHeader == "" {
-				logger.Info(ctx, "msg", "Authorization error: Missing Authorization header")
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.AuthHeader), w)
-				return
-			}
-
-			var regexpBasicAuth = `^[Bb]asic (.+)$`
-			var r = regexp.MustCompile(regexpBasicAuth)
-			var match = r.FindStringSubmatch(authorizationHeader)
-			if match == nil {
-				logger.Info(ctx, "msg", "Authorization error: Missing basic token")
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrMissingParam+"."+errorhandler.BasicToken), w)
-				return
-			}
-
-			// Decode base 64
-			decodedToken, err := base64.StdEncoding.DecodeString(match[1])
-
+			var username, password, err = extractBasicCredentials(ctx, req.Header.Get("Authorization"), logger)
 			if err != nil {
-				logger.Info(ctx, "msg", "Authorization error: Invalid base64 token")
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				httpErrorHandler(ctx, http.StatusForbidden, err, w)
 				return
 			}
-
-			// Extract username & password values
-			var tokenSubparts = strings.Split(string(decodedToken), ":")
-
-			if len(tokenSubparts) != 2 {
-				logger.Info(ctx, "msg", "Authorization error: Invalid token format (username:password)")
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-				return
-			}
-
-			var username = tokenSubparts[0]
-			var password = tokenSubparts[1]
 
 			ctx = context.WithValue(req.Context(), cs.CtContextUsername, username)
 
@@ -73,6 +41,39 @@ func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) fu
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
+}
+
+func extractBasicCredentials(ctx context.Context, authorizationHeader string, logger log.Logger) (string, string, error) {
+	if authorizationHeader == "" {
+		logger.Info(ctx, "msg", "Authorization error: Missing Authorization header")
+		return "", "", errors.New(errorhandler.MsgErrMissingParam + "." + errorhandler.AuthHeader)
+	}
+
+	var regexpBasicAuth = `^[Bb]asic (.+)$`
+	var r = regexp.MustCompile(regexpBasicAuth)
+	var match = r.FindStringSubmatch(authorizationHeader)
+	if match == nil {
+		logger.Info(ctx, "msg", "Authorization error: Missing basic token")
+		return "", "", errors.New(errorhandler.MsgErrMissingParam + "." + errorhandler.BasicToken)
+	}
+
+	// Decode base 64
+	decodedToken, err := base64.StdEncoding.DecodeString(match[1])
+
+	if err != nil {
+		logger.Info(ctx, "msg", "Authorization error: Invalid base64 token")
+		return "", "", errors.New(errorhandler.MsgErrInvalidParam + "." + errorhandler.Token)
+	}
+
+	// Extract username & password values
+	var tokenSubparts = strings.Split(string(decodedToken), ":")
+
+	if len(tokenSubparts) != 2 {
+		logger.Info(ctx, "msg", "Authorization error: Invalid token format (username:password)")
+		return "", "", errors.New(errorhandler.MsgErrInvalidParam + "." + errorhandler.Token)
+	}
+
+	return tokenSubparts[0], tokenSubparts[1], nil
 }
 
 // KeycloakClient is the interface of the keycloak client.
