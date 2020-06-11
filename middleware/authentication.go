@@ -78,7 +78,7 @@ func extractBasicCredentials(ctx context.Context, authorizationHeader string, lo
 
 // KeycloakClient is the interface of the keycloak client.
 type KeycloakClient interface {
-	VerifyToken(ctx context.Context, realmName string, accessToken string) error
+	VerifyToken(issuer string, realmName string, accessToken string) error
 }
 
 // MakeHTTPOIDCTokenValidationMW retrieve the oidc token from the HTTP header 'Bearer' and
@@ -111,24 +111,15 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			// match[0] is the global matched group. match[1] is the first captured group
 			var accessToken = match[1]
 
-			payload, _, err := jwt.Parse(accessToken)
-			if err != nil {
-				logger.Info(ctx, "msg", "Authorization error", "err", err)
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-				return
-			}
-
 			var jot tokenAudience
+			var httpStatus int
+			var validationOK bool
 
-			if jot, err = unmarshalTokenAudience(payload); err != nil {
-				logger.Info(ctx, "msg", "Authorization error", "err", err)
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-				return
-			}
+			jot, httpStatus, validationOK = ValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
 
-			if !jot.assertMatchingAudience(audienceRequired) {
-				logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
-				httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+			// If there was an error during the validation process, raise an error and stop
+			if !validationOK {
+				httpErrorHandler(ctx, httpStatus, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
 
@@ -145,15 +136,44 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			ctx = context.WithValue(ctx, cs.CtContextGroups, extractGroups(jot.getGroups()))
 			ctx = context.WithValue(ctx, cs.CtContextIssuerDomain, issuerDomain)
 
-			if err = keycloakClient.VerifyToken(ctx, realm, accessToken); err != nil {
-				logger.Info(ctx, "msg", "Authorization error", "err", err)
-				httpErrorHandler(ctx, http.StatusUnauthorized, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-				return
-			}
-
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
+}
+
+// ValidateOIDCToken ensures the OIDC token given in parameter is valid
+func ValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, int, bool) {
+
+	payload, _, err := jwt.Parse(accessToken)
+	if err != nil {
+		logger.Info(ctx, "msg", "Authorization error", "err", err)
+		return nil, http.StatusForbidden, false
+	}
+
+	var jot tokenAudience
+
+	if jot, err = unmarshalTokenAudience(payload); err != nil {
+		logger.Info(ctx, "msg", "Authorization error", "err", err)
+		return nil, http.StatusForbidden, false
+	}
+
+	if !jot.assertMatchingAudience(audienceRequired) {
+		logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
+		return nil, http.StatusForbidden, false
+	}
+
+	var issuer, realm string
+	issuer = jot.getIssuer()
+	var splitIssuer = strings.Split(issuer, "/auth/realms/")
+	realm = splitIssuer[1]
+
+	if err = keycloakClient.VerifyToken(issuer, realm, accessToken); err != nil {
+		logger.Info(ctx, "msg", "Authorization error", "err", err)
+		return nil, http.StatusUnauthorized, false
+	}
+
+	// if there was no error during the token validation process, return true
+	return jot, http.StatusOK, true
 }
 
 func assertMatchingAudience(jwtAudiences []string, requiredAudience string) bool {
