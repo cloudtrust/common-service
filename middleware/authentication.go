@@ -113,12 +113,11 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 
 			var jot tokenAudience
 			var httpStatus int
-			var validationOK bool
 
-			jot, httpStatus, validationOK = ValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
+			jot, httpStatus = ValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
 
 			// If there was an error during the validation process, raise an error and stop
-			if !validationOK {
+			if httpStatus != http.StatusOK {
 				httpErrorHandler(ctx, httpStatus, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
@@ -142,24 +141,24 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 }
 
 // ValidateOIDCToken ensures the OIDC token given in parameter is valid
-func ValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, int, bool) {
+func ValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, int) {
 
 	payload, _, err := jwt.Parse(accessToken)
 	if err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, http.StatusForbidden, false
+		return nil, http.StatusForbidden
 	}
 
 	var jot tokenAudience
 
 	if jot, err = unmarshalTokenAudience(payload); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, http.StatusForbidden, false
+		return nil, http.StatusForbidden
 	}
 
 	if !jot.assertMatchingAudience(audienceRequired) {
 		logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
-		return nil, http.StatusForbidden, false
+		return nil, http.StatusForbidden
 	}
 
 	var issuer, realm string
@@ -169,11 +168,11 @@ func ValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient K
 
 	if err = keycloakClient.VerifyToken(issuer, realm, accessToken); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, http.StatusUnauthorized, false
+		return nil, http.StatusUnauthorized
 	}
 
 	// if there was no error during the token validation process, return true
-	return jot, http.StatusOK, true
+	return jot, http.StatusOK
 }
 
 func assertMatchingAudience(jwtAudiences []string, requiredAudience string) bool {
