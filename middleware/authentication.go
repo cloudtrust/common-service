@@ -161,12 +161,13 @@ func ValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient K
 		return nil, http.StatusForbidden
 	}
 
-	var issuer, realm string
+	var issuer, issuerDomain, realm string
 	issuer = jot.getIssuer()
 	var splitIssuer = strings.Split(issuer, "/auth/realms/")
+	issuerDomain = splitIssuer[0]
 	realm = splitIssuer[1]
 
-	if err = keycloakClient.VerifyToken(issuer, realm, accessToken); err != nil {
+	if err = keycloakClient.VerifyToken(issuerDomain, realm, accessToken); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
 		return nil, http.StatusUnauthorized
 	}
