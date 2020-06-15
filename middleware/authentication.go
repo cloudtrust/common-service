@@ -112,13 +112,16 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			var accessToken = match[1]
 
 			var jot tokenAudience
-			var httpStatus int
 
-			jot, httpStatus = ParseAndValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
+			jot, err := ParseAndValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
 
 			// If there was an error during the validation process, raise an error and stop
-			if httpStatus != http.StatusOK {
-				httpErrorHandler(ctx, httpStatus, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+			if err != nil {
+				if httpForbidden := errors.New("HTTP Status Forbidden"); err == httpForbidden {
+					httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				} else if httpUnauthorized := errors.New("HTTP Status Unauthorized"); err == httpUnauthorized {
+					httpErrorHandler(ctx, http.StatusUnauthorized, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+				}
 				return
 			}
 
@@ -141,24 +144,24 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 }
 
 // ParseAndValidateOIDCToken ensures the OIDC token given in parameter is valid
-func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, int) {
+func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, error) {
 
 	payload, _, err := jwt.Parse(accessToken)
 	if err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, http.StatusForbidden
+		return nil, errors.New("HTTP Status Forbidden")
 	}
 
 	var jot tokenAudience
 
 	if jot, err = unmarshalTokenAudience(payload); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, http.StatusForbidden
+		return nil, errors.New("HTTP Status Forbidden")
 	}
 
 	if !jot.assertMatchingAudience(audienceRequired) {
 		logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
-		return nil, http.StatusForbidden
+		return nil, errors.New("HTTP Status Forbidden")
 	}
 
 	var issuer, issuerDomain, realm string
@@ -169,11 +172,11 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 
 	if err = keycloakClient.VerifyToken(issuerDomain, realm, accessToken); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, http.StatusUnauthorized
+		return nil, errors.New("HTTP Status Unathorized")
 	}
 
 	// if there was no error during the token validation process, return true
-	return jot, http.StatusOK
+	return jot, nil
 }
 
 func assertMatchingAudience(jwtAudiences []string, requiredAudience string) bool {
