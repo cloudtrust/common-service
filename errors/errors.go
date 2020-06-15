@@ -119,3 +119,10 @@ func CreateEndpointNotEnabled(param string) Error {
 		Message: fmt.Sprintf("%s.%s.%s", GetEmitter(), MsgErrDisabledEndpoint, param),
 	}
 }
+
+// UnauthorizedError when an operation is not permitted.
+type UnauthorizedError struct{}
+
+func (e UnauthorizedError) Error() string {
+	return "UnauthorizedError: Unauthorized"
+}

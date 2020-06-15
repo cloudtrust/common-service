@@ -11,7 +11,9 @@ import (
 	cs "github.com/cloudtrust/common-service"
 	errorhandler "github.com/cloudtrust/common-service/errors"
 	"github.com/cloudtrust/common-service/log"
+	"github.com/cloudtrust/common-service/security"
 	"github.com/gbrlsnchs/jwt"
+	errorsPkg "github.com/pkg/errors"
 )
 
 // MakeHTTPBasicAuthenticationMW retrieve the token from the HTTP header 'Basic' and
@@ -117,10 +119,13 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 
 			// If there was an error during the validation process, raise an error and stop
 			if err != nil {
-				if httpForbidden := errors.New("HTTP Status Forbidden"); err == httpForbidden {
+				switch errorsPkg.Cause(err).(type) {
+				case security.ForbiddenError:
 					httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-				} else if httpUnauthorized := errors.New("HTTP Status Unauthorized"); err == httpUnauthorized {
+					break
+				case errorhandler.UnauthorizedError:
 					httpErrorHandler(ctx, http.StatusUnauthorized, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
+					break
 				}
 				return
 			}
@@ -149,19 +154,19 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 	payload, _, err := jwt.Parse(accessToken)
 	if err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, errors.New("HTTP Status Forbidden")
+		return nil, security.ForbiddenError{}
 	}
 
 	var jot tokenAudience
 
 	if jot, err = unmarshalTokenAudience(payload); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, errors.New("HTTP Status Forbidden")
+		return nil, security.ForbiddenError{}
 	}
 
 	if !jot.assertMatchingAudience(audienceRequired) {
 		logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
-		return nil, errors.New("HTTP Status Forbidden")
+		return nil, security.ForbiddenError{}
 	}
 
 	var issuer, issuerDomain, realm string
@@ -172,7 +177,7 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 
 	if err = keycloakClient.VerifyToken(issuerDomain, realm, accessToken); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
-		return nil, errors.New("HTTP Status Unathorized")
+		return nil, errorhandler.UnauthorizedError{}
 	}
 
 	// if there was no error during the token validation process, return true
