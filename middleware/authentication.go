@@ -114,7 +114,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			var jot tokenAudience
 			var httpStatus int
 
-			jot, httpStatus = ValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
+			jot, httpStatus = ParseAndValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
 
 			// If there was an error during the validation process, raise an error and stop
 			if httpStatus != http.StatusOK {
@@ -140,8 +140,8 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 	}
 }
 
-// ValidateOIDCToken ensures the OIDC token given in parameter is valid
-func ValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, int) {
+// ParseAndValidateOIDCToken ensures the OIDC token given in parameter is valid
+func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, int) {
 
 	payload, _, err := jwt.Parse(accessToken)
 	if err != nil {
