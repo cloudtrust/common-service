@@ -30,6 +30,7 @@ type RealmConfiguration struct {
 	RegisterExecuteActions              *[]string `json:"register_execute_actions,omitempty"`
 	RedirectCancelledRegistrationURL    *string   `json:"redirect_cancelled_registration_url,omitempty"`
 	RedirectSuccessfulRegistrationURL   *string   `json:"redirect_successful_registration_url,omitempty"`
+	BarcodeType                         *string   `json:"barcode_type"`
 }
 
 // RealmAdminConfiguration struct
