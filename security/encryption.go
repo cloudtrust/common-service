@@ -10,8 +10,8 @@ import (
 	errorsMsg "github.com/cloudtrust/common-service/errors"
 )
 
-// CrypterDecrypter used to encrypt/decrypt data
-type CrypterDecrypter interface {
+// EncrypterDecrypter used to encrypt/decrypt data
+type EncrypterDecrypter interface {
 	Encrypt(value []byte, additional []byte) ([]byte, error)
 	Decrypt(value []byte, additional []byte) ([]byte, error)
 }
@@ -22,7 +22,7 @@ type aesGcmCrypting struct {
 }
 
 // NewAesGcmEncrypter creation from slice of bytes
-func NewAesGcmEncrypter(key []byte, tagSize int) (CrypterDecrypter, error) {
+func NewAesGcmEncrypter(key []byte, tagSize int) (EncrypterDecrypter, error) {
 	cd := aesGcmCrypting{
 		key:     key,
 		tagSize: tagSize,
@@ -31,7 +31,7 @@ func NewAesGcmEncrypter(key []byte, tagSize int) (CrypterDecrypter, error) {
 }
 
 // NewAesGcmEncrypterFromBase64 creation from base64
-func NewAesGcmEncrypterFromBase64(base64Key string, tagSize int) (CrypterDecrypter, error) {
+func NewAesGcmEncrypterFromBase64(base64Key string, tagSize int) (EncrypterDecrypter, error) {
 	key, err := base64.StdEncoding.DecodeString(base64Key)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (cd *aesGcmCrypting) Decrypt(value []byte, additional []byte) ([]byte, erro
 	}
 
 	var iv = value[0:12]
-	var crypted = value[12:]
+	var encrypted = value[12:]
 	var block, err = aes.NewCipher(cd.key)
 	if err != nil {
 		return nil, err
@@ -98,5 +98,5 @@ func (cd *aesGcmCrypting) Decrypt(value []byte, additional []byte) ([]byte, erro
 		return nil, err
 	}
 
-	return aesgcm.Open(nil, iv, crypted, additional)
+	return aesgcm.Open(nil, iv, encrypted, additional)
 }

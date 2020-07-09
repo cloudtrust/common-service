@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testAesGcm(t *testing.T, encryption CrypterDecrypter, value []byte) {
+func testAesGcm(t *testing.T, encryption EncrypterDecrypter, value []byte) {
 	var additional = make([]byte, 10)
 	rand.Read(additional)
 	var encrypted, err = encryption.Encrypt([]byte(value), additional)
