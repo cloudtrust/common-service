@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"encoding/base64"
 	"reflect"
 	"regexp"
 	"time"
@@ -30,6 +31,7 @@ type Validator interface {
 	ValidateParameterDateBefore(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateBetween(prmName string, value *string, dateLayout string, refAfter time.Time, refBetween time.Time, mandatory bool) Validator
 	ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator
+	ValidateParameterBase64(prmName string, value *string, mandatory bool) Validator
 	Status() error
 }
 
@@ -200,6 +202,20 @@ func (v *successValidator) ValidateParameterLargeDuration(prmName string, value 
 	return v
 }
 
+func (v *successValidator) ValidateParameterBase64(prmName string, value *string, mandatory bool) Validator {
+	if value == nil {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+	} else {
+		if _, err := base64.StdEncoding.DecodeString(*value); err != nil {
+			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+	}
+
+	return v
+}
+
 func (v *successValidator) parseDate(dateLayouts []string, value string) (time.Time, error) {
 	var resError error
 	for _, layout := range dateLayouts {
@@ -271,6 +287,10 @@ func (v *failedValidator) ValidateParameterDateBetween(_ string, _ *string, _ st
 }
 
 func (v *failedValidator) ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterBase64(prmName string, value *string, mandatory bool) Validator {
 	return v
 }
 
