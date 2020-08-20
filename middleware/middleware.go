@@ -49,35 +49,70 @@ type AdminConfigurationRetriever interface {
 	GetAdminConfiguration(ctx context.Context, realmID string) (configuration.RealmAdminConfiguration, error)
 }
 
+// EndpointAvailabilityChecker interface
+type EndpointAvailabilityChecker interface {
+	CheckAvailability(ctx context.Context, logger log.Logger) (context.Context, error)
+	CheckAvailabilityForRealm(ctx context.Context, targetRealm string, logger log.Logger) (context.Context, error)
+}
+
+type endpointAvailabilityChecker struct {
+	enabledKey    string
+	idRetriever   IDRetriever
+	confRetriever AdminConfigurationRetriever
+}
+
+// NewEndpointAvailabilityChecker creates a new EndpointAvailabilityChecker
+func NewEndpointAvailabilityChecker(enabledKey string, idRetriever IDRetriever, confRetriever AdminConfigurationRetriever) EndpointAvailabilityChecker {
+	return &endpointAvailabilityChecker{
+		enabledKey:    enabledKey,
+		idRetriever:   idRetriever,
+		confRetriever: confRetriever,
+	}
+}
+
+// CheckAvailability checks if an endpoint is enabled for the realm stored in the context
+func (eac *endpointAvailabilityChecker) CheckAvailability(ctx context.Context, logger log.Logger) (context.Context, error) {
+	return eac.CheckAvailabilityForRealm(ctx, ctx.Value(cs.CtContextRealm).(string), logger)
+}
+
+// CheckAvailabilityForRealm checks if an endpoint is enabled for the given realm
+func (eac *endpointAvailabilityChecker) CheckAvailabilityForRealm(ctx context.Context, targetRealm string, logger log.Logger) (context.Context, error) {
+	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
+
+	// Get realm ID
+	var realmID, err = eac.idRetriever.GetID(accessToken, targetRealm)
+	if err != nil {
+		logger.Info(ctx, "msg", "Can't get realm ID", "realm", targetRealm)
+		return ctx, err
+	}
+	// Get admin configuration
+	var conf configuration.RealmAdminConfiguration
+	conf, err = eac.confRetriever.GetAdminConfiguration(ctx, realmID)
+	if err != nil {
+		logger.Info(ctx, "msg", "Can't get realm admin configuration", "realm", targetRealm)
+		return ctx, err
+	}
+	if !conf.AvailableChecks[eac.enabledKey] {
+		logger.Info(ctx, "msg", "Feature not enabled", "realm", targetRealm, "feat", eac.enabledKey)
+		return ctx, errorhandler.CreateEndpointNotEnabled(targetRealm)
+	}
+
+	return context.WithValue(ctx, cs.CtContextRealmID, realmID), nil
+}
+
 // MakeEndpointAvailableCheckMW makes a middleware that ensure a feature is enabled at admin configuration level in the current context
-func MakeEndpointAvailableCheckMW(enabledKey string, idRetriever IDRetriever, confRetriever AdminConfigurationRetriever, logger log.Logger) func(http.Handler) http.Handler {
+func MakeEndpointAvailableCheckMW(availabilityChecker EndpointAvailabilityChecker, logger log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var ctx = req.Context()
 			var realmName = ctx.Value(cs.CtContextRealm).(string)
-			var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
-			// Get realm ID
-			var realmID, err = idRetriever.GetID(accessToken, realmName)
+			var err error
+			ctx, err = availabilityChecker.CheckAvailabilityForRealm(ctx, realmName, logger)
 			if err != nil {
-				logger.Info(ctx, "msg", "Can't get realm ID", "realm", realmName)
 				handleError(req.Context(), err, w)
-				return
-			}
-			// Get admin configuration
-			var conf configuration.RealmAdminConfiguration
-			conf, err = confRetriever.GetAdminConfiguration(ctx, realmID)
-			if err != nil {
-				logger.Info(ctx, "msg", "Can't get realm admin configuration", "realm", realmName)
-				handleError(req.Context(), err, w)
-				return
-			}
-			if !conf.AvailableChecks[enabledKey] {
-				logger.Info(ctx, "msg", "Feature not enabled", "realm", realmName, "feat", enabledKey)
-				handleError(req.Context(), errorhandler.CreateEndpointNotEnabled(realmName), w)
 				return
 			}
 
-			ctx = context.WithValue(ctx, cs.CtContextRealmID, realmID)
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
