@@ -96,7 +96,8 @@ func TestEndpointAvailableMW(t *testing.T) {
 	var feature = configuration.CheckKeyPhysical
 	var adminConfig configuration.RealmAdminConfiguration
 	var dummyHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	var m = MakeEndpointAvailableCheckMW(feature, mockIDRetriever, mockConfRetriever, logger)(dummyHandler)
+	var availabilityChecker = NewEndpointAvailabilityChecker(feature, mockIDRetriever, mockConfRetriever)
+	var m = MakeEndpointAvailableCheckMW(availabilityChecker, logger)(dummyHandler)
 
 	// HTTP request
 	var req = httptest.NewRequest("POST", "http://cloudtrust.io/api", bytes.NewReader([]byte{}))
