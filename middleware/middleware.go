@@ -15,6 +15,35 @@ import (
 
 // MakeEndpointLoggingMW makes a logging middleware.
 func MakeEndpointLoggingMW(logger log.Logger) cs.Middleware {
+	return MakeEndpointLoggingInOutMW(logger)
+}
+
+// MakeEndpointLoggingInMW makes a logging middleware
+func MakeEndpointLoggingInMW(logger log.Logger) cs.Middleware {
+	return func(next cs.Endpoint) cs.Endpoint {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			logger.Debug(ctx, "req", req)
+			res, err := next(ctx, req)
+			logger.Debug(ctx, "res", "hidden")
+			return res, err
+		}
+	}
+}
+
+// MakeEndpointLoggingOutMW makes a logging middleware
+func MakeEndpointLoggingOutMW(logger log.Logger) cs.Middleware {
+	return func(next cs.Endpoint) cs.Endpoint {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			logger.Debug(ctx, "req", "hidden")
+			res, err := next(ctx, req)
+			logger.Debug(ctx, "res", res)
+			return res, err
+		}
+	}
+}
+
+// MakeEndpointLoggingInOutMW makes a logging middleware
+func MakeEndpointLoggingInOutMW(logger log.Logger) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
 			logger.Debug(ctx, "req", req)

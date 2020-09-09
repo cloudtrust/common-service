@@ -34,23 +34,39 @@ func TestEndpointLoggingMW(t *testing.T) {
 	defer mockCtrl.Finish()
 	var mockLogger = mock.NewLogger(mockCtrl)
 
-	var m = MakeEndpointLoggingMW(mockLogger)(dummyEndpoint)
+	var mInOut = MakeEndpointLoggingMW(mockLogger)(dummyEndpoint)
+	var mIn = MakeEndpointLoggingInMW(mockLogger)(dummyEndpoint)
+	var mOut = MakeEndpointLoggingOutMW(mockLogger)(dummyEndpoint)
 
 	// Context with correlation ID.
 	var corrID = strconv.FormatUint(rand.Uint64(), 10)
 	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
 
-	// With correlation ID.
-	var req = "req"
-	mockLogger.EXPECT().Debug(gomock.Any(), "req", req).Times(1)
-	mockLogger.EXPECT().Debug(gomock.Any(), "res", nil).Times(1)
-	m(ctx, req)
+	t.Run("In/Out logging - With correlation ID", func(t *testing.T) {
+		var req = "req"
+		mockLogger.EXPECT().Debug(gomock.Any(), "req", req).Times(1)
+		mockLogger.EXPECT().Debug(gomock.Any(), "res", nil).Times(1)
+		mInOut(ctx, req)
+	})
+	t.Run("In logging - With correlation ID", func(t *testing.T) {
+		var req = "req"
+		mockLogger.EXPECT().Debug(gomock.Any(), "req", req).Times(1)
+		mockLogger.EXPECT().Debug(gomock.Any(), "res", "hidden").Times(1)
+		mIn(ctx, req)
+	})
+	t.Run("Out logging - With correlation ID", func(t *testing.T) {
+		var req = "req"
+		mockLogger.EXPECT().Debug(gomock.Any(), "req", "hidden").Times(1)
+		mockLogger.EXPECT().Debug(gomock.Any(), "res", nil).Times(1)
+		mOut(ctx, req)
+	})
 
-	// Without correlation ID.
-	var f = func() {
-		m(context.Background(), nil)
-	}
-	assert.Panics(t, f)
+	t.Run("In/Out logging - Without correlation ID", func(t *testing.T) {
+		var f = func() {
+			mInOut(context.Background(), nil)
+		}
+		assert.Panics(t, f)
+	})
 }
 
 func TestEndpointInstrumentingMW(t *testing.T) {
