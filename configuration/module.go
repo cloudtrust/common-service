@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	selectBothConfigsStmt = `SELECT configuration, admin_configuration FROM realm_configuration WHERE realm_id = ? AND configuration IS NOT NULL AND admin_configuration IS NOT NULL`
 	selectConfigStmt      = `SELECT configuration FROM realm_configuration WHERE realm_id = ? AND configuration IS NOT NULL`
 	selectAdminConfigStmt = `SELECT admin_configuration FROM realm_configuration WHERE realm_id = ? AND admin_configuration IS NOT NULL`
 	selectAllAuthzStmt    = `SELECT realm_id, group_name, action, target_realm_id, target_group_name FROM authorizations;`
@@ -36,6 +37,31 @@ func NewConfigurationReaderDBModule(db sqltypes.CloudtrustDB, logger log.Logger,
 		db:        db,
 		authScope: authScope,
 		logger:    logger,
+	}
+}
+
+// GetRealmConfigurations returns both configuration and admin configuration of a realm
+func (c *ConfigurationReaderDBModule) GetRealmConfigurations(ctx context.Context, realmID string) (RealmConfiguration, RealmAdminConfiguration, error) {
+	var configJSON, adminConfigJSON string
+	row := c.db.QueryRow(selectBothConfigsStmt, realmID)
+
+	switch err := row.Scan(&configJSON, &adminConfigJSON); err {
+	case sql.ErrNoRows:
+		c.logger.Warn(ctx, "msg", "Realm Configuration not found in DB", "error", err.Error())
+		return RealmConfiguration{}, RealmAdminConfiguration{}, err
+
+	default:
+		if err != nil {
+			return RealmConfiguration{}, RealmAdminConfiguration{}, err
+		}
+
+		realmConf, err := NewRealmConfiguration(configJSON)
+		if err != nil {
+			return RealmConfiguration{}, RealmAdminConfiguration{}, err
+		}
+
+		realmAdminConf, err := NewRealmAdminConfiguration(adminConfigJSON)
+		return realmConf, realmAdminConf, err
 	}
 }
 
