@@ -15,7 +15,7 @@ const (
 	MsgErrOpNotPermitted    = "operationNotPermitted"
 	MsgErrDisabledEndpoint  = "disabledEndpoint"
 	MsgErrInvalidLength     = "invalidLength"
-	MsgErrUnknown           = "unknowError"
+	MsgErrUnknown           = "unknownError"
 
 	EncryptDecrypt = "encryptOrDecrypt"
 	Ciphertext     = "ciphertext"
