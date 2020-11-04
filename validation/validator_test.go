@@ -285,3 +285,24 @@ func TestValidateParameterLargeDuration(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterLargeDuration("param", nil, false).Status())
 	})
 }
+
+func TestValidateParameterBase64(t *testing.T) {
+	var validValue = "dGVzdA=="
+	var invalidValue = "2y4==="
+
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterBase64("param", nil, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterBase64("param", nil, true).Status())
+	})
+	t.Run("Valid value", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterBase64("param", &validValue, true).Status())
+	})
+	t.Run("Invalid value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterBase64("param", &invalidValue, true).Status())
+	})
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterBase64("param", nil, false).Status())
+	})
+}
