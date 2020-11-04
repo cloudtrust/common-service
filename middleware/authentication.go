@@ -115,7 +115,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 
 			var jot tokenAudience
 
-			jot, err := parseAndValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
+			jot, err := ParseAndValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
 
 			// If there was an error during the validation process, raise an error and stop
 			if err != nil {
@@ -148,8 +148,8 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 	}
 }
 
-// parseAndValidateOIDCToken ensures the OIDC token given in parameter is valid
-func parseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, error) {
+// ParseAndValidateOIDCToken ensures the OIDC token given in parameter is valid. This method must be public as it is used externally by some projects
+func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, error) {
 
 	payload, _, err := jwt.Parse(accessToken)
 	if err != nil {
