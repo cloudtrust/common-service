@@ -15,29 +15,34 @@ var (
 
 // RealmConfiguration struct. APISelfAccountEditingEnabled replaces former field APISelfMailEditingEnabled
 type RealmConfiguration struct {
-	DefaultClientID                     *string   `json:"default_client_id,omitempty"`
-	DefaultRedirectURI                  *string   `json:"default_redirect_uri,omitempty"`
-	APISelfAuthenticatorDeletionEnabled *bool     `json:"api_self_authenticator_deletion_enabled,omitempty"`
-	APISelfPasswordChangeEnabled        *bool     `json:"api_self_password_change_enabled,omitempty"`
-	DeprecatedAPISelfMailEditingEnabled *bool     `json:"api_self_mail_editing_enabled,omitempty"`
-	APISelfAccountEditingEnabled        *bool     `json:"api_self_account_editing_enabled,omitempty"`
-	APISelfAccountDeletionEnabled       *bool     `json:"api_self_account_deletion_enabled,omitempty"`
-	ShowAuthenticatorsTab               *bool     `json:"show_authenticators_tab,omitempty"`
-	ShowPasswordTab                     *bool     `json:"show_password_tab,omitempty"`
-	ShowProfileTab                      *bool     `json:"show_profile_tab,omitempty"`
-	ShowMailEditing                     *bool     `json:"show_mail_editing,omitempty"`
-	ShowAccountDeletionButton           *bool     `json:"show_account_deletion_button,omitempty"`
-	RegisterExecuteActions              *[]string `json:"register_execute_actions,omitempty"`
-	RedirectCancelledRegistrationURL    *string   `json:"redirect_cancelled_registration_url,omitempty"`
-	RedirectSuccessfulRegistrationURL   *string   `json:"redirect_successful_registration_url,omitempty"`
-	BarcodeType                         *string   `json:"barcode_type"`
+	DefaultClientID                     *string `json:"default_client_id,omitempty"`
+	DefaultRedirectURI                  *string `json:"default_redirect_uri,omitempty"`
+	APISelfAuthenticatorDeletionEnabled *bool   `json:"api_self_authenticator_deletion_enabled,omitempty"`
+	APISelfPasswordChangeEnabled        *bool   `json:"api_self_password_change_enabled,omitempty"`
+	DeprecatedAPISelfMailEditingEnabled *bool   `json:"api_self_mail_editing_enabled,omitempty"`
+	APISelfAccountEditingEnabled        *bool   `json:"api_self_account_editing_enabled,omitempty"`
+	APISelfAccountDeletionEnabled       *bool   `json:"api_self_account_deletion_enabled,omitempty"`
+	ShowAuthenticatorsTab               *bool   `json:"show_authenticators_tab,omitempty"`
+	ShowPasswordTab                     *bool   `json:"show_password_tab,omitempty"`
+	ShowProfileTab                      *bool   `json:"show_profile_tab,omitempty"`
+	ShowMailEditing                     *bool   `json:"show_mail_editing,omitempty"`
+	ShowAccountDeletionButton           *bool   `json:"show_account_deletion_button,omitempty"`
+
+	RedirectCancelledRegistrationURL  *string   `json:"redirect_cancelled_registration_url,omitempty"`
+	RedirectSuccessfulRegistrationURL *string   `json:"redirect_successful_registration_url,omitempty"`
+	OnboardingRedirectURI             *string   `json:"onboarding_redirect_uri,omitempty"`
+	OnboardingClientID                *string   `json:"onboarding_client_id,omitempty"`
+	SelfRegisterGroupNames            *[]string `json:"self_register_group_names,omitempty"`
+
+	BarcodeType *string `json:"barcode_type"`
 }
 
 // RealmAdminConfiguration struct
 type RealmAdminConfiguration struct {
-	Mode            *string                   `json:"mode"`
-	AvailableChecks map[string]bool           `json:"available-checks,omitempty"`
-	Accreditations  []RealmAdminAccreditation `json:"accreditations,omitempty"`
+	Mode                *string                   `json:"mode"`
+	AvailableChecks     map[string]bool           `json:"available-checks,omitempty"`
+	Accreditations      []RealmAdminAccreditation `json:"accreditations,omitempty"`
+	SelfRegisterEnabled *bool                     `json:"self_register_enabled"`
 }
 
 // RealmAdminAccreditation struct
