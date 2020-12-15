@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -16,39 +17,79 @@ import (
 	errorsPkg "github.com/pkg/errors"
 )
 
-// MakeHTTPBasicAuthenticationMW retrieve the token from the HTTP header 'Basic' and
-// check if the password value match the allowed one.
+// MakeHTTPBasicAuthenticationFuncMW retrieve the token from the HTTP header 'Basic' and
+// check credentials according to the given callback function
 // If there is no such header, the request is not allowed.
-// If the password is correct, the username is added into the context:
-//   - username: username extracted from the token
-func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) func(http.Handler) http.Handler {
+// If the password is correct, the username is added into the context
+func MakeHTTPBasicAuthenticationFuncMW(credsMatcher func(token string) (*string, error), logger log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var ctx = context.TODO()
-			var username, password, err = extractBasicCredentials(ctx, req.Header.Get("Authorization"), logger)
+			var token, err = extractBasicAuthentication(ctx, req.Header.Get("Authorization"), logger)
 			if err != nil {
 				httpErrorHandler(ctx, http.StatusForbidden, err, w)
 				return
 			}
 
-			ctx = context.WithValue(req.Context(), cs.CtContextUsername, username)
-
-			// Check password match
-			if password != passwordToMatch {
+			var authenticated *string
+			if authenticated, err = credsMatcher(token); err != nil {
+				httpErrorHandler(ctx, http.StatusForbidden, err, w)
+				return
+			} else if authenticated == nil {
 				logger.Info(ctx, "msg", "Authorization error: Invalid password value")
 				httpErrorHandler(ctx, http.StatusUnauthorized, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
+			ctx = context.WithValue(req.Context(), cs.CtContextUsername, *authenticated)
 
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
 }
 
-func extractBasicCredentials(ctx context.Context, authorizationHeader string, logger log.Logger) (string, string, error) {
+// MakeHTTPBasicAuthenticationMapMW retrieve the token from the HTTP header 'Basic' and
+// check credentials according to the given credentials map
+// If there is no such header, the request is not allowed.
+// If the password is correct, the username is added into the context
+func MakeHTTPBasicAuthenticationMapMW(credentials map[string]string, logger log.Logger) func(http.Handler) http.Handler {
+	var authTokens = make(map[string]string)
+	for user, password := range credentials {
+		var token = fmt.Sprintf("%s:%s", user, password)
+		var token64 = base64.StdEncoding.EncodeToString([]byte(token))
+		authTokens[token64] = user
+	}
+
+	return MakeHTTPBasicAuthenticationFuncMW(func(token string) (*string, error) {
+		if username, ok := authTokens[token]; ok {
+			return &username, nil
+		}
+		return nil, nil
+	}, logger)
+}
+
+// MakeHTTPBasicAuthenticationMW retrieve the token from the HTTP header 'Basic' and
+// check if the password value match the allowed one.
+// If there is no such header, the request is not allowed.
+// If the password is correct, the username is added into the context:
+//   - username: username extracted from the token
+func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) func(http.Handler) http.Handler {
+	return MakeHTTPBasicAuthenticationFuncMW(func(token string) (*string, error) {
+		var ctx = context.TODO()
+		var username, password, err = decodeBasicAuthToken(ctx, token, logger)
+		if err != nil {
+			return nil, err
+		}
+		if password == passwordToMatch {
+			return &username, nil
+		}
+		return nil, nil
+	}, logger)
+}
+
+func extractBasicAuthentication(ctx context.Context, authorizationHeader string, logger log.Logger) (string, error) {
 	if authorizationHeader == "" {
 		logger.Info(ctx, "msg", "Authorization error: Missing Authorization header")
-		return "", "", errors.New(errorhandler.MsgErrMissingParam + "." + errorhandler.AuthHeader)
+		return "", errors.New(errorhandler.MsgErrMissingParam + "." + errorhandler.AuthHeader)
 	}
 
 	var regexpBasicAuth = `^[Bb]asic (.+)$`
@@ -56,11 +97,15 @@ func extractBasicCredentials(ctx context.Context, authorizationHeader string, lo
 	var match = r.FindStringSubmatch(authorizationHeader)
 	if match == nil {
 		logger.Info(ctx, "msg", "Authorization error: Missing basic token")
-		return "", "", errors.New(errorhandler.MsgErrMissingParam + "." + errorhandler.BasicToken)
+		return "", errors.New(errorhandler.MsgErrMissingParam + "." + errorhandler.BasicToken)
 	}
 
+	return match[1], nil
+}
+
+func decodeBasicAuthToken(ctx context.Context, authToken string, logger log.Logger) (string, string, error) {
 	// Decode base 64
-	decodedToken, err := base64.StdEncoding.DecodeString(match[1])
+	decodedToken, err := base64.StdEncoding.DecodeString(authToken)
 
 	if err != nil {
 		logger.Info(ctx, "msg", "Authorization error: Invalid base64 token")
