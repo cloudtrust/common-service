@@ -155,19 +155,24 @@ func TestValidateParameterRegExp(t *testing.T) {
 }
 
 func TestValidateParameterPhoneNumber(t *testing.T) {
-	var validValue = "+33685463197"
-	var invalidValue = "+410654789"
-
 	t.Run("Nil value, not mandatory", func(t *testing.T) {
 		assert.Nil(t, NewParameterValidator().ValidateParameterPhoneNumber("param", nil, false).Status())
 	})
 	t.Run("Nil value, mandatory", func(t *testing.T) {
 		assert.NotNil(t, NewParameterValidator().ValidateParameterPhoneNumber("param", nil, true).Status())
 	})
-	t.Run("Valid value", func(t *testing.T) {
+	t.Run("Valid local number", func(t *testing.T) {
+		var validValue = "0785463197"
 		assert.Nil(t, NewParameterValidator().ValidateParameterPhoneNumber("param", &validValue, true).Status())
+		assert.Equal(t, "+41785463197", validValue)
+	})
+	t.Run("Valid foreign number", func(t *testing.T) {
+		var validValue = "0033685463197"
+		assert.Nil(t, NewParameterValidator().ValidateParameterPhoneNumber("param", &validValue, true).Status())
+		assert.Equal(t, "+33685463197", validValue)
 	})
 	t.Run("Invalid value", func(t *testing.T) {
+		var invalidValue = "+410654789"
 		assert.NotNil(t, NewParameterValidator().ValidateParameterPhoneNumber("param", &invalidValue, true).Status())
 	})
 	t.Run("Valid check after failed validation", func(t *testing.T) {

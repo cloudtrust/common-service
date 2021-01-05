@@ -123,6 +123,7 @@ func (v *successValidator) ValidateParameterPhoneNumber(prmName string, value *s
 		if err != nil || !phonenumbers.IsPossibleNumber(metadata) {
 			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
 		}
+		*value = phonenumbers.Format(metadata, phonenumbers.E164)
 	}
 	return v
 }
