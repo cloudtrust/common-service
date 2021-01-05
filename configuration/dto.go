@@ -43,6 +43,7 @@ type RealmAdminConfiguration struct {
 	AvailableChecks     map[string]bool           `json:"available-checks,omitempty"`
 	Accreditations      []RealmAdminAccreditation `json:"accreditations,omitempty"`
 	SelfRegisterEnabled *bool                     `json:"self_register_enabled"`
+	Theme               *string                   `json:"theme,omitempty"`
 }
 
 // RealmAdminAccreditation struct
