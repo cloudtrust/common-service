@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -40,6 +41,50 @@ func TestUnmarshalTokenAudience(t *testing.T) {
 	})
 }
 
+func getAuthenticationResultTest(m http.Handler, req *http.Request) *http.Response {
+	var w = httptest.NewRecorder()
+	m.ServeHTTP(w, req)
+	return w.Result()
+}
+
+func TestHTTPBasicAuthenticationMapMW(t *testing.T) {
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	var mockLogger = mock.NewLogger(mockCtrl)
+
+	// HTTP request.
+	var req = httptest.NewRequest("POST", "http://cloudtrust.io/event/receiver", bytes.NewReader([]byte{}))
+	var credentials = map[string]string{
+		"jane.doe": "password-doe",
+		"john.doe": "password-doe-too",
+	}
+
+	var m = MakeHTTPBasicAuthenticationMapMW(credentials, mockLogger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+
+	mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).AnyTimes()
+
+	t.Run("Missing authorization token", func(t *testing.T) {
+		var result = getAuthenticationResultTest(m, req)
+		assert.Equal(t, http.StatusForbidden, result.StatusCode)
+	})
+	t.Run("Invalid username", func(t *testing.T) {
+		req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("whoami:password-doe")))
+		var result = getAuthenticationResultTest(m, req)
+		assert.Equal(t, http.StatusUnauthorized, result.StatusCode)
+	})
+	t.Run("Invalid password", func(t *testing.T) {
+		req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("jane.doe:invalid-password")))
+		var result = getAuthenticationResultTest(m, req)
+		assert.Equal(t, http.StatusUnauthorized, result.StatusCode)
+	})
+	t.Run("Valid username", func(t *testing.T) {
+		req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("jane.doe:password-doe")))
+		var result = getAuthenticationResultTest(m, req)
+		assert.Equal(t, http.StatusOK, result.StatusCode)
+	})
+}
+
 func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	var token = "dXNlcm5hbWU6cGFzc3dvcmQ="
 
@@ -53,77 +98,61 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	var req = httptest.NewRequest("POST", "http://cloudtrust.io/event/receiver", bytes.NewReader([]byte{}))
 
 	t.Run("Missing authorization token", func(t *testing.T) {
-		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Missing Authorization header").Times(1)
-		m.ServeHTTP(w, req)
-		var result = w.Result()
+		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Non basic format")
 
 	t.Run("Missing basic token", func(t *testing.T) {
-		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Missing basic token").Times(1)
-		m.ServeHTTP(w, req)
-		var result = w.Result()
+		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Basic X"+token)
 	t.Run("Invalid base64 token", func(t *testing.T) {
-		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Invalid base64 token").Times(1)
-		m.ServeHTTP(w, req)
-		var result = w.Result()
+		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Basic "+token)
 
 	t.Run("Valid authorization token - Basic", func(t *testing.T) {
-		var w = httptest.NewRecorder()
-		m.ServeHTTP(w, req)
-		var result = w.Result()
+		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "basic "+token)
 
 	t.Run("Valid authorization token - basic", func(t *testing.T) {
-		var w = httptest.NewRecorder()
-		m.ServeHTTP(w, req)
-		var result = w.Result()
+		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "basic dXNlcm5hbWU6cGFzc3dvcmQx")
 
 	t.Run("Invalid authorization token", func(t *testing.T) {
-		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Invalid password value").Times(1)
-		m.ServeHTTP(w, req)
-		var result = w.Result()
+		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusUnauthorized, result.StatusCode)
 	})
 
 	t.Run("Invalid token format", func(t *testing.T) {
-		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Invalid token format (username:password)").Times(1)
 		req = httptest.NewRequest("POST", "http://cloudtrust.io/management/test", bytes.NewReader([]byte{}))
 		req.Header.Set("Authorization", "Basic 123456ABCDEF")
-		m.ServeHTTP(w, req)
-		var result = w.Result()
+		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 
 	t.Run("Invalid token format", func(t *testing.T) {
-		var w = httptest.NewRecorder()
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Invalid token format (username:password)").Times(1)
 		req = httptest.NewRequest("POST", "http://cloudtrust.io/management/test", bytes.NewReader([]byte{}))
 		req.Header.Set("Authorization", "Basic dXNlcm5hbWU=")
-		m.ServeHTTP(w, req)
-		var result = w.Result()
+		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusForbidden, result.StatusCode)
 	})
 }
