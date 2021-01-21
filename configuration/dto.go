@@ -44,6 +44,7 @@ type RealmAdminConfiguration struct {
 	Accreditations      []RealmAdminAccreditation `json:"accreditations,omitempty"`
 	SelfRegisterEnabled *bool                     `json:"self_register_enabled"`
 	Theme               *string                   `json:"theme,omitempty"`
+	NeedVerifiedContact *bool                     `json:"need_verified_contact,omitempty"`
 }
 
 // RealmAdminAccreditation struct
