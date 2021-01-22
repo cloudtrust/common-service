@@ -56,7 +56,7 @@ func TestConfigureDbDefault(t *testing.T) {
 	var envPass = "the env password"
 
 	mockConf.EXPECT().SetDefault(prefix+"-enabled", gomock.Any()).Times(1)
-	for _, suffix := range []string{"-host-port", "-username", "-password", "-database", "-protocol", "-parameters", "-max-open-conns", "-max-idle-conns", "-conn-max-lifetime", "-migration", "-migration-version", "-connection-check"} {
+	for _, suffix := range []string{"-host-port", "-username", "-password", "-database", "-protocol", "-parameters", "-max-open-conns", "-max-idle-conns", "-conn-max-lifetime", "-migration", "-migration-version", "-connection-check", "-ping-timeout-ms"} {
 		mockConf.EXPECT().SetDefault(prefix+suffix, gomock.Any()).Times(1)
 	}
 	mockConf.EXPECT().BindEnv(prefix+"-username", envUser).Times(1)
@@ -75,7 +75,7 @@ func TestGetDbConfig(t *testing.T) {
 	for _, suffix := range []string{"-host-port", "-username", "-password", "-database", "-protocol", "-parameters"} {
 		mockConf.EXPECT().GetString(prefix + suffix).Return("value" + suffix).Times(1)
 	}
-	for _, suffix := range []string{"-max-open-conns", "-max-idle-conns", "-conn-max-lifetime"} {
+	for _, suffix := range []string{"-max-open-conns", "-max-idle-conns", "-conn-max-lifetime", "-ping-timeout-ms"} {
 		mockConf.EXPECT().GetInt(prefix + suffix).Return(1).Times(1)
 	}
 	mockConf.EXPECT().GetBool(prefix + "-enabled").Return(true).Times(1)

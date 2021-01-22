@@ -40,11 +40,12 @@ func (v *dbVersion) matchesRequired(required *dbVersion) bool {
 	return !(v.major < required.major || (v.major == required.major && v.minor < required.minor))
 }
 
-type basicCoudtrustDB struct {
-	dbConn *sql.DB
+type basicCloudtrustDB struct {
+	dbConn            *sql.DB
+	pingTimeoutMillis time.Duration
 }
 
-func (db *basicCoudtrustDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (sqltypes.Transaction, error) {
+func (db *basicCloudtrustDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (sqltypes.Transaction, error) {
 	var tx, err = db.dbConn.BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -52,41 +53,48 @@ func (db *basicCoudtrustDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (s
 	return NewTransaction(tx), nil
 }
 
-func (db *basicCoudtrustDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (db *basicCloudtrustDB) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return db.dbConn.Exec(query, args...)
 }
 
-func (db *basicCoudtrustDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
+func (db *basicCloudtrustDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
 	return db.dbConn.Query(query, args...)
 }
 
-func (db *basicCoudtrustDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
+func (db *basicCloudtrustDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
 	return db.dbConn.QueryRow(query, args...)
 }
 
-func (db *basicCoudtrustDB) Ping() error {
+func (db *basicCloudtrustDB) Ping() error {
+	if db.pingTimeoutMillis > 0 {
+		var ctxTimeout, cancelTimeout = context.WithTimeout(context.Background(), time.Millisecond*db.pingTimeoutMillis)
+		defer cancelTimeout()
+
+		return db.dbConn.PingContext(ctxTimeout)
+	}
 	return db.dbConn.Ping()
 }
 
-func (db *basicCoudtrustDB) Close() error {
+func (db *basicCloudtrustDB) Close() error {
 	return db.dbConn.Close()
 }
 
 // DbConfig Db configuration parameters
 type DbConfig struct {
-	HostPort         string
-	Username         string
-	Password         string
-	Database         string
-	Protocol         string
-	Parameters       string
-	MaxOpenConns     int
-	MaxIdleConns     int
-	ConnMaxLifetime  int
-	Noop             bool
-	MigrationEnabled bool
-	MigrationVersion string
-	ConnectionCheck  bool
+	HostPort          string
+	Username          string
+	Password          string
+	Database          string
+	Protocol          string
+	Parameters        string
+	MaxOpenConns      int
+	MaxIdleConns      int
+	ConnMaxLifetime   int
+	Noop              bool
+	MigrationEnabled  bool
+	MigrationVersion  string
+	ConnectionCheck   bool
+	PingTimeoutMillis int
 }
 
 // ConfigureDbDefault configure default database parameters for a given prefix
@@ -108,6 +116,7 @@ func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
 	v.SetDefault(prefix+"-migration", false)
 	v.SetDefault(prefix+"-migration-version", "")
 	v.SetDefault(prefix+"-connection-check", true)
+	v.SetDefault(prefix+"-ping-timeout-ms", 1500)
 
 	_ = v.BindEnv(prefix+"-username", envUser)
 	_ = v.BindEnv(prefix+"-password", envPasswd)
@@ -137,6 +146,7 @@ func GetDbConfigExt(v cs.Configuration, prefix string, noop bool) *DbConfig {
 		cfg.MigrationEnabled = v.GetBool(prefix + "-migration")
 		cfg.MigrationVersion = v.GetString(prefix + "-migration-version")
 		cfg.ConnectionCheck = v.GetBool(prefix + "-connection-check")
+		cfg.PingTimeoutMillis = v.GetInt(prefix + "-ping-timeout-ms")
 	}
 
 	return &cfg
@@ -161,7 +171,7 @@ func (cfg *DbConfig) OpenDatabase() (sqltypes.CloudtrustDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbConn := &basicCoudtrustDB{dbConn: sqlConn}
+	dbConn := &basicCloudtrustDB{dbConn: sqlConn, pingTimeoutMillis: time.Duration(cfg.PingTimeoutMillis)}
 
 	// DB migration version
 	// checking that the flyway_schema_history has the minimum imposed migration version
