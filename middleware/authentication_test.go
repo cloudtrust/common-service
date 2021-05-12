@@ -33,7 +33,7 @@ func TestUnmarshalTokenAudience(t *testing.T) {
 		payload, _, _ := jwt.Parse(tokenAudNone)
 		token, err := unmarshalTokenAudience(payload)
 		assert.Nil(t, err)
-		assert.Equal(t, "admin", token.getUsername())
+		assert.Equal(t, "admin", token.GetUsername())
 	})
 	t.Run("Invalid token", func(t *testing.T) {
 		_, err := unmarshalTokenAudience([]byte{})

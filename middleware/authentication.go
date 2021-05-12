@@ -158,7 +158,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			// match[0] is the global matched group. match[1] is the first captured group
 			var accessToken = match[1]
 
-			var jot tokenAudience
+			var jot TokenAudience
 
 			jot, err := ParseAndValidateOIDCToken(ctx, accessToken, keycloakClient, audienceRequired, logger)
 
@@ -176,16 +176,16 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			}
 
 			var issuer, issuerDomain, realm string
-			issuer = jot.getIssuer()
+			issuer = jot.GetIssuer()
 			var splitIssuer = strings.Split(issuer, "/auth/realms/")
 			issuerDomain = splitIssuer[0]
 			realm = splitIssuer[1]
 
 			ctx = context.WithValue(req.Context(), cs.CtContextAccessToken, accessToken)
 			ctx = context.WithValue(ctx, cs.CtContextRealm, realm)
-			ctx = context.WithValue(ctx, cs.CtContextUserID, jot.getSubject())
-			ctx = context.WithValue(ctx, cs.CtContextUsername, jot.getUsername())
-			ctx = context.WithValue(ctx, cs.CtContextGroups, extractGroups(jot.getGroups()))
+			ctx = context.WithValue(ctx, cs.CtContextUserID, jot.GetSubject())
+			ctx = context.WithValue(ctx, cs.CtContextUsername, jot.GetUsername())
+			ctx = context.WithValue(ctx, cs.CtContextGroups, ExtractGroups(jot.GetGroups()))
 			ctx = context.WithValue(ctx, cs.CtContextIssuerDomain, issuerDomain)
 
 			next.ServeHTTP(w, req.WithContext(ctx))
@@ -194,7 +194,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 }
 
 // ParseAndValidateOIDCToken ensures the OIDC token given in parameter is valid. This method must be public as it is used externally by some projects
-func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (tokenAudience, error) {
+func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (TokenAudience, error) {
 
 	payload, _, err := jwt.Parse(accessToken)
 	if err != nil {
@@ -202,20 +202,20 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 		return nil, security.ForbiddenError{}
 	}
 
-	var jot tokenAudience
+	var jot TokenAudience
 
 	if jot, err = unmarshalTokenAudience(payload); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
 		return nil, security.ForbiddenError{}
 	}
 
-	if !jot.assertMatchingAudience(audienceRequired) {
+	if !jot.AssertMatchingAudience(audienceRequired) {
 		logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
 		return nil, security.ForbiddenError{}
 	}
 
 	var issuer, issuerDomain, realm string
-	issuer = jot.getIssuer()
+	issuer = jot.GetIssuer()
 	var splitIssuer = strings.Split(issuer, "/auth/realms/")
 	issuerDomain = splitIssuer[0]
 	realm = splitIssuer[1]
@@ -229,7 +229,8 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 	return jot, nil
 }
 
-func assertMatchingAudience(jwtAudiences []string, requiredAudience string) bool {
+// AssertMatchingAudience checks if the required audience is in the jwt list of audiences
+func AssertMatchingAudience(jwtAudiences []string, requiredAudience string) bool {
 	for _, jwtAudience := range jwtAudiences {
 		if requiredAudience == jwtAudience {
 			return true
@@ -239,7 +240,8 @@ func assertMatchingAudience(jwtAudiences []string, requiredAudience string) bool
 	return false
 }
 
-func extractGroups(kcGroups []string) []string {
+// ExtractGroups extracts the list of groups
+func ExtractGroups(kcGroups []string) []string {
 	var groups = []string{}
 
 	for _, kcGroup := range kcGroups {
@@ -279,13 +281,13 @@ type TokenAudienceString struct {
 	Groups         []string `json:"groups,omitempty"`
 }
 
-type tokenAudience interface {
-	getSubject() string
-	getUsername() string
-	getIssuer() string
-	getGroups() []string
+type TokenAudience interface {
+	GetSubject() string
+	GetUsername() string
+	GetIssuer() string
+	GetGroups() []string
 
-	assertMatchingAudience(requiredValue string) bool
+	AssertMatchingAudience(requiredValue string) bool
 }
 
 type header struct {
@@ -295,7 +297,7 @@ type header struct {
 	ContentType string `json:"cty,omitempty"`
 }
 
-func unmarshalTokenAudience(payload []byte) (tokenAudience, error) {
+func unmarshalTokenAudience(payload []byte) (TokenAudience, error) {
 	var err error
 
 	// The audience in JWT may be a string array or a string.
@@ -316,18 +318,36 @@ func unmarshalTokenAudience(payload []byte) (tokenAudience, error) {
 	return nil, err
 }
 
-func (ta *TokenAudienceStringArray) getSubject() string  { return ta.Subject }
-func (ta *TokenAudienceStringArray) getUsername() string { return ta.Username }
-func (ta *TokenAudienceStringArray) getIssuer() string   { return ta.Issuer }
-func (ta *TokenAudienceStringArray) getGroups() []string { return ta.Groups }
-func (ta *TokenAudienceStringArray) assertMatchingAudience(requiredValue string) bool {
-	return assertMatchingAudience(ta.Audience, requiredValue)
+// GetSubject provides the subject from the token
+func (ta *TokenAudienceStringArray) GetSubject() string { return ta.Subject }
+
+// GetUsername provides the username from the token
+func (ta *TokenAudienceStringArray) GetUsername() string { return ta.Username }
+
+// GetIssuer provides the issuer from the token
+func (ta *TokenAudienceStringArray) GetIssuer() string { return ta.Issuer }
+
+// GetGroups provides the groups from the token
+func (ta *TokenAudienceStringArray) GetGroups() []string { return ta.Groups }
+
+// AssertMatchingAudience checks if the required audience is in the token list of audiences
+func (ta *TokenAudienceStringArray) AssertMatchingAudience(requiredValue string) bool {
+	return AssertMatchingAudience(ta.Audience, requiredValue)
 }
 
-func (ta *TokenAudienceString) getSubject() string  { return ta.Subject }
-func (ta *TokenAudienceString) getUsername() string { return ta.Username }
-func (ta *TokenAudienceString) getIssuer() string   { return ta.Issuer }
-func (ta *TokenAudienceString) getGroups() []string { return ta.Groups }
-func (ta *TokenAudienceString) assertMatchingAudience(requiredValue string) bool {
+// GetSubject provides the subject from the token
+func (ta *TokenAudienceString) GetSubject() string { return ta.Subject }
+
+// GetUsername provides the username from the token
+func (ta *TokenAudienceString) GetUsername() string { return ta.Username }
+
+// GetIssuer provides the issuer from the token
+func (ta *TokenAudienceString) GetIssuer() string { return ta.Issuer }
+
+// GetGroups provides the groups from the token
+func (ta *TokenAudienceString) GetGroups() []string { return ta.Groups }
+
+// AssertMatchingAudience checks if the required audience is in the token list of audiences
+func (ta *TokenAudienceString) AssertMatchingAudience(requiredValue string) bool {
 	return ta.Audience == requiredValue
 }
