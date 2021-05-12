@@ -128,7 +128,8 @@ func CreateJaegerClient(v cs.Configuration, prefix string, componentName string)
 		return &noopOpentracingClient{}, nil
 	}
 	jaegerConfig := jaeger.Configuration{
-		Disabled: false,
+		ServiceName: componentName,
+		Disabled:    false,
 		Sampler: &jaeger.SamplerConfig{
 			Type:              v.GetString(prefix + "-sampler-type"),
 			Param:             v.GetFloat64(prefix + "-sampler-param"),
@@ -140,7 +141,7 @@ func CreateJaegerClient(v cs.Configuration, prefix string, componentName string)
 		},
 	}
 
-	tracer, closer, err := jaegerConfig.New(componentName)
+	tracer, closer, err := jaegerConfig.NewTracer()
 	if err != nil {
 		return nil, err
 	}

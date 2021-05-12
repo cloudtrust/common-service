@@ -79,8 +79,7 @@ func TestHTTPTracingMW(t *testing.T) {
 	var mockSpan = mock.NewSpan(mockCtrl)
 	var mockSpanContext = mock.NewSpanContext(mockCtrl)
 
-	var tracer OpentracingClient
-	tracer = &internalOpentracingClient{
+	var tracer = &internalOpentracingClient{
 		Tracer: mockTracer,
 		closer: nil,
 	}
@@ -91,19 +90,23 @@ func TestHTTPTracingMW(t *testing.T) {
 	var req = httptest.NewRequest("POST", "http://cloudtrust.io/getusers", bytes.NewReader([]byte{}))
 	var w = httptest.NewRecorder()
 
-	// With existing tracer.
-	mockTracer.EXPECT().Extract(opentracing.HTTPHeaders, gomock.Any()).Return(mockSpanContext, nil).Times(1)
-	mockTracer.EXPECT().StartSpan("operationName", gomock.Any()).Return(mockSpan).Times(1)
-	mockSpan.EXPECT().Finish().Return().Times(1)
-	mockSpan.EXPECT().SetTag(gomock.Any(), gomock.Any()).Return(mockSpan).Times(3)
-	m.ServeHTTP(w, req)
+	t.Run("With existing tracer", func(t *testing.T) {
+		mockTracer.EXPECT().Extract(opentracing.HTTPHeaders, gomock.Any()).Return(mockSpanContext, nil).Times(1)
+		mockTracer.EXPECT().StartSpan("operationName", gomock.Any()).Return(mockSpan).Times(1)
+		mockSpan.EXPECT().Finish().Return().Times(1)
+		mockSpan.EXPECT().SetTag(gomock.Any(), gomock.Any()).Return(mockSpan).Times(3)
+		mockSpan.EXPECT().Tracer().Times(1)
+		m.ServeHTTP(w, req)
+	})
 
-	// Without existing tracer.
-	mockTracer.EXPECT().Extract(opentracing.HTTPHeaders, gomock.Any()).Return(nil, errors.New("fail")).Times(1)
-	mockTracer.EXPECT().StartSpan("operationName").Return(mockSpan).Times(1)
-	mockSpan.EXPECT().Finish().Return().Times(1)
-	mockSpan.EXPECT().SetTag(gomock.Any(), gomock.Any()).Return(mockSpan).Times(3)
-	m.ServeHTTP(w, req)
+	t.Run("Without existing tracer", func(t *testing.T) {
+		mockTracer.EXPECT().Extract(opentracing.HTTPHeaders, gomock.Any()).Return(nil, errors.New("fail")).Times(1)
+		mockTracer.EXPECT().StartSpan("operationName").Return(mockSpan).Times(1)
+		mockSpan.EXPECT().Finish().Return().Times(1)
+		mockSpan.EXPECT().SetTag(gomock.Any(), gomock.Any()).Return(mockSpan).Times(3)
+		mockSpan.EXPECT().Tracer().Times(1)
+		m.ServeHTTP(w, req)
+	})
 }
 
 func dummyEndpoint(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -117,35 +120,42 @@ func TestEndpointTracingMW(t *testing.T) {
 	var mockSpan = mock.NewSpan(mockCtrl)
 	var mockSpanContext = mock.NewSpanContext(mockCtrl)
 
-	var tracer OpentracingClient
-	tracer = &internalOpentracingClient{
+	var tracer = &internalOpentracingClient{
 		Tracer: mockTracer,
 		closer: nil,
 	}
 
 	var m = tracer.MakeEndpointTracingMW("operationName")(dummyEndpoint)
 
-	// Context with correlation ID.
 	var corrID = strconv.FormatUint(rand.Uint64(), 10)
 	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
-	ctx = opentracing.ContextWithSpan(ctx, mockSpan)
 
-	// With correlation ID.
-	mockTracer.EXPECT().StartSpan("operationName", gomock.Any()).Return(mockSpan).Times(1)
-	mockSpan.EXPECT().Context().Return(mockSpanContext).Times(1)
-	mockSpan.EXPECT().Finish().Return().Times(1)
-	mockSpan.EXPECT().SetTag("correlation_id", corrID).Return(mockSpan).Times(1)
-	m(ctx, nil)
+	t.Run("Context with correlation ID", func(t *testing.T) {
+		mockSpan.EXPECT().Tracer().Times(1)
+		ctx = opentracing.ContextWithSpan(ctx, mockSpan)
+	})
 
-	// Without tracer.
-	m(context.Background(), nil)
+	t.Run("With correlation ID", func(t *testing.T) {
+		mockTracer.EXPECT().StartSpan("operationName", gomock.Any()).Return(mockSpan).Times(1)
+		mockSpan.EXPECT().Context().Return(mockSpanContext).Times(1)
+		mockSpan.EXPECT().Finish().Return().Times(1)
+		mockSpan.EXPECT().SetTag("correlation_id", corrID).Return(mockSpan).Times(1)
+		mockSpan.EXPECT().Tracer().Times(1)
+		m(ctx, nil)
+	})
 
-	// Stats without correlation ID.
-	mockTracer.EXPECT().StartSpan("operationName", gomock.Any()).Return(mockSpan).Times(1)
-	mockSpan.EXPECT().Context().Return(mockSpanContext).Times(1)
-	mockSpan.EXPECT().Finish().Return().Times(1)
-	var f = func() {
-		m(opentracing.ContextWithSpan(context.Background(), mockSpan), nil)
-	}
-	assert.Panics(t, f)
+	t.Run("Without tracer", func(t *testing.T) {
+		m(context.Background(), nil)
+	})
+
+	t.Run("Stats without correlation ID", func(t *testing.T) {
+		mockTracer.EXPECT().StartSpan("operationName", gomock.Any()).Return(mockSpan).Times(1)
+		mockSpan.EXPECT().Context().Return(mockSpanContext).Times(1)
+		mockSpan.EXPECT().Finish().Return().Times(1)
+		mockSpan.EXPECT().Tracer().Times(1)
+		var f = func() {
+			m(opentracing.ContextWithSpan(context.Background(), mockSpan), nil)
+		}
+		assert.Panics(t, f)
+	})
 }
