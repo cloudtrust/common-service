@@ -95,7 +95,7 @@ func (hc *healthchecker) CheckStatus() HealthResponse {
 	}
 	for range hc.checkers {
 		status := <-results
-		if "DOWN" == *status.State {
+		if *status.State == "DOWN" {
 			res.Healthy = false
 			res.State = "DOWN"
 			hc.logger.Info(context.Background(), "processor", status.Name, "status", *status.State, "message", *status.Message)
@@ -126,6 +126,7 @@ func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDurati
 // MakeHandler makes a HTTP handler that returns health check information
 func (hc *healthchecker) MakeHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		var ctx = context.Background()
 		var status = hc.CheckStatus()
 		var response = commonhttp.GenericResponse{
 			StatusCode:       http.StatusOK,
@@ -133,7 +134,8 @@ func (hc *healthchecker) MakeHandler() http.HandlerFunc {
 		}
 		if !status.Healthy {
 			response.StatusCode = http.StatusServiceUnavailable
+			hc.logger.Warn(ctx, "msg", "Health check issue detected", "http_status", response.StatusCode, "health", status)
 		}
-		_ = commonhttp.EncodeReply(context.TODO(), w, response)
+		_ = commonhttp.EncodeReply(ctx, w, response)
 	})
 }
