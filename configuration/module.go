@@ -47,7 +47,7 @@ func (c *ConfigurationReaderDBModule) GetRealmConfigurations(ctx context.Context
 
 	switch err := row.Scan(&configJSON, &adminConfigJSON); err {
 	case sql.ErrNoRows:
-		c.logger.Warn(ctx, "msg", "Realm Configuration not found in DB", "error", err.Error())
+		c.logger.Warn(ctx, "msg", "Realm Configuration not found in DB", "err", err.Error())
 		return RealmConfiguration{}, RealmAdminConfiguration{}, err
 
 	default:
@@ -72,7 +72,7 @@ func (c *ConfigurationReaderDBModule) GetConfiguration(ctx context.Context, real
 
 	switch err := row.Scan(&configJSON); err {
 	case sql.ErrNoRows:
-		c.logger.Warn(ctx, "msg", "Realm Configuration not found in DB", "error", err.Error())
+		c.logger.Warn(ctx, "msg", "Realm Configuration not found in DB", "err", err.Error())
 		return RealmConfiguration{}, err
 
 	default:
@@ -92,7 +92,7 @@ func (c *ConfigurationReaderDBModule) GetAdminConfiguration(ctx context.Context,
 	var err = row.Scan(&configJSON)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.logger.Warn(ctx, "msg", "Realm Admin Configuration not found in DB", "error", err.Error())
+			c.logger.Warn(ctx, "msg", "Realm Admin Configuration not found in DB", "err", err.Error())
 		}
 		return RealmAdminConfiguration{}, err
 	}
@@ -104,7 +104,7 @@ func (c *ConfigurationReaderDBModule) GetAuthorizations(ctx context.Context) ([]
 	// Get Authorizations from DB
 	rows, err := c.db.Query(selectAllAuthzStmt)
 	if err != nil {
-		c.logger.Warn(ctx, "msg", "Can't get authorizations", "error", err.Error())
+		c.logger.Warn(ctx, "msg", "Can't get authorizations", "err", err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -114,7 +114,7 @@ func (c *ConfigurationReaderDBModule) GetAuthorizations(ctx context.Context) ([]
 	for rows.Next() {
 		authz, err = c.scanAuthorization(rows)
 		if err != nil {
-			c.logger.Warn(ctx, "msg", "Can't get authorizations. Scan failed", "error", err.Error())
+			c.logger.Warn(ctx, "msg", "Can't get authorizations. Scan failed", "err", err.Error())
 			return nil, err
 		}
 		if c.isInAuthorizationScope(*authz.Action) {

@@ -98,7 +98,7 @@ func (hc *healthchecker) CheckStatus() HealthResponse {
 		if "DOWN" == *status.State {
 			res.Healthy = false
 			res.State = "DOWN"
-			hc.logger.Info(context.Background(), "processor", status.Name, "status", *status.State, "message", *status.Message)
+			hc.logger.Info(context.Background(), "msg", *status.Message, "processor", status.Name, "status", *status.State)
 		}
 		res.Details = append(res.Details, status)
 	}
@@ -114,12 +114,12 @@ func (hc *healthchecker) AddHealthChecker(name string, checker BasicChecker) {
 }
 
 func (hc *healthchecker) AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) {
-	hc.logger.Info(context.Background(), "processor", name, "url", targetURL, "message", "Adding HTTP endpoint")
+	hc.logger.Info(context.Background(), "msg", "Adding HTTP endpoint", "processor", name, "url", targetURL)
 	hc.AddHealthChecker(name, newHTTPEndpointChecker(name, targetURL, timeoutDuration, expectedStatus, cacheDuration))
 }
 
 func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration) {
-	hc.logger.Info(context.Background(), "processor", name, "message", "Adding database")
+	hc.logger.Info(context.Background(), "msg", "Adding database", "processor", name)
 	hc.AddHealthChecker(name, newDatabaseChecker(name, db, cacheDuration))
 }
 
