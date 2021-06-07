@@ -7,6 +7,7 @@ import (
 
 	commonhttp "github.com/cloudtrust/common-service/http"
 	log "github.com/cloudtrust/common-service/log"
+	"github.com/go-kit/kit/ratelimit"
 )
 
 // HealthChecker is a tool used to perform health checks
@@ -15,7 +16,7 @@ type HealthChecker interface {
 	AddHealthChecker(name string, checker BasicChecker)
 	AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
 	AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration)
-	MakeHandler() http.HandlerFunc
+	MakeHandler(rateLimit ratelimit.Allower) http.HandlerFunc
 }
 
 type healthchecker struct {
@@ -95,7 +96,7 @@ func (hc *healthchecker) CheckStatus() HealthResponse {
 	}
 	for range hc.checkers {
 		status := <-results
-		if "DOWN" == *status.State {
+		if *status.State == "DOWN" {
 			res.Healthy = false
 			res.State = "DOWN"
 			hc.logger.Info(context.Background(), "msg", *status.Message, "processor", status.Name, "status", *status.State)
@@ -124,16 +125,30 @@ func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDurati
 }
 
 // MakeHandler makes a HTTP handler that returns health check information
-func (hc *healthchecker) MakeHandler() http.HandlerFunc {
+func (hc *healthchecker) MakeHandler(rateLimit ratelimit.Allower) http.HandlerFunc {
+	var ctx = context.Background()
+	var responseProvider = ratelimit.NewErroringLimiter(rateLimit)(hc.getCurrentStatus)
+	var errorHandler = commonhttp.ErrorHandlerNoLog()
+
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		var status = hc.CheckStatus()
-		var response = commonhttp.GenericResponse{
-			StatusCode:       http.StatusOK,
-			JSONableResponse: status,
+		var response, err = responseProvider(ctx, nil)
+		if err != nil {
+			errorHandler(ctx, err, w)
+		} else {
+			_ = commonhttp.EncodeReply(ctx, w, response)
 		}
-		if !status.Healthy {
-			response.StatusCode = http.StatusServiceUnavailable
-		}
-		_ = commonhttp.EncodeReply(context.TODO(), w, response)
 	})
+}
+
+func (hc *healthchecker) getCurrentStatus(ctx context.Context, _ interface{}) (interface{}, error) {
+	var status = hc.CheckStatus()
+	var response = commonhttp.GenericResponse{
+		StatusCode:       http.StatusOK,
+		JSONableResponse: status,
+	}
+	if !status.Healthy {
+		response.StatusCode = http.StatusServiceUnavailable
+		hc.logger.Warn(ctx, "msg", "Health check issue detected", "http_status", response.StatusCode, "health", status)
+	}
+	return response, nil
 }
