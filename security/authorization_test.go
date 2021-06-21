@@ -22,9 +22,9 @@ import (
 func TestAppendActionNames(t *testing.T) {
 	assert.Nil(t, AppendActionNames(nil, []Action{}, []Action{}))
 
-	var actions1 = []Action{Action{Name: "1"}}
-	var actions2 = []Action{Action{Name: "2"}, Action{Name: "3"}, Action{Name: "4"}}
-	var actions3 = []Action{Action{Name: "5"}}
+	var actions1 = []Action{{Name: "1"}}
+	var actions2 = []Action{{Name: "2"}, {Name: "3"}, {Name: "4"}}
+	var actions3 = []Action{{Name: "5"}}
 	assert.Equal(t, []string{"1", "2", "3", "4", "5"}, AppendActionNames(nil, actions1, actions2, actions3))
 }
 
@@ -46,7 +46,7 @@ func TestCheckAuthorizationOnRealm(t *testing.T) {
 	// Authorized for all realm (test wildcard)
 	{
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:       &master,
 				GroupName:     &toe,
 				Action:        &getRealm,
@@ -68,7 +68,7 @@ func TestCheckAuthorizationOnRealm(t *testing.T) {
 	// Authorized for non admin realm
 	{
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:       &master,
 				GroupName:     &toe,
 				Action:        &getRealm,
@@ -94,7 +94,7 @@ func TestCheckAuthorizationOnRealm(t *testing.T) {
 	// Authorized for specific realm
 	{
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:       &master,
 				GroupName:     &toe,
 				Action:        &getRealm,
@@ -118,7 +118,7 @@ func TestCheckAuthorizationOnRealm(t *testing.T) {
 	// Deny by default
 	{
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:       &master,
 				GroupName:     &toe,
 				Action:        &createUser,
@@ -157,7 +157,7 @@ func TestCheckAuthorizationOnTargetGroupID(t *testing.T) {
 		var targetGroupID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -186,7 +186,7 @@ func TestCheckAuthorizationOnTargetGroupID(t *testing.T) {
 		var targetGroupID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -213,7 +213,7 @@ func TestCheckAuthorizationOnTargetGroupID(t *testing.T) {
 		var targetGroupID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -251,13 +251,12 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 	var any = "*"
 	var anyNonMasterRealm = "/"
 
-	// Authorized for all groups (test wildcard)
-	{
+	t.Run("Authorized for all groups (test wildcard)", func(t *testing.T) {
 		var targetRealm = "master"
 		var targetUserID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -281,15 +280,14 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", userID)
 		assert.Nil(t, err)
-	}
+	})
 
-	// Test no groups assigned to targetUser
-	{
+	t.Run("Test no groups assigned to targetUser", func(t *testing.T) {
 		var targetRealm = "master"
 		var targetUserID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -310,15 +308,14 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", userID)
 		assert.Equal(t, ForbiddenError{}, err)
-	}
+	})
 
-	// Test allowed only for non master realm
-	{
+	t.Run("Test allowed only for non master realm", func(t *testing.T) {
 		var targetRealm = "toto"
 		var targetUserID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -348,15 +345,14 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", targetUserID)
 		assert.Equal(t, ForbiddenError{}, err)
-	}
+	})
 
-	// Authorized for all realms (test wildcard) and all groups
-	{
+	t.Run("Authorized for all realms (test wildcard) and all groups", func(t *testing.T) {
 		var targetRealm = "master"
 		var targetUserID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -379,15 +375,14 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", targetUserID)
 		assert.Nil(t, err)
-	}
+	})
 
-	// Test cannot GetUser infos
-	{
+	t.Run("Test cannot GetUser infos", func(t *testing.T) {
 		var targetRealm = "master"
 		var targetUserID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -406,16 +401,15 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", "master", targetUserID)
 		assert.Equal(t, ForbiddenError{}, err)
-	}
+	})
 
-	// Test for a specific target group
-	{
+	t.Run("Test for a specific target group", func(t *testing.T) {
 		var targetRealm = "toto"
 		var targetUserID = "123-456-789"
 		var targetGroupName = "customer"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &deleteUser,
@@ -438,15 +432,14 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", targetRealm, targetUserID)
 		assert.Nil(t, err)
-	}
+	})
 
-	// Deny
-	{
+	t.Run("Deny", func(t *testing.T) {
 		var targetRealm = "toto"
 		var targetUserID = "123-456-789"
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:   &master,
 				GroupName: &toe,
 				Action:    &deleteUser,
@@ -467,7 +460,33 @@ func TestCheckAuthorizationOnTargetUser(t *testing.T) {
 
 		err = authorizationManager.CheckAuthorizationOnTargetUser(ctx, "DeleteUser", targetRealm, targetUserID)
 		assert.Equal(t, ForbiddenError{}, err)
-	}
+	})
+
+	t.Run("SelfUser-Deny", func(t *testing.T) {
+		var targetRealm = "toto"
+		var targetUserID = "123-456-789"
+		var targetGroupName = "customer"
+
+		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
+			{
+				RealmID:         &targetRealm,
+				GroupName:       &targetGroupName,
+				Action:          &deleteUser,
+				TargetRealmID:   &targetRealm,
+				TargetGroupName: &targetGroupName,
+			},
+		}, nil)
+		var authorizationManager, err = NewAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
+		assert.Nil(t, err)
+
+		var ctx = context.WithValue(context.Background(), cs.CtContextAccessToken, accessToken)
+		ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
+		ctx = context.WithValue(ctx, cs.CtContextRealm, realm)
+		ctx = context.WithValue(ctx, cs.CtContextUserID, targetUserID)
+
+		err = authorizationManager.CheckAuthorizationOnSelfUser(ctx, "DeleteUser")
+		assert.Equal(t, ForbiddenError{}, err)
+	})
 }
 
 func TestGetAuthorization(t *testing.T) {
@@ -492,61 +511,61 @@ func TestGetAuthorization(t *testing.T) {
 
 	{
 		var authorizations = []configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &getUsers,
 				TargetRealmID:   &master,
 				TargetGroupName: &any,
 			},
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &createUser,
 				TargetRealmID:   &master,
 				TargetGroupName: &integratorAgent,
 			},
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &createUser,
 				TargetRealmID:   &master,
 				TargetGroupName: &integratorManager,
 			},
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &createUser,
 				TargetRealmID:   &master,
 				TargetGroupName: &l2SupportAgent,
 			},
-			configuration.Authorization{
+			{
 				RealmID:   &master,
 				GroupName: &toe,
 				Action:    &l2SupportAgent,
 			},
-			configuration.Authorization{
+			{
 				RealmID:         &dep,
 				GroupName:       &productAdministrator,
 				Action:          &getUsers,
 				TargetRealmID:   &dep,
 				TargetGroupName: &any,
 			},
-			configuration.Authorization{
+			{
 				RealmID:         &dep,
 				GroupName:       &productAdministrator,
 				Action:          &createUser,
 				TargetRealmID:   &dep,
 				TargetGroupName: &l1SupportManager,
 			},
-			configuration.Authorization{
+			{
 				RealmID:         &dep,
 				GroupName:       &l1SupportManager,
 				Action:          &getUsers,
 				TargetRealmID:   &dep,
 				TargetGroupName: &l1SupportAgent,
 			},
-			configuration.Authorization{
+			{
 				RealmID:         &dep,
 				GroupName:       &l1SupportManager,
 				Action:          &getUsers,
@@ -629,7 +648,7 @@ func TestReloadAuthorizations(t *testing.T) {
 		assert.Equal(t, false, ok)
 
 		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{
-			configuration.Authorization{
+			{
 				RealmID:         &master,
 				GroupName:       &toe,
 				Action:          &getUsers,

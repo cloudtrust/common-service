@@ -42,7 +42,27 @@ func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Conte
 		return suggestForbiddenError(err)
 	}
 
-	if groupsRep == nil || len(groupsRep) == 0 {
+	return am.checkAuthorizationOnUserGroups(ctx, action, targetRealm, groupsRep, infos)
+}
+
+func (am *authorizationManager) CheckAuthorizationOnSelfUser(ctx context.Context, action string) error {
+	var targetRealm = ctx.Value(cs.CtContextRealm).(string)
+	var userID = ctx.Value(cs.CtContextUserID).(string)
+
+	infos, _ := json.Marshal(map[string]string{
+		"ThrownBy":    "CheckAuthorizationOnSelfUser",
+		"Action":      action,
+		"targetRealm": targetRealm,
+		"userID":      userID,
+	})
+
+	// Target user is the owner of the token: groups can be found in context
+	var groupsRep = ctx.Value(cs.CtContextGroups).([]string)
+	return am.checkAuthorizationOnUserGroups(ctx, action, targetRealm, groupsRep, infos)
+}
+
+func (am *authorizationManager) checkAuthorizationOnUserGroups(ctx context.Context, action, targetRealm string, groupsRep []string, infos []byte) error {
+	if len(groupsRep) == 0 {
 		// No groups assigned, nothing allowed
 		am.logger.Info(ctx, "msg", "ForbiddenError: No groups assigned to this user, nothing allowed", "infos", string(infos))
 		return ForbiddenError{}
@@ -303,6 +323,7 @@ type AuthorizationManager interface {
 	CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error
 	CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error
 	CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error
+	CheckAuthorizationOnSelfUser(ctx context.Context, action string) error
 	GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{}
 	ReloadAuthorizations(ctx context.Context) error
 }
