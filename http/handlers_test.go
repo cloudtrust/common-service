@@ -113,8 +113,7 @@ func TestHTTPManagementHandler(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	var e endpoint.Endpoint
-	e = func(ctx context.Context, req interface{}) (interface{}, error) {
+	var e = func(ctx context.Context, req interface{}) (interface{}, error) {
 		var m = req.(map[string]string)
 		res := fmt.Sprint(len(m))
 		if v, err := m["pathParameter1"]; err {
