@@ -22,10 +22,10 @@ func TestMakeRightsHandler(t *testing.T) {
 	mockAuthManager := mock.NewAuthorizationManager(mockCtrl)
 
 	var rights = map[string]map[string]map[string]map[string]struct{}{
-		"toe_administrator": map[string]map[string]map[string]struct{}{
-			"GetUsers": map[string]map[string]struct{}{
-				"master": map[string]struct{}{
-					"*": struct{}{},
+		"toe_administrator": {
+			"GetUsers": {
+				"master": {
+					"*": {},
 				},
 			},
 		},

@@ -33,7 +33,7 @@ type GenericResponse struct {
 // WriteResponse writes a response for a mime content type
 func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
 	if r.Headers == nil {
-		r.Headers = make(map[string]string, 0)
+		r.Headers = make(map[string]string)
 	}
 	// Headers
 	if r.MimeContent != nil {
@@ -113,11 +113,10 @@ func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams m
 		}
 	}
 
-	if headers != nil {
-		for _, headerKey := range headers {
-			request[headerKey] = req.Header.Get(headerKey)
-		}
+	for _, headerKey := range headers {
+		request[headerKey] = req.Header.Get(headerKey)
 	}
+
 	return request, nil
 }
 
