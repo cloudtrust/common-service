@@ -9,13 +9,14 @@ import (
 const (
 	MsgErrMissingParam = "missingParameter"
 
-	MsgErrInvalidQueryParam = "invalidQueryParameter"
-	MsgErrInvalidPathParam  = "invalidPathParameter"
-	MsgErrInvalidParam      = "invalidParameter"
-	MsgErrOpNotPermitted    = "operationNotPermitted"
-	MsgErrDisabledEndpoint  = "disabledEndpoint"
-	MsgErrInvalidLength     = "invalidLength"
-	MsgErrUnknown           = "unknownError"
+	MsgErrInvalidQueryParam         = "invalidQueryParameter"
+	MsgErrInvalidPathParam          = "invalidPathParameter"
+	MsgErrInvalidParam              = "invalidParameter"
+	MsgErrOpNotPermitted            = "operationNotPermitted"
+	MsgErrDisabledEndpoint          = "disabledEndpoint"
+	MsgErrInvalidLength             = "invalidLength"
+	MsgErrDecryptionKeyNotAvailable = "decryptionKeyNotAvailable"
+	MsgErrUnknown                   = "unknownError"
 
 	EncryptDecrypt = "encryptOrDecrypt"
 	Ciphertext     = "ciphertext"
