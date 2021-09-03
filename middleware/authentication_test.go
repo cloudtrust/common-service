@@ -87,12 +87,13 @@ func TestHTTPBasicAuthenticationMapMW(t *testing.T) {
 
 func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	var token = "dXNlcm5hbWU6cGFzc3dvcmQ="
+	var token2 = "dXNlcm5hbWU6cGFzc3dvcmQy"
 
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
 	var mockLogger = mock.NewLogger(mockCtrl)
 
-	var m = MakeHTTPBasicAuthenticationMW("password", mockLogger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	var m = MakeHTTPBasicAuthenticationMW([]string{"password", "password2"}, mockLogger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
 	// HTTP request.
 	var req = httptest.NewRequest("POST", "http://cloudtrust.io/event/receiver", bytes.NewReader([]byte{}))
@@ -125,9 +126,9 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})
 
-	req.Header.Set("Authorization", "basic "+token)
+	req.Header.Set("Authorization", "Basic "+token2)
 
-	t.Run("Valid authorization token - basic", func(t *testing.T) {
+	t.Run("Valid authorization token 2 - Basic", func(t *testing.T) {
 		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})

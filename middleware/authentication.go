@@ -72,15 +72,17 @@ func MakeHTTPBasicAuthenticationMapMW(credentials map[string]string, logger log.
 // If there is no such header, the request is not allowed.
 // If the password is correct, the username is added into the context:
 //   - username: username extracted from the token
-func MakeHTTPBasicAuthenticationMW(passwordToMatch string, logger log.Logger) func(http.Handler) http.Handler {
+func MakeHTTPBasicAuthenticationMW(passwordToMatch []string, logger log.Logger) func(http.Handler) http.Handler {
 	return MakeHTTPBasicAuthenticationFuncMW(func(token string) (*string, error) {
 		var ctx = context.TODO()
 		var username, password, err = decodeBasicAuthToken(ctx, token, logger)
 		if err != nil {
 			return nil, err
 		}
-		if password == passwordToMatch {
-			return &username, nil
+		for _, pwd := range passwordToMatch {
+			if pwd == password {
+				return &username, nil
+			}
 		}
 		return nil, nil
 	}, logger)
