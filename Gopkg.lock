@@ -68,9 +68,12 @@
   version = "v0.5.0"
 
 [[projects]]
-  digest = "1:a4e1932ad06fc04794b8af07eb167d549bbb402d5a962857f0351fca1fcc0d1c"
+  digest = "1:a51bc5ec83aa894055fff200ed22b59606e8596585986fa31d92774cf404fbf1"
   name = "github.com/golang/mock"
-  packages = ["gomock"]
+  packages = [
+    "gomock",
+    "mockgen/model",
+  ]
   pruneopts = "UT"
   revision = "a23c5e7c8f7bb73c8ae5d8711815bbd30f3cfac8"
   version = "v1.5.0"
@@ -307,6 +310,7 @@
     "github.com/go-kit/kit/ratelimit",
     "github.com/go-kit/kit/transport/http",
     "github.com/golang/mock/gomock",
+    "github.com/golang/mock/mockgen/model",
     "github.com/gorilla/mux",
     "github.com/influxdata/influxdb/client/v2",
     "github.com/nyaruka/phonenumbers",
