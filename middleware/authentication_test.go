@@ -13,7 +13,7 @@ import (
 	errorhandler "github.com/cloudtrust/common-service/errors"
 	comhttp "github.com/cloudtrust/common-service/http"
 	"github.com/cloudtrust/common-service/middleware/mock"
-	"github.com/gbrlsnchs/jwt"
+	"github.com/gbrlsnchs/jwt/v2"
 	http_transport "github.com/go-kit/kit/transport/http"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
