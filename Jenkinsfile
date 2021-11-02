@@ -38,7 +38,7 @@ pipeline {
               bash -c \"go vet ./... > >(cat) 2> >(tee govet.out)\" || true
               gometalinter --vendor --disable=gotype --disable=golint --disable=vet --disable=gocyclo --exclude=/usr/local/go/src --deadline=300s ./... | tee gometalinter.out || true
 
-              nancy -no-color Gopkg.lock || true
+              go list -json -deps | nancy -no-color || true
 
               JAVA_TOOL_OPTIONS="" sonar-scanner \
                 -Dsonar.host.url=https://sonarqube-cloudtrust-cicd.openshift.west.ch.elca-cloud.com \
