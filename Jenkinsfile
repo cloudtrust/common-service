@@ -29,9 +29,9 @@ pipeline {
 
               golint ./... | tee golint.out || true
 
-              dep ensure
-
               go generate ./...
+
+              go mod vendor
 
               go test -coverprofile=coverage.out -json ./... | tee report.json
               go tool cover -func=coverage.out
