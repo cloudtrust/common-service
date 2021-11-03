@@ -3,6 +3,8 @@ package commonservice
 import (
 	"context"
 	"time"
+
+	_ "github.com/golang/mock/mockgen/model"
 )
 
 // Endpoint type
