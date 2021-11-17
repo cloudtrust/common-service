@@ -1,6 +1,6 @@
 package http
 
-//generate mockgen --build_flags=--mod=mod -destination=./mock/authorization.go -package=mock -mock_names=AuthorizationManager=AuthorizationManager github.com/cloudtrust/common-service/security AuthorizationManager
+//go:generate mockgen --build_flags=--mod=mod -destination=./mock/authorization.go -package=mock -mock_names=AuthorizationManager=AuthorizationManager github.com/cloudtrust/common-service/security AuthorizationManager
 
 import (
 	"bytes"
