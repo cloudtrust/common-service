@@ -21,3 +21,6 @@ bin/
 **/debug
 **/*.coverprofile
 configs/DEV/*
+
+# Activate vendoring
+!vendor/modules.txt

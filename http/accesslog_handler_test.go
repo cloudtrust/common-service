@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:generate mockgen -destination=./mock/kit_logger.go -package=mock -mock_names=Logger=Logger "github.com/go-kit/kit/log" Logger
+//generate mockgen --build_flags=--mod=mod -destination=./mock/kit_logger.go -package=mock -mock_names=Logger=Logger "github.com/go-kit/kit/log" Logger
 
 func TestAccessLogHTTPHandler(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)

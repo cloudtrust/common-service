@@ -30,7 +30,6 @@ pipeline {
               golint ./... | tee golint.out || true
 
               go generate ./...
-
               go mod vendor
 
               go test -coverprofile=coverage.out -json ./... | tee report.json
