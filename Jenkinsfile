@@ -30,6 +30,7 @@ pipeline {
               golint ./... | tee golint.out || true
 
               go generate ./...
+              go clean -modcache .
               go mod vendor
 
               go test -coverprofile=coverage.out -json ./... | tee report.json
