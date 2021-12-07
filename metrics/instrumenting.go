@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	cs "github.com/cloudtrust/common-service"
-	"github.com/cloudtrust/common-service/log"
+	cs "github.com/cloudtrust/common-service/v2"
+	"github.com/cloudtrust/common-service/v2/log"
 	"github.com/go-kit/kit/metrics"
 	gokit_influx "github.com/go-kit/kit/metrics/influx"
 	metric "github.com/go-kit/kit/metrics/influx"

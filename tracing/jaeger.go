@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	cs "github.com/cloudtrust/common-service"
+	cs "github.com/cloudtrust/common-service/v2"
 	opentracing "github.com/opentracing/opentracing-go"
 	otag "github.com/opentracing/opentracing-go/ext"
 	jaeger "github.com/uber/jaeger-client-go/config"

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	cerrors "github.com/cloudtrust/common-service/errors"
+	cerrors "github.com/cloudtrust/common-service/v2/errors"
 	"github.com/nyaruka/phonenumbers"
 )
 

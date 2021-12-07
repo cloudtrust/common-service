@@ -1,8 +1,8 @@
 package security
 
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/keycloak_client.go -package=mock -mock_names=KeycloakClient=KeycloakClient github.com/cloudtrust/common-service/security KeycloakClient
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/authentication_db_reader.go -package=mock -mock_names=AuthorizationDBReader=AuthorizationDBReader github.com/cloudtrust/common-service/security AuthorizationDBReader
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/detailederr.go -package=mock -mock_names=DetailedError=DetailedError github.com/cloudtrust/common-service/errors DetailedError
+//go:generate mockgen --build_flags=--mod=mod -destination=./mock/keycloak_client.go -package=mock -mock_names=KeycloakClient=KeycloakClient github.com/cloudtrust/common-service/v2/security KeycloakClient
+//go:generate mockgen --build_flags=--mod=mod -destination=./mock/authentication_db_reader.go -package=mock -mock_names=AuthorizationDBReader=AuthorizationDBReader github.com/cloudtrust/common-service/v2/security AuthorizationDBReader
+//go:generate mockgen --build_flags=--mod=mod -destination=./mock/detailederr.go -package=mock -mock_names=DetailedError=DetailedError github.com/cloudtrust/common-service/v2/errors DetailedError
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cloudtrust/common-service/configuration"
+	"github.com/cloudtrust/common-service/v2/configuration"
 
-	cs "github.com/cloudtrust/common-service"
-	"github.com/cloudtrust/common-service/log"
-	"github.com/cloudtrust/common-service/security/mock"
+	cs "github.com/cloudtrust/common-service/v2"
+	"github.com/cloudtrust/common-service/v2/log"
+	"github.com/cloudtrust/common-service/v2/security/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

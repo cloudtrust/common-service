@@ -1,7 +1,7 @@
 package http
 
 //go:generate mockgen --build_flags=--mod=mod -destination=./mock/responsewriter.go -package=mock -mock_names=ResponseWriter=ResponseWriter net/http ResponseWriter
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/detailederr.go -package=mock -mock_names=DetailedError=DetailedError github.com/cloudtrust/common-service/errors DetailedError
+//go:generate mockgen --build_flags=--mod=mod -destination=./mock/detailederr.go -package=mock -mock_names=DetailedError=DetailedError github.com/cloudtrust/common-service/v2/errors DetailedError
 
 import (
 	"bytes"
@@ -16,9 +16,9 @@ import (
 	"net/url"
 	"testing"
 
-	errorhandler "github.com/cloudtrust/common-service/errors"
-	"github.com/cloudtrust/common-service/http/mock"
-	"github.com/cloudtrust/common-service/security"
+	errorhandler "github.com/cloudtrust/common-service/v2/errors"
+	"github.com/cloudtrust/common-service/v2/http/mock"
+	"github.com/cloudtrust/common-service/v2/security"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
 	http_transport "github.com/go-kit/kit/transport/http"

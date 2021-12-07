@@ -1,12 +1,12 @@
 package tracking
 
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service Configuration
+//go:generate mockgen --build_flags=--mod=mod -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service/v2 Configuration
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/cloudtrust/common-service/metrics/mock"
+	"github.com/cloudtrust/common-service/v2/metrics/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

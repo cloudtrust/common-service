@@ -1,4 +1,4 @@
-module github.com/cloudtrust/common-service
+module github.com/cloudtrust/common-service/v2
 
 go 1.15
 

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	cs "github.com/cloudtrust/common-service"
-	"github.com/cloudtrust/common-service/middleware/mock"
+	cs "github.com/cloudtrust/common-service/v2"
+	"github.com/cloudtrust/common-service/v2/middleware/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

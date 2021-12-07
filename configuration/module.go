@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/cloudtrust/common-service/database/sqltypes"
-	"github.com/cloudtrust/common-service/log"
+	"github.com/cloudtrust/common-service/v2/database/sqltypes"
+	"github.com/cloudtrust/common-service/v2/log"
 )
 
 const (

@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	errorhandler "github.com/cloudtrust/common-service/errors"
+	errorhandler "github.com/cloudtrust/common-service/v2/errors"
 
-	cs "github.com/cloudtrust/common-service"
-	"github.com/cloudtrust/common-service/configuration"
-	"github.com/cloudtrust/common-service/log"
-	"github.com/cloudtrust/common-service/middleware/mock"
+	cs "github.com/cloudtrust/common-service/v2"
+	"github.com/cloudtrust/common-service/v2/configuration"
+	"github.com/cloudtrust/common-service/v2/log"
+	"github.com/cloudtrust/common-service/v2/middleware/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

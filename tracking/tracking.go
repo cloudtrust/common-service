@@ -1,7 +1,7 @@
 package tracking
 
 import (
-	cs "github.com/cloudtrust/common-service"
+	cs "github.com/cloudtrust/common-service/v2"
 	sentry "github.com/getsentry/raven-go"
 )
 

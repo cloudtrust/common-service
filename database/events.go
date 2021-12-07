@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	cs "github.com/cloudtrust/common-service"
-	"github.com/cloudtrust/common-service/database/sqltypes"
+	cs "github.com/cloudtrust/common-service/v2"
+	"github.com/cloudtrust/common-service/v2/database/sqltypes"
 )
 
 const (

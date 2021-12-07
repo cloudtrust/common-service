@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	errorsMsg "github.com/cloudtrust/common-service/errors"
+	errorsMsg "github.com/cloudtrust/common-service/v2/errors"
 )
 
 // EncrypterDecrypter used to encrypt/decrypt data

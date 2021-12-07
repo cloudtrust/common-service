@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"regexp"
 
-	cs "github.com/cloudtrust/common-service"
-	errorhandler "github.com/cloudtrust/common-service/errors"
-	gen "github.com/cloudtrust/common-service/idgenerator"
-	"github.com/cloudtrust/common-service/log"
-	"github.com/cloudtrust/common-service/tracing"
+	cs "github.com/cloudtrust/common-service/v2"
+	errorhandler "github.com/cloudtrust/common-service/v2/errors"
+	gen "github.com/cloudtrust/common-service/v2/idgenerator"
+	"github.com/cloudtrust/common-service/v2/log"
+	"github.com/cloudtrust/common-service/v2/tracing"
 )
 
 const (
