@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	cs "github.com/cloudtrust/common-service"
-	"github.com/cloudtrust/common-service/configuration"
-	errorhandler "github.com/cloudtrust/common-service/errors"
-	"github.com/cloudtrust/common-service/log"
+	cs "github.com/cloudtrust/common-service/v2"
+	"github.com/cloudtrust/common-service/v2/configuration"
+	errorhandler "github.com/cloudtrust/common-service/v2/errors"
+	"github.com/cloudtrust/common-service/v2/log"
 	"github.com/pkg/errors"
 )
 

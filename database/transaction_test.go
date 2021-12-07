@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/cloudtrust/common-service/database/mock"
+	"github.com/cloudtrust/common-service/v2/database/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

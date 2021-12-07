@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 
-	"github.com/cloudtrust/common-service/database/sqltypes"
+	"github.com/cloudtrust/common-service/v2/database/sqltypes"
 )
 
 type dbTransaction struct {

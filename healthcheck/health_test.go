@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cloudtrust/common-service/healthcheck/mock"
-	"github.com/cloudtrust/common-service/log"
+	"github.com/cloudtrust/common-service/v2/healthcheck/mock"
+	"github.com/cloudtrust/common-service/v2/log"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"

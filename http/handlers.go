@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"regexp"
 
-	errorhandler "github.com/cloudtrust/common-service/errors"
-	"github.com/cloudtrust/common-service/log"
-	"github.com/cloudtrust/common-service/security"
+	errorhandler "github.com/cloudtrust/common-service/v2/errors"
+	"github.com/cloudtrust/common-service/v2/log"
+	"github.com/cloudtrust/common-service/v2/security"
 	"github.com/go-kit/kit/ratelimit"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"

@@ -1,13 +1,13 @@
 package metrics
 
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service Configuration
+//go:generate mockgen --build_flags=--mod=mod -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service/v2 Configuration
 
 import (
 	"context"
 	"testing"
 
-	"github.com/cloudtrust/common-service/database/mock"
-	"github.com/cloudtrust/common-service/log"
+	"github.com/cloudtrust/common-service/v2/database/mock"
+	"github.com/cloudtrust/common-service/v2/log"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

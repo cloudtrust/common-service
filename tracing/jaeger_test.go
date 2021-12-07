@@ -1,6 +1,6 @@
 package tracing
 
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service Configuration
+//go:generate mockgen --build_flags=--mod=mod -destination=./mock/configuration.go -package=mock -mock_names=Configuration=Configuration github.com/cloudtrust/common-service/v2 Configuration
 //go:generate mockgen --build_flags=--mod=mod -destination=./mock/tracing.go -package=mock -mock_names=Tracer=Tracer,Span=Span,SpanContext=SpanContext github.com/opentracing/opentracing-go Tracer,Span,SpanContext
 
 import (
@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	cs "github.com/cloudtrust/common-service"
-	"github.com/cloudtrust/common-service/tracing/mock"
+	cs "github.com/cloudtrust/common-service/v2"
+	"github.com/cloudtrust/common-service/v2/tracing/mock"
 	"github.com/golang/mock/gomock"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/stretchr/testify/assert"

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	commonhttp "github.com/cloudtrust/common-service/http"
-	log "github.com/cloudtrust/common-service/log"
+	commonhttp "github.com/cloudtrust/common-service/v2/http"
+	log "github.com/cloudtrust/common-service/v2/log"
 	"github.com/go-kit/kit/ratelimit"
 )
 

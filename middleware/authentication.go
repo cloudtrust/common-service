@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	cs "github.com/cloudtrust/common-service"
-	errorhandler "github.com/cloudtrust/common-service/errors"
-	"github.com/cloudtrust/common-service/log"
-	"github.com/cloudtrust/common-service/security"
+	cs "github.com/cloudtrust/common-service/v2"
+	errorhandler "github.com/cloudtrust/common-service/v2/errors"
+	"github.com/cloudtrust/common-service/v2/log"
+	"github.com/cloudtrust/common-service/v2/security"
 	"github.com/gbrlsnchs/jwt/v2"
 	errorsPkg "github.com/pkg/errors"
 )
