@@ -107,13 +107,9 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Co
 
 	return am.CheckAuthorizationOnTargetGroup(ctx, action, targetRealm, targetGroup)
 }
-
-func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error {
-	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
-	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
-
-	for _, group := range currentGroups {
-		if authz, ok := (*am.authorizations)[currentRealm][group][action]; ok && am.currentGroupAllowedForTargetGroup(authz, targetRealm, targetGroup) {
+func (am *authorizationManager) CheckAuthorizationForGroupsOnTargetGroup(ctx context.Context, realm string, groups []string, action, targetRealm, targetGroup string) error {
+	for _, group := range groups {
+		if authz, ok := (*am.authorizations)[realm][group][action]; ok && am.currentGroupAllowedForTargetGroup(authz, targetRealm, targetGroup) {
 			return nil
 		}
 	}
@@ -123,12 +119,19 @@ func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Cont
 		"Action":        action,
 		"targetRealm":   targetRealm,
 		"targetGroup":   targetGroup,
-		"currentRealm":  currentRealm,
-		"currentGroups": strings.Join(currentGroups, "|"),
+		"currentRealm":  realm,
+		"currentGroups": strings.Join(groups, "|"),
 	})
 	am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to perform the action on this group", "infos", string(infos))
 
 	return ForbiddenError{}
+}
+
+func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error {
+	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
+	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
+
+	return am.CheckAuthorizationForGroupsOnTargetGroup(ctx, currentRealm, currentGroups, action, targetRealm, targetGroup)
 }
 
 func (am *authorizationManager) currentGroupAllowedForTargetGroup(authz map[string]map[string]struct{}, targetRealm, targetGroup string) bool {
@@ -162,22 +165,19 @@ func (am *authorizationManager) currentGroupAllowedForTargetGroup(authz map[stri
 	return false
 }
 
-func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Context, action, targetRealm string) error {
-	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
-	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
-
+func (am *authorizationManager) CheckAuthorizationForGroupsOnTargetRealm(ctx context.Context, realm string, groups []string, action, targetRealm string) error {
 	infos, _ := json.Marshal(map[string]string{
 		"ThrownBy":      "CheckAuthorizationOnTargetRealm",
 		"Action":        action,
 		"targetRealm":   targetRealm,
-		"currentRealm":  currentRealm,
-		"currentGroups": strings.Join(currentGroups, "|"),
+		"currentRealm":  realm,
+		"currentGroups": strings.Join(groups, "|"),
 	})
 
-	for _, group := range currentGroups {
-		_, wildcard := (*am.authorizations)[currentRealm][group][action]["*"]
-		_, nonMasterRealmAllowed := (*am.authorizations)[currentRealm][group][action]["/"]
-		_, realmAllowed := (*am.authorizations)[currentRealm][group][action][targetRealm]
+	for _, group := range groups {
+		_, wildcard := (*am.authorizations)[realm][group][action]["*"]
+		_, nonMasterRealmAllowed := (*am.authorizations)[realm][group][action]["/"]
+		_, realmAllowed := (*am.authorizations)[realm][group][action][targetRealm]
 
 		if wildcard || realmAllowed || (targetRealm != "master" && nonMasterRealmAllowed) {
 			return nil
@@ -187,6 +187,13 @@ func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Cont
 	am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to perform the action on this realm", "infos", string(infos))
 
 	return ForbiddenError{}
+}
+
+func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Context, action, targetRealm string) error {
+	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
+	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
+
+	return am.CheckAuthorizationForGroupsOnTargetRealm(ctx, currentRealm, currentGroups, action, targetRealm)
 }
 
 // GetRightsOfCurrentUser returns the matrix rights of the current user
