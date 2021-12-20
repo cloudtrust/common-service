@@ -28,7 +28,7 @@ func TestAppendActionNames(t *testing.T) {
 	assert.Equal(t, []string{"1", "2", "3", "4", "5"}, AppendActionNames(nil, actions1, actions2, actions3))
 }
 
-func TestCheckAuthorizationOnRealm(t *testing.T) {
+func TestCheckAuthorizationOnTargetRealm(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
 	var mockKeycloakClient = mock.NewKeycloakClient(mockCtrl)
