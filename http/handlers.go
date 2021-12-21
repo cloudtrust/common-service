@@ -88,7 +88,7 @@ func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams m
 	for key, validationRegExp := range pathParams {
 		if v, ok := m[key]; ok {
 			if matched, _ := regexp.Match(validationRegExp, []byte(v)); !matched {
-				return nil, errorhandler.CreateInvalidQueryParameterError(key)
+				return nil, errorhandler.CreateInvalidPathParameterError(key)
 			}
 			request[key] = m[key]
 		}
@@ -106,7 +106,7 @@ func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams m
 	for key, validationRegExp := range queryParams {
 		if value := req.URL.Query().Get(key); value != "" {
 			if matched, _ := regexp.Match(validationRegExp, []byte(value)); !matched {
-				return nil, errorhandler.CreateInvalidPathParameterError(key)
+				return nil, errorhandler.CreateInvalidQueryParameterError(key)
 			}
 
 			request[key] = value
