@@ -38,9 +38,9 @@ func TestGetRealmConfigurations(t *testing.T) {
 	})
 	t.Run("Invalid JSON", func(t *testing.T) {
 		mockDB.EXPECT().QueryRow(gomock.Any(), realmID).Return(mockSQLRow)
-		mockSQLRow.EXPECT().Scan(gomock.Any()).DoAndReturn(func(ptrConfig *string, ptrAdminConfig *string) error {
-			*ptrConfig = `{`
-			*ptrAdminConfig = `{}`
+		mockSQLRow.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+			*(dest[0]).(*string) = `{`
+			*(dest[1]).(*string) = `{}`
 			return nil
 		})
 		var _, _, err = module.GetRealmConfigurations(ctx, realmID)
@@ -48,9 +48,9 @@ func TestGetRealmConfigurations(t *testing.T) {
 	})
 	t.Run("Success", func(t *testing.T) {
 		mockDB.EXPECT().QueryRow(gomock.Any(), realmID).Return(mockSQLRow)
-		mockSQLRow.EXPECT().Scan(gomock.Any()).DoAndReturn(func(ptrConfig *string, ptrAdminConfig *string) error {
-			*ptrConfig = `{}`
-			*ptrAdminConfig = `{}`
+		mockSQLRow.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+			*(dest[0]).(*string) = `{}`
+			*(dest[1]).(*string) = `{}`
 			return nil
 		})
 		var _, _, err = module.GetRealmConfigurations(ctx, realmID)
@@ -167,21 +167,21 @@ func TestGetAuthorizations(t *testing.T) {
 	t.Run("Query returns 2 rows", func(t *testing.T) {
 		gomock.InOrder(
 			mockSQLRows.EXPECT().Next().Return(true),
-			mockSQLRows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(realmID, groupName, action *string, targetRealm, targetGroup *sql.NullString) error {
-				*realmID = "realm#1"
-				*groupName = "group#1"
-				*action = notInScopeAction
-				*targetRealm = sql.NullString{Valid: false}
-				*targetGroup = sql.NullString{Valid: false}
+			mockSQLRows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+				*(dest[0]).(*string) = "realm#1"
+				*(dest[1]).(*string) = "group#1"
+				*(dest[2]).(*string) = notInScopeAction
+				*(dest[3]).(*sql.NullString) = sql.NullString{Valid: false}
+				*(dest[4]).(*sql.NullString) = sql.NullString{Valid: false}
 				return nil
 			}),
 			mockSQLRows.EXPECT().Next().Return(true),
-			mockSQLRows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(realmID, groupName, action *string, targetRealm, targetGroup *sql.NullString) error {
-				*realmID = "realm#2"
-				*groupName = "group#2"
-				*action = allowedAction
-				*targetRealm = sql.NullString{Valid: true, String: "targetRealm"}
-				*targetGroup = sql.NullString{Valid: true, String: "targetGroup"}
+			mockSQLRows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+				*(dest[0]).(*string) = "realm#2"
+				*(dest[1]).(*string) = "group#2"
+				*(dest[2]).(*string) = allowedAction
+				*(dest[3]).(*sql.NullString) = sql.NullString{Valid: true, String: "targetRealm"}
+				*(dest[4]).(*sql.NullString) = sql.NullString{Valid: true, String: "targetGroup"}
 				return nil
 			}),
 			mockSQLRows.EXPECT().Next().Return(false),
