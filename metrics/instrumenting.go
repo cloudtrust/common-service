@@ -8,9 +8,8 @@ import (
 	cs "github.com/cloudtrust/common-service/v2"
 	"github.com/cloudtrust/common-service/v2/log"
 	"github.com/go-kit/kit/metrics"
-	gokit_influx "github.com/go-kit/kit/metrics/influx"
 	metric "github.com/go-kit/kit/metrics/influx"
-	influx "github.com/influxdata/influxdb/client/v2"
+	influx "github.com/influxdata/influxdb1-client/v2"
 )
 
 // Counter interface for go-kit/Counter
@@ -55,7 +54,7 @@ type GoKitMetrics interface {
 	NewCounter(name string) *metric.Counter
 	NewGauge(name string) *metric.Gauge
 	NewHistogram(name string) *metric.Histogram
-	WriteLoop(c <-chan time.Time, w metric.BatchPointsWriter)
+	WriteLoop(ctx context.Context, c <-chan time.Time, w metric.BatchPointsWriter)
 }
 
 // GetBatchPointsConfig gets the influx configuration
@@ -92,7 +91,7 @@ func NewMetrics(v cs.Configuration, prefix string, logger log.Logger) (Metrics, 
 
 	// Create gokit influx
 	influxBatchPointsConfig := GetBatchPointsConfig(v, prefix)
-	var gokitInflux = gokit_influx.New(
+	var gokitInflux = metric.New(
 		map[string]string{},
 		influxBatchPointsConfig,
 		log.With(logger, "unit", "go-kit influx").ToGoKitLogger(),
@@ -158,7 +157,7 @@ func (m *influxMetrics) Write(bp influx.BatchPoints) error {
 
 // WriteLoop writes the data to the Influx DB.
 func (m *influxMetrics) WriteLoop(c <-chan time.Time) {
-	m.metrics.WriteLoop(c, m.influx)
+	m.metrics.WriteLoop(context.Background(), c, m.influx)
 }
 
 func (m *influxMetrics) Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error {

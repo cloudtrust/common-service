@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	regExpCorrelationID = `^[\w\d_#@-]{1,70}$`
+	regExpCorrelationID = `^[\w\d_#@-]{1,100}$`
 
 	hdrCorrelationID = "X-Correlation-ID"
 )
