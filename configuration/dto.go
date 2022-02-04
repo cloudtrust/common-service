@@ -27,6 +27,7 @@ type RealmConfiguration struct {
 	ShowProfileTab                      *bool   `json:"show_profile_tab,omitempty"`
 	ShowMailEditing                     *bool   `json:"show_mail_editing,omitempty"`
 	ShowAccountDeletionButton           *bool   `json:"show_account_deletion_button,omitempty"`
+	SelfServiceDefaultTab               *string `json:"self_service_default_tab,omitempty"`
 
 	RedirectCancelledRegistrationURL  *string   `json:"redirect_cancelled_registration_url,omitempty"`
 	RedirectSuccessfulRegistrationURL *string   `json:"redirect_successful_registration_url,omitempty"`
