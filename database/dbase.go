@@ -79,6 +79,10 @@ func (db *basicCloudtrustDB) Close() error {
 	return db.dbConn.Close()
 }
 
+func (db *basicCloudtrustDB) Stats() sql.DBStats {
+	return db.dbConn.Stats()
+}
+
 // DbConfig Db configuration parameters
 type DbConfig struct {
 	HostPort          string
@@ -362,4 +366,14 @@ func (rcdb *ReconnectableCloudtrustDB) Ping() error {
 // Close the connection with the database
 func (rcdb *ReconnectableCloudtrustDB) Close() error {
 	return rcdb.resetConnection(false)
+}
+
+// Stats returns database statistics
+func (rcdb *ReconnectableCloudtrustDB) Stats() sql.DBStats {
+	dbConn, err := rcdb.getActiveConnection()
+	if err != nil {
+		return sql.DBStats{}
+	}
+
+	return dbConn.Stats()
 }

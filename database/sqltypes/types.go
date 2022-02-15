@@ -40,6 +40,7 @@ type CloudtrustDB interface {
 	QueryRow(query string, args ...interface{}) SQLRow
 	Ping() error
 	Close() error
+	Stats() sql.DBStats
 }
 
 // CloudtrustDBFactory interface
