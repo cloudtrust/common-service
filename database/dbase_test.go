@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cloudtrust/common-service/v2/database/sqltypes"
+	"github.com/cloudtrust/common-service/v2/log"
 
 	"github.com/cloudtrust/common-service/v2/database/mock"
 	"github.com/golang/mock/gomock"
@@ -139,16 +140,16 @@ func TestReconnectableCloudtrustDB(t *testing.T) {
 	var mockDBFactory = mock.NewCloudtrustDBFactory(mockCtrl)
 	var expectedError = errors.New("error")
 
-	var mockLogger = mock.NewLogger(mockCtrl)
+	var noopLogger = log.NewNopLogger()
 
 	t.Run("Try to connect to the DB with no success", func(t *testing.T) {
 		mockDBFactory.EXPECT().OpenDatabase().Return(nil, expectedError)
-		_, err := NewReconnectableCloudtrustDB(mockDBFactory, mockLogger)
+		_, err := NewReconnectableCloudtrustDB(mockDBFactory, noopLogger)
 		assert.NotNil(t, err)
 	})
 
 	mockDBFactory.EXPECT().OpenDatabase().Return(mockDB, nil)
-	db, err := NewReconnectableCloudtrustDB(mockDBFactory, mockLogger)
+	db, err := NewReconnectableCloudtrustDB(mockDBFactory, noopLogger)
 	assert.Nil(t, err)
 
 	t.Run("Exec success", func(t *testing.T) {
