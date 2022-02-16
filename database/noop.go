@@ -62,6 +62,9 @@ func (db *NoopDB) Ping() error { return nil }
 // Close does nothing
 func (db *NoopDB) Close() error { return nil }
 
+// Stats does nothing
+func (db *NoopDB) Stats() sql.DBStats { return sql.DBStats{} }
+
 // NoopResult is a sql.Result that does nothing.
 type NoopResult struct{}
 
