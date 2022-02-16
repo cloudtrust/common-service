@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"regexp"
 	"strconv"
 	"sync"
@@ -12,6 +13,7 @@ import (
 
 	cs "github.com/cloudtrust/common-service/v2"
 	"github.com/cloudtrust/common-service/v2/database/sqltypes"
+	"github.com/cloudtrust/common-service/v2/log"
 )
 
 // Define an internal structure to manage DB versions
@@ -233,10 +235,11 @@ type ReconnectableCloudtrustDB struct {
 	dbConnFactory sqltypes.CloudtrustDBFactory
 	connection    sqltypes.CloudtrustDB
 	mutex         *sync.Mutex
+	logger        log.Logger
 }
 
 // NewReconnectableCloudtrustDB opens a connection to a database. This connection will be renewed if necessary
-func NewReconnectableCloudtrustDB(dbConnFactory sqltypes.CloudtrustDBFactory) (sqltypes.CloudtrustDB, error) {
+func NewReconnectableCloudtrustDB(dbConnFactory sqltypes.CloudtrustDBFactory, logger log.Logger) (sqltypes.CloudtrustDB, error) {
 	dbConn, err := dbConnFactory.OpenDatabase()
 	if err != nil {
 		return nil, err
@@ -245,15 +248,18 @@ func NewReconnectableCloudtrustDB(dbConnFactory sqltypes.CloudtrustDBFactory) (s
 		dbConnFactory: dbConnFactory,
 		connection:    dbConn,
 		mutex:         &sync.Mutex{},
+		logger:        logger,
 	}, nil
 }
 
 func (rcdb *ReconnectableCloudtrustDB) getActiveConnection() (sqltypes.CloudtrustDB, error) {
+	rcdb.logger.Debug(context.TODO(), "msg", "'getActiveConnection() called'")
 	var err error
 	if rcdb.connection == nil {
 		rcdb.mutex.Lock()
 		// Ensure connection has not already been reopened by another thread
 		if rcdb.connection == nil {
+			rcdb.logger.Debug(context.TODO(), "msg", "OpenDatabase() triggered")
 			rcdb.connection, err = rcdb.dbConnFactory.OpenDatabase()
 		}
 		rcdb.mutex.Unlock()
@@ -263,11 +269,13 @@ func (rcdb *ReconnectableCloudtrustDB) getActiveConnection() (sqltypes.Cloudtrus
 }
 
 func (rcdb *ReconnectableCloudtrustDB) resetConnection(reconnect bool) error {
+	rcdb.logger.Debug(context.TODO(), "msg", "'resetConnection() called'")
 	var err error
 
 	if rcdb.connection != nil {
 		rcdb.mutex.Lock()
 		if rcdb.connection != nil {
+			rcdb.logger.Debug(context.TODO(), "msg", "Close() triggered")
 			err = rcdb.connection.Close()
 			rcdb.connection = nil
 			if reconnect {
@@ -282,6 +290,7 @@ func (rcdb *ReconnectableCloudtrustDB) resetConnection(reconnect bool) error {
 }
 
 func (rcdb *ReconnectableCloudtrustDB) asyncReconnect() {
+	rcdb.logger.Debug(context.TODO(), "msg", "'asyncReconnect() called'")
 	// Try to reconnect in asynchronously
 	go rcdb.getActiveConnection()
 }
@@ -301,6 +310,7 @@ func (rcdb *ReconnectableCloudtrustDB) checkError(err error) {
 
 // BeginTx creates a transaction
 func (rcdb *ReconnectableCloudtrustDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (sqltypes.Transaction, error) {
+	rcdb.logger.Debug(context.TODO(), "msg", "'BeginTx() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {
 		return nil, err
@@ -315,6 +325,7 @@ func (rcdb *ReconnectableCloudtrustDB) BeginTx(ctx context.Context, opts *sql.Tx
 
 // Exec an SQL query
 func (rcdb *ReconnectableCloudtrustDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+	rcdb.logger.Debug(context.TODO(), "msg", "'Exec() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {
 		return nil, err
@@ -329,6 +340,7 @@ func (rcdb *ReconnectableCloudtrustDB) Exec(query string, args ...interface{}) (
 
 // Query a multiple-rows SQL result
 func (rcdb *ReconnectableCloudtrustDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
+	rcdb.logger.Debug(context.TODO(), "msg", "'Query() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {
 		return nil, err
@@ -343,6 +355,7 @@ func (rcdb *ReconnectableCloudtrustDB) Query(query string, args ...interface{}) 
 
 // QueryRow a single-row SQL result
 func (rcdb *ReconnectableCloudtrustDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
+	rcdb.logger.Debug(context.TODO(), "msg", "'QueryRow() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {
 		return sqltypes.NewSQLRowError(err)
@@ -352,6 +365,7 @@ func (rcdb *ReconnectableCloudtrustDB) QueryRow(query string, args ...interface{
 
 // Ping check the connection with the database
 func (rcdb *ReconnectableCloudtrustDB) Ping() error {
+	rcdb.logger.Debug(context.TODO(), "msg", "'Ping() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {
 		return err
@@ -365,11 +379,13 @@ func (rcdb *ReconnectableCloudtrustDB) Ping() error {
 
 // Close the connection with the database
 func (rcdb *ReconnectableCloudtrustDB) Close() error {
+	rcdb.logger.Debug(context.TODO(), "msg", "'Close() called'")
 	return rcdb.resetConnection(false)
 }
 
 // Stats returns database statistics
 func (rcdb *ReconnectableCloudtrustDB) Stats() sql.DBStats {
+	rcdb.logger.Debug(context.TODO(), "msg", "'Stats() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {
 		return sql.DBStats{}

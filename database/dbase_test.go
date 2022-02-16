@@ -139,14 +139,16 @@ func TestReconnectableCloudtrustDB(t *testing.T) {
 	var mockDBFactory = mock.NewCloudtrustDBFactory(mockCtrl)
 	var expectedError = errors.New("error")
 
+	var mockLogger = mock.NewLogger(mockCtrl)
+
 	t.Run("Try to connect to the DB with no success", func(t *testing.T) {
 		mockDBFactory.EXPECT().OpenDatabase().Return(nil, expectedError)
-		_, err := NewReconnectableCloudtrustDB(mockDBFactory)
+		_, err := NewReconnectableCloudtrustDB(mockDBFactory, mockLogger)
 		assert.NotNil(t, err)
 	})
 
 	mockDBFactory.EXPECT().OpenDatabase().Return(mockDB, nil)
-	db, err := NewReconnectableCloudtrustDB(mockDBFactory)
+	db, err := NewReconnectableCloudtrustDB(mockDBFactory, mockLogger)
 	assert.Nil(t, err)
 
 	t.Run("Exec success", func(t *testing.T) {
