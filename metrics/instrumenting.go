@@ -39,7 +39,6 @@ type Metrics interface {
 	WriteLoop(c <-chan time.Time)
 	Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error
 	Ping(timeout time.Duration) (time.Duration, string, error)
-	TrackFunc(ctx context.Context, d time.Duration, name string, tags func() map[string]string, fields func() map[string]interface{})
 	Close()
 }
 
@@ -102,7 +101,6 @@ func NewMetrics(v cs.Configuration, prefix string, logger log.Logger) (Metrics, 
 		influx:            influxClient,
 		metrics:           gokitInflux,
 		BatchPointsConfig: influxBatchPointsConfig,
-		logger:            logger,
 	}, nil
 }
 
@@ -111,7 +109,6 @@ type influxMetrics struct {
 	influx            Influx
 	metrics           GoKitMetrics
 	BatchPointsConfig influx.BatchPointsConfig
-	logger            log.Logger
 }
 
 // Close closes the influx client
@@ -193,18 +190,6 @@ func (m *influxMetrics) Stats(_ context.Context, name string, tags map[string]st
 	return nil
 }
 
-func (m *influxMetrics) TrackFunc(ctx context.Context, d time.Duration, name string, tags func() map[string]string, fields func() map[string]interface{}) {
-	go func() {
-		for {
-			select {
-			case <-time.After(d):
-				err := m.Stats(ctx, name, tags(), fields())
-				m.logger.Warn(ctx, "error", err)
-			}
-		}
-	}()
-}
-
 // Ping test the connection to the Influx DB.
 func (m *influxMetrics) Ping(timeout time.Duration) (time.Duration, string, error) {
 	return m.influx.Ping(timeout)
@@ -243,11 +228,6 @@ func (m *NoopMetrics) WriteLoop(c <-chan time.Time) {
 // Ping does nothing.
 func (m *NoopMetrics) Ping(timeout time.Duration) (time.Duration, string, error) {
 	return time.Duration(0), "", nil
-}
-
-// TrackFunc does nothing
-func (m *NoopMetrics) TrackFunc(ctx context.Context, d time.Duration, name string, tags func() map[string]string, fields func() map[string]interface{}) {
-	//Nothing to do
 }
 
 // NoopCounter is a Counter that does nothing.
