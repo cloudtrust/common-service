@@ -28,6 +28,19 @@ const (
 	tokenAudString = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJJZTVzcXBLdTNwb1g5d1U3YTBhamxnUFlGRHFTTUF5M2l6NEZpelp4d2dnIn0.eyJqdGkiOiI4MDY4MjZkNy0xZjM4LTQxZjgtYTk5Ni1iYTYzYWI0YTY3MGIiLCJleHAiOjE1NTY2NjY3NzAsIm5iZiI6MCwiaWF0IjoxNTU2NjMwNzcwLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXV0aC9yZWFsbXMvbWFzdGVyIiwiYXVkIjoidGVzdC1yZWFsbSIsInN1YiI6IjczOTNhYjFhLTViMDQtNDNmNS04MDQ5LThhOTQ5MjMyZWQwYSIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFkbWluLWNsaSIsImF1dGhfdGltZSI6MCwic2Vzc2lvbl9zdGF0ZSI6IjFlMmI1Mzk5LTgyNDItNDA1OS05Y2M1LWE5MzI0NDVlY2JkMSIsImFjciI6IjEiLCJyZXNvdXJjZV9hY2Nlc3MiOnsidGVzdC1yZWFsbSI6eyJyb2xlcyI6WyJ2aWV3LXJlYWxtIiwidmlldy1pZGVudGl0eS1wcm92aWRlcnMiLCJtYW5hZ2UtaWRlbnRpdHktcHJvdmlkZXJzIiwiaW1wZXJzb25hdGlvbiIsImNyZWF0ZS1jbGllbnQiLCJtYW5hZ2UtdXNlcnMiLCJxdWVyeS1yZWFsbXMiLCJ2aWV3LWF1dGhvcml6YXRpb24iLCJxdWVyeS1jbGllbnRzIiwicXVlcnktdXNlcnMiLCJtYW5hZ2UtZXZlbnRzIiwibWFuYWdlLXJlYWxtIiwidmlldy1ldmVudHMiLCJ2aWV3LXVzZXJzIiwidmlldy1jbGllbnRzIiwibWFuYWdlLWF1dGhvcml6YXRpb24iLCJtYW5hZ2UtY2xpZW50cyIsInF1ZXJ5LWdyb3VwcyJdfX0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZ3JvdXBzIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJncm91cHMiOlsiL3RvZV9hZG1pbmlzdHJhdG9yIl0sInByZWZlcnJlZF91c2VybmFtZSI6ImFkbWluIiwiZW1haWwiOiJ0b3RvQHRvdG8uY29tIn0.QXUTPciZYYv8k688D27sOz5thyQH1OWwp-rqTnCQYoAbqXPVgSZxLIepk8JvS9drBl7jOH-M_w2tXMOjV-7kY7p57_9VyWaI42VgBVmJVXSWwMwPtWAwnpKqMh1wrrm_zYJRmZ43o1r6Rp_kELnfgwocFSLc3DTDVEoMuYE45kJg9JwPc2K7DYi6Om5qOm9ez-x8GpyGVy3xJiOa-Qr9oJpKCx02sRVEBIc0AE0pfpxfbBhJU06L4uVnwQ1JxquLKLU77bjPEkAKOnTeG-6D9OtH_K42KujZyhj7FytXAXv9CmISi9aIe7BVANFSu7TyOBjelZHVpI5dOKRc-E2L9w"
 )
 
+func TestSplitIssuer(t *testing.T) {
+	t.Run("Keycloak Wildfly issuer", func(t *testing.T) {
+		var issuer, domain = splitIssuer("http://domain/auth/realms/myRealm")
+		assert.Equal(t, "http://domain", issuer)
+		assert.Equal(t, "myRealm", domain)
+	})
+	t.Run("Keycloak Quarkus", func(t *testing.T) {
+		var issuer, domain = splitIssuer("http://domain/realms/myRealm")
+		assert.Equal(t, "http://domain", issuer)
+		assert.Equal(t, "myRealm", domain)
+	})
+}
+
 func TestUnmarshalTokenAudience(t *testing.T) {
 	t.Run("Valid token", func(t *testing.T) {
 		payload, _, _ := jwt.Parse(tokenAudNone)
