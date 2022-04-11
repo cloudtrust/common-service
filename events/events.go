@@ -28,6 +28,8 @@ const (
 	CtEventKcOperationType = "kc_operation_type"
 	CtEventClientID        = "client_id"
 	CtEventAdditionalInfo  = "additional_info"
+
+	CtEventUnknownUsername = "--UNKNOWN--"
 )
 
 type Event struct {
