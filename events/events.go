@@ -38,6 +38,10 @@ type Event struct {
 }
 
 func newEvent(origin string, eventType string, agentRealmName string, agentUserID string, agentUsername string, targetRealmName string, targetUserID *string, targetUserName *string, details map[string]string) Event {
+	if details == nil {
+		details = map[string]string{}
+	}
+
 	details[CtEventAgentRealmName] = agentRealmName
 	details[CtEventAgentUserID] = agentUserID
 	details[CtEventAgentUsername] = agentUsername

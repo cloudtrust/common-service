@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/Shopify/sarama"
 	"github.com/cloudtrust/common-service/v2/log"
@@ -31,6 +32,14 @@ func (e *eventsReporterModule) ReportEvent(ctx context.Context, event Event) {
 	_, _, err := e.producer.SendMessage(msg)
 
 	if err != nil {
-		e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error(), "event", event)
+		event.details[CtEventAuditTime] = event.time.String()
+		event.details[CtEventOrigin] = event.origin
+		event.details[CtEventType] = event.eventType
+		eventJSON, errMarshal := json.Marshal(event.details)
+		if errMarshal == nil {
+			e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error(), "event", string(eventJSON))
+		} else {
+			e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error())
+		}
 	}
 }

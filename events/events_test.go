@@ -24,18 +24,34 @@ func TestNewEventOnUser(t *testing.T) {
 		"my_custom_field": "my_custom_value",
 	}
 
-	event := NewEventOnUser(origin, eventType, agentRealmName, agentUserID, agentUsername, targetRealmName, targetUserID, targetUsername, details)
+	t.Run("SUCCESS", func(t *testing.T) {
+		event := NewEventOnUser(origin, eventType, agentRealmName, agentUserID, agentUsername, targetRealmName, targetUserID, targetUsername, details)
 
-	assert.NotNil(t, event.time)
-	assert.Equal(t, origin, event.origin)
-	assert.Equal(t, eventType, event.eventType)
-	assert.Equal(t, agentRealmName, event.details[CtEventAgentRealmName])
-	assert.Equal(t, agentUserID, event.details[CtEventAgentUserID])
-	assert.Equal(t, agentUsername, event.details[CtEventAgentUsername])
-	assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
-	assert.Equal(t, targetUserID, event.details[CtEventTargetUserID])
-	assert.Equal(t, targetUsername, event.details[CtEventTargetUsername])
-	assert.Equal(t, details["my_custom_field"], event.details["my_custom_field"])
+		assert.NotNil(t, event.time)
+		assert.Equal(t, origin, event.origin)
+		assert.Equal(t, eventType, event.eventType)
+		assert.Equal(t, agentRealmName, event.details[CtEventAgentRealmName])
+		assert.Equal(t, agentUserID, event.details[CtEventAgentUserID])
+		assert.Equal(t, agentUsername, event.details[CtEventAgentUsername])
+		assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
+		assert.Equal(t, targetUserID, event.details[CtEventTargetUserID])
+		assert.Equal(t, targetUsername, event.details[CtEventTargetUsername])
+		assert.Equal(t, details["my_custom_field"], event.details["my_custom_field"])
+	})
+
+	t.Run("SUCCESS with nil details", func(t *testing.T) {
+		event := NewEventOnUser(origin, eventType, agentRealmName, agentUserID, agentUsername, targetRealmName, targetUserID, targetUsername, nil)
+
+		assert.NotNil(t, event.time)
+		assert.Equal(t, origin, event.origin)
+		assert.Equal(t, eventType, event.eventType)
+		assert.Equal(t, agentRealmName, event.details[CtEventAgentRealmName])
+		assert.Equal(t, agentUserID, event.details[CtEventAgentUserID])
+		assert.Equal(t, agentUsername, event.details[CtEventAgentUsername])
+		assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
+		assert.Equal(t, targetUserID, event.details[CtEventTargetUserID])
+		assert.Equal(t, targetUsername, event.details[CtEventTargetUsername])
+	})
 }
 
 func TestNewEventOnUserFromContext(t *testing.T) {
@@ -94,7 +110,23 @@ func TestNewEventOnUserFromContext(t *testing.T) {
 		assert.Equal(t, targetUsername, event.details[CtEventTargetUsername])
 		assert.Equal(t, details["my_custom_field"], event.details["my_custom_field"])
 	})
+	t.Run("SUCCESS with nil details", func(t *testing.T) {
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, cs.CtContextRealm, agentRealmName)
+		ctx = context.WithValue(ctx, cs.CtContextUserID, agentUserID)
+		ctx = context.WithValue(ctx, cs.CtContextUsername, agentUsername)
+		event := NewEventOnUserFromContext(ctx, logger, origin, eventType, targetRealmName, targetUserID, targetUsername, nil)
 
+		assert.NotNil(t, event.time)
+		assert.Equal(t, origin, event.origin)
+		assert.Equal(t, eventType, event.eventType)
+		assert.Equal(t, agentRealmName, event.details[CtEventAgentRealmName])
+		assert.Equal(t, agentUserID, event.details[CtEventAgentUserID])
+		assert.Equal(t, agentUsername, event.details[CtEventAgentUsername])
+		assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
+		assert.Equal(t, targetUserID, event.details[CtEventTargetUserID])
+		assert.Equal(t, targetUsername, event.details[CtEventTargetUsername])
+	})
 }
 
 func TestNewEvent(t *testing.T) {
@@ -108,16 +140,30 @@ func TestNewEvent(t *testing.T) {
 		"my_custom_field": "my_custom_value",
 	}
 
-	event := NewEvent(origin, eventType, agentRealmName, agentUserID, agentUsername, targetRealmName, details)
+	t.Run("SUCCESS", func(t *testing.T) {
+		event := NewEvent(origin, eventType, agentRealmName, agentUserID, agentUsername, targetRealmName, details)
 
-	assert.NotNil(t, event.time)
-	assert.Equal(t, origin, event.origin)
-	assert.Equal(t, eventType, event.eventType)
-	assert.Equal(t, agentRealmName, event.details[CtEventAgentRealmName])
-	assert.Equal(t, agentUserID, event.details[CtEventAgentUserID])
-	assert.Equal(t, agentUsername, event.details[CtEventAgentUsername])
-	assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
-	assert.Equal(t, details["my_custom_field"], event.details["my_custom_field"])
+		assert.NotNil(t, event.time)
+		assert.Equal(t, origin, event.origin)
+		assert.Equal(t, eventType, event.eventType)
+		assert.Equal(t, agentRealmName, event.details[CtEventAgentRealmName])
+		assert.Equal(t, agentUserID, event.details[CtEventAgentUserID])
+		assert.Equal(t, agentUsername, event.details[CtEventAgentUsername])
+		assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
+		assert.Equal(t, details["my_custom_field"], event.details["my_custom_field"])
+	})
+
+	t.Run("SUCCESS with nil details", func(t *testing.T) {
+		event := NewEvent(origin, eventType, agentRealmName, agentUserID, agentUsername, targetRealmName, nil)
+
+		assert.NotNil(t, event.time)
+		assert.Equal(t, origin, event.origin)
+		assert.Equal(t, eventType, event.eventType)
+		assert.Equal(t, agentRealmName, event.details[CtEventAgentRealmName])
+		assert.Equal(t, agentUserID, event.details[CtEventAgentUserID])
+		assert.Equal(t, agentUsername, event.details[CtEventAgentUsername])
+		assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
+	})
 }
 
 func TestNewEventFromContext(t *testing.T) {
@@ -167,6 +213,22 @@ func TestNewEventFromContext(t *testing.T) {
 		assert.Equal(t, "", event.details[CtEventAgentUsername])
 		assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
 		assert.Equal(t, details["my_custom_field"], event.details["my_custom_field"])
+	})
+	t.Run("SUCCESS with nil details", func(t *testing.T) {
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, cs.CtContextRealm, agentRealmName)
+		ctx = context.WithValue(ctx, cs.CtContextUserID, agentUserID)
+		ctx = context.WithValue(ctx, cs.CtContextUsername, agentUsername)
+
+		event := NewEventFromContext(ctx, logger, origin, eventType, targetRealmName, nil)
+
+		assert.NotNil(t, event.time)
+		assert.Equal(t, origin, event.origin)
+		assert.Equal(t, eventType, event.eventType)
+		assert.Equal(t, agentRealmName, event.details[CtEventAgentRealmName])
+		assert.Equal(t, agentUserID, event.details[CtEventAgentUserID])
+		assert.Equal(t, agentUsername, event.details[CtEventAgentUsername])
+		assert.Equal(t, targetRealmName, event.details[CtEventTargetRealmName])
 	})
 }
 
