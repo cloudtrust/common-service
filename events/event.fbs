@@ -1,0 +1,17 @@
+// IDL file for events.
+
+namespace fb;
+
+table Tuple {
+    key:string;
+    value:string;
+}
+
+table CloudtrustEvent {
+    time:long;
+    origin:string;
+    ctEventType:string;
+    details:[Tuple];
+}
+
+root_type CloudtrustEvent;
