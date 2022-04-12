@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 
 	"github.com/Shopify/sarama"
@@ -28,7 +29,8 @@ func NewEventReporterModule(producer sarama.SyncProducer, topic string, logger l
 
 func (e *eventsReporterModule) ReportEvent(ctx context.Context, event Event) {
 	serializedEvent := event.serialize()
-	msg := &sarama.ProducerMessage{Topic: e.topic, Value: sarama.StringEncoder(serializedEvent)}
+	base64Event := base64.StdEncoding.EncodeToString(serializedEvent)
+	msg := &sarama.ProducerMessage{Topic: e.topic, Value: sarama.StringEncoder(base64Event)}
 	_, _, err := e.producer.SendMessage(msg)
 
 	if err != nil {

@@ -12,7 +12,6 @@ import (
 type KafkaProducerConfig struct {
 	Version      string
 	Brokers      []string
-	Topic        string
 	ClientID     string
 	ClientSecret string
 	TokenURL     string
@@ -27,7 +26,6 @@ func GetKafkaProducerConfig(c cs.Configuration, prefix string) KafkaProducerConf
 	if !cfg.Noop {
 		cfg.Version = c.GetString(prefix + "-version")
 		cfg.Brokers = c.GetStringSlice(prefix + "-brokers")
-		cfg.Topic = c.GetString(prefix + "-topic")
 		cfg.ClientID = c.GetString(prefix + "-client-id")
 		cfg.ClientSecret = c.GetString(prefix + "-client-secret")
 		cfg.TokenURL = c.GetString(prefix + "-token-url")
