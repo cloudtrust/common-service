@@ -8,6 +8,7 @@ import (
 	"github.com/cloudtrust/common-service/v2/events/fb"
 	"github.com/cloudtrust/common-service/v2/log"
 	flatbuffers "github.com/google/flatbuffers/go"
+	"github.com/google/uuid"
 )
 
 const (
@@ -106,6 +107,8 @@ func (e *Event) serialize() []byte {
 	for k, v := range e.details {
 		tuples = append(tuples, createTuple(builder, k, v))
 	}
+	// Add a unique id (UUID) for cloudtrust events
+	tuples = append(tuples, createTuple(builder, "uid", uuid.New().String()))
 
 	fb.CloudtrustEventStartDetailsVector(builder, len(tuples))
 	for _, offset := range tuples {

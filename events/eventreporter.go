@@ -30,7 +30,13 @@ func NewEventReporterModule(producer sarama.SyncProducer, topic string, logger l
 func (e *eventsReporterModule) ReportEvent(ctx context.Context, event Event) {
 	serializedEvent := event.serialize()
 	base64Event := base64.StdEncoding.EncodeToString(serializedEvent)
-	msg := &sarama.ProducerMessage{Topic: e.topic, Value: sarama.StringEncoder(base64Event)}
+
+	key, ok := event.details[CtEventAgentUserID]
+	if !ok {
+		key = "DEFAULT-KEY"
+	}
+
+	msg := &sarama.ProducerMessage{Topic: e.topic, Key: sarama.StringEncoder(key), Value: sarama.StringEncoder(base64Event)}
 	_, _, err := e.producer.SendMessage(msg)
 
 	if err != nil {
