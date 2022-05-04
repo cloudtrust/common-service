@@ -15,6 +15,7 @@ type HealthChecker interface {
 	CheckStatus() HealthResponse
 	AddHealthChecker(name string, checker BasicChecker)
 	AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
+	AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
 	AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration)
 	MakeHandler(rateLimit ratelimit.Allower) http.HandlerFunc
 }
@@ -117,6 +118,12 @@ func (hc *healthchecker) AddHealthChecker(name string, checker BasicChecker) {
 func (hc *healthchecker) AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) {
 	hc.logger.Info(context.Background(), "msg", "Adding HTTP endpoint", "processor", name, "url", targetURL)
 	hc.AddHealthChecker(name, newHTTPEndpointChecker(name, targetURL, timeoutDuration, expectedStatus, cacheDuration))
+}
+
+func (hc *healthchecker) AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) {
+	for key, value := range endpoints {
+		hc.AddHTTPEndpoint(key, value, timeoutDuration, expectedStatus, cacheDuration)
+	}
 }
 
 func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration) {

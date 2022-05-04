@@ -69,7 +69,8 @@ func TestHealthCheckHandler(t *testing.T) {
 		assert.False(t, strings.Contains(resp, alias2))
 	})
 
-	hc.AddHTTPEndpoint(alias2, "http://localhost:11111/", 2*time.Second, 200, time.Duration(0))
+	var endpoints = map[string]string{alias2: "http://localhost:11111/"}
+	hc.AddHTTPEndpoints(endpoints, 2*time.Second, 200, time.Duration(0))
 
 	t.Run("State is DOWN", func(t *testing.T) {
 		// Second call: 2 health checkers, one state is DOWN
