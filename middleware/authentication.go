@@ -17,6 +17,14 @@ import (
 	errorsPkg "github.com/pkg/errors"
 )
 
+func splitIssuer(issuer string) (string, string) {
+	var splitIssuer = strings.Split(issuer, "/auth/realms/")
+	if len(splitIssuer) <= 1 {
+		splitIssuer = strings.Split(issuer, "/realms/")
+	}
+	return splitIssuer[0], splitIssuer[1]
+}
+
 // MakeHTTPBasicAuthenticationFuncMW retrieve the token from the HTTP header 'Basic' and
 // check credentials according to the given callback function
 // If there is no such header, the request is not allowed.
@@ -177,9 +185,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 
 			var issuer, issuerDomain, realm string
 			issuer = jot.GetIssuer()
-			var splitIssuer = strings.Split(issuer, "/auth/realms/")
-			issuerDomain = splitIssuer[0]
-			realm = splitIssuer[1]
+			issuerDomain, realm = splitIssuer(issuer)
 
 			ctx = context.WithValue(req.Context(), cs.CtContextAccessToken, accessToken)
 			ctx = context.WithValue(ctx, cs.CtContextRealm, realm)
@@ -214,11 +220,8 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 		return nil, security.ForbiddenError{}
 	}
 
-	var issuer, issuerDomain, realm string
-	issuer = jot.GetIssuer()
-	var splitIssuer = strings.Split(issuer, "/auth/realms/")
-	issuerDomain = splitIssuer[0]
-	realm = splitIssuer[1]
+	var issuer = jot.GetIssuer()
+	var issuerDomain, realm = splitIssuer(issuer)
 
 	if err = keycloakClient.VerifyToken(issuerDomain, realm, accessToken); err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
