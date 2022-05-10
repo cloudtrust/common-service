@@ -9,25 +9,25 @@ import (
 	"github.com/cloudtrust/common-service/v2/log"
 )
 
-type EventsReporterModule interface {
+type AuditEventsReporterModule interface {
 	ReportEvent(ctx context.Context, event Event)
 }
 
-type eventsReporterModule struct {
+type auditEventsReporterModule struct {
 	producer sarama.SyncProducer
 	topic    string
 	logger   log.Logger
 }
 
-func NewEventReporterModule(producer sarama.SyncProducer, topic string, logger log.Logger) EventsReporterModule {
-	return &eventsReporterModule{
+func NewAuditEventReporterModule(producer sarama.SyncProducer, topic string, logger log.Logger) AuditEventsReporterModule {
+	return &auditEventsReporterModule{
 		producer: producer,
 		topic:    topic,
 		logger:   logger,
 	}
 }
 
-func (e *eventsReporterModule) ReportEvent(ctx context.Context, event Event) {
+func (e *auditEventsReporterModule) ReportEvent(ctx context.Context, event Event) {
 	serializedEvent := event.serialize()
 	base64Event := base64.StdEncoding.EncodeToString(serializedEvent)
 
@@ -45,9 +45,9 @@ func (e *eventsReporterModule) ReportEvent(ctx context.Context, event Event) {
 		event.details[CtEventType] = event.eventType
 		eventJSON, errMarshal := json.Marshal(event.details)
 		if errMarshal == nil {
-			e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error(), "event", string(eventJSON))
+			e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error(), "eventJSON", string(eventJSON), "key", key, "event64", base64Event)
 		} else {
-			e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error())
+			e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error(), "key", key, "event64", base64Event)
 		}
 	}
 }
