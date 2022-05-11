@@ -1,8 +1,40 @@
 package events
 
 import (
+	"context"
+
 	"github.com/Shopify/sarama"
 )
+
+// NoopKafkaConsumerGroup is an consumer group that does nothing.
+type NoopKafkaConsumerGroup struct{}
+
+// noop
+func (n *NoopKafkaConsumerGroup) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
+	return nil
+}
+
+// noop
+func (n *NoopKafkaConsumerGroup) Errors() <-chan error {
+	return make(<-chan error)
+}
+
+// noop
+func (n *NoopKafkaConsumerGroup) Close() error {
+	return nil
+}
+
+// noop
+func (n *NoopKafkaConsumerGroup) Pause(partitions map[string][]int32) {}
+
+// noop
+func (n *NoopKafkaConsumerGroup) Resume(partitions map[string][]int32) {}
+
+// noop
+func (n *NoopKafkaConsumerGroup) PauseAll() {}
+
+// noop
+func (n *NoopKafkaConsumerGroup) ResumeAll() {}
 
 type NoopKafkaProducer struct{}
 
