@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+	"strings"
 
 	errorhandler "github.com/cloudtrust/common-service/v2/errors"
 	"github.com/cloudtrust/common-service/v2/log"
@@ -29,6 +30,8 @@ type GenericResponse struct {
 	MimeContent      *MimeContent
 	JSONableResponse interface{}
 }
+
+var protoRegex = regexp.MustCompile(`(?i)(?:proto=)(https|http)`)
 
 // WriteResponse writes a response for a mime content type
 func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
@@ -121,10 +124,15 @@ func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams m
 }
 
 func getScheme(req *http.Request) string {
-	var xForwardedProtoHeader = req.Header.Get("X-Forwarded-Proto")
+	var forwardedHeader = req.Header.Get("Forwarded")
 
-	if xForwardedProtoHeader != "" {
-		return xForwardedProtoHeader
+	if forwardedHeader != "" {
+		// match should contain at least two elements if the protocol was specified in the Forwarded header.
+		//The first element will always be the 'proto=' capture, which we ignore.
+		// In the case of multiple proto parameters we only extract the first.
+		if match := protoRegex.FindStringSubmatch(forwardedHeader); len(match) > 1 {
+			return strings.ToLower(match[1])
+		}
 	}
 
 	if req.TLS == nil {

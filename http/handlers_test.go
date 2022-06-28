@@ -179,11 +179,11 @@ func checkInvalidPathParameter(t *testing.T, url string) {
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 }
 
-func genericTestDecodeRequest(ctx context.Context, tls *tls.ConnectionState, xFwdProto *string, rawQuery string) (map[string]string, error) {
-	return genericTestDecodeRequestWithHeader(ctx, tls, xFwdProto, rawQuery, nil)
+func genericTestDecodeRequest(ctx context.Context, tls *tls.ConnectionState, forwarded *string, rawQuery string) (map[string]string, error) {
+	return genericTestDecodeRequestWithHeader(ctx, tls, forwarded, rawQuery, nil)
 }
 
-func genericTestDecodeRequestWithHeader(ctx context.Context, tls *tls.ConnectionState, xFwdProto *string, rawQuery string, headers map[string]string) (map[string]string, error) {
+func genericTestDecodeRequestWithHeader(ctx context.Context, tls *tls.ConnectionState, forwarded *string, rawQuery string, headers map[string]string) (map[string]string, error) {
 	input := "the body"
 	var req http.Request
 	var url url.URL
@@ -191,8 +191,8 @@ func genericTestDecodeRequestWithHeader(ctx context.Context, tls *tls.Connection
 	req.Host = "localhost"
 	req.TLS = tls
 	req.Header = make(http.Header)
-	if xFwdProto != nil {
-		req.Header.Set("X-Forwarded-Proto", *xFwdProto)
+	if forwarded != nil {
+		req.Header.Set("Forwarded", *forwarded)
 	}
 	req.Body = ioutil.NopCloser(bytes.NewBufferString(input))
 	req.URL = &url
@@ -247,14 +247,14 @@ func TestDecodeRequestHTTPS(t *testing.T) {
 }
 
 func TestDecodeRequestForwardProto(t *testing.T) {
-	proto := "ftp"
+	forwardedHeader := "for=192.0.2.60;proto=http;by=203.0.113.43"
 
-	request, _ := genericTestDecodeRequest(context.Background(), nil, &proto, "")
+	request, _ := genericTestDecodeRequest(context.Background(), nil, &forwardedHeader, "")
 
 	// Minimum parameters are scheme, host and body
 	assert.Equal(t, 3, len(request))
 	assert.Equal(t, "localhost", request["host"])
-	assert.Equal(t, proto, request["scheme"])
+	assert.Equal(t, "http", request["scheme"])
 	assert.Equal(t, "the body", request["body"])
 }
 
