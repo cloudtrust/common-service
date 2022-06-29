@@ -128,7 +128,7 @@ func getScheme(req *http.Request) string {
 
 	if forwardedHeader != "" {
 		// match should contain at least two elements if the protocol was specified in the Forwarded header.
-		//The first element will always be the 'proto=' capture, which we ignore.
+		// The first match (match[0]) will always be the 'proto=' capture, which we ignore.
 		// In the case of multiple proto parameters we only extract the first.
 		if match := protoRegex.FindStringSubmatch(forwardedHeader); len(match) > 1 {
 			return strings.ToLower(match[1])
