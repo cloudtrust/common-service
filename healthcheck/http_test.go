@@ -10,7 +10,7 @@ import (
 
 func TestHTTPHealth(t *testing.T) {
 	{
-		var checker = newHTTPEndpointChecker("github", "http://www.github.com/", 10*time.Second, 200, 10*time.Second)
+		var checker = newHTTPEndpointChecker("github", "https://github.com/", 10*time.Second, 200, 10*time.Second)
 		var status = checker.CheckStatus()
 		assert.Equal(t, *status.State, "UP")
 		assert.Nil(t, status.Message)
@@ -21,7 +21,7 @@ func TestHTTPHealth(t *testing.T) {
 	}
 
 	{
-		var checker = newHTTPEndpointChecker("dummy", "http://dummy.server.elca.ch/", 10*time.Second, 200, 10*time.Second)
+		var checker = newHTTPEndpointChecker("dummy", "https://dummy.server.elca.ch/", 10*time.Second, 200, 10*time.Second)
 		var status = checker.CheckStatus()
 		assert.Equal(t, *status.State, "DOWN")
 		assert.NotNil(t, status.Message)
@@ -29,7 +29,7 @@ func TestHTTPHealth(t *testing.T) {
 	}
 
 	{
-		var checker = newHTTPEndpointChecker("dummy", "http://www.elca.ch/not/found", 10*time.Second, 200, 10*time.Second)
+		var checker = newHTTPEndpointChecker("dummy", "https://www.elca.ch/not/found", 10*time.Second, 200, 10*time.Second)
 		var status = checker.CheckStatus()
 		assert.Equal(t, *status.State, "DOWN")
 		assert.NotNil(t, status.Message)
