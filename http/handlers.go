@@ -16,6 +16,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// StatusCreated let handlers return a HTTP Created (201) with the given location in headers
+type StatusCreated struct {
+	Location string
+}
+
+// StatusNoContent let handlers return a HTTP NoContent (204)
+type StatusNoContent struct {
+}
+
 // MimeContent defines a mime content for HTTP responses
 type MimeContent struct {
 	Filename string
@@ -152,6 +161,13 @@ func EncodeReply(_ context.Context, w http.ResponseWriter, rep interface{}) erro
 	switch e := rep.(type) {
 	case GenericResponse:
 		e.WriteResponse(w)
+	case StatusCreated:
+		if e.Location != "" {
+			w.Header().Set("Location", e.Location)
+		}
+		w.WriteHeader(http.StatusCreated)
+	case StatusNoContent:
+		w.WriteHeader(http.StatusNoContent)
 	default:
 		writeJSON(rep, w, http.StatusOK)
 	}
