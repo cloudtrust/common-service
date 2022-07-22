@@ -27,6 +27,7 @@ type Validator interface {
 	ValidateParameterIntBetween(prmName string, value *int, min, max int, mandatory bool) Validator
 	ValidateParameterDate(prmName string, value *string, dateLayout string, mandatory bool) Validator
 	ValidateParameterDateMultipleLayout(prmName string, value *string, dateLayout []string, mandatory bool) Validator
+	ValidateParameterDateAfterMultipleLayout(prmName string, value *string, dateLayout []string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateAfter(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateBefore(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateBetween(prmName string, value *string, dateLayout string, refAfter time.Time, refBetween time.Time, mandatory bool) Validator
@@ -158,6 +159,10 @@ func (v *successValidator) ValidateParameterDateMultipleLayout(prmName string, v
 	return v.validateParameterDate(prmName, value, dateLayout, nil, nil, mandatory)
 }
 
+func (v *successValidator) ValidateParameterDateAfterMultipleLayout(prmName string, value *string, dateLayout []string, reference time.Time, mandatory bool) Validator {
+	return v.validateParameterDate(prmName, value, dateLayout, &reference, nil, mandatory)
+}
+
 func (v *successValidator) ValidateParameterDateAfter(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator {
 	return v.validateParameterDate(prmName, value, []string{dateLayout}, &reference, nil, mandatory)
 }
@@ -272,6 +277,10 @@ func (v *failedValidator) ValidateParameterDate(_ string, _ *string, _ string, _
 }
 
 func (v *failedValidator) ValidateParameterDateMultipleLayout(prmName string, value *string, dateLayout []string, mandatory bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterDateAfterMultipleLayout(prmName string, value *string, dateLayout []string, reference time.Time, mandatory bool) Validator {
 	return v
 }
 
