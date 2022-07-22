@@ -1,8 +1,5 @@
 package http
 
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/responsewriter.go -package=mock -mock_names=ResponseWriter=ResponseWriter net/http ResponseWriter
-//go:generate mockgen --build_flags=--mod=mod -destination=./mock/detailederr.go -package=mock -mock_names=DetailedError=DetailedError github.com/cloudtrust/common-service/v2/errors DetailedError
-
 import (
 	"bytes"
 	"context"
@@ -285,59 +282,58 @@ func TestDecodeRequestWithHeaders(t *testing.T) {
 	assert.Equal(t, auth, request["Authorization"])
 }
 
-func TestEncodeReplyNilResponse(t *testing.T) {
+func TestEncodeReply(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
 
 	mockRespWriter := mock.NewResponseWriter(mockCtrl)
 
-	// Nil response
-	{
-		mockRespWriter.EXPECT().WriteHeader(http.StatusOK).Times(1)
-		mockRespWriter.EXPECT().Header().Times(0)
+	t.Run("Nil response", func(t *testing.T) {
+		mockRespWriter.EXPECT().WriteHeader(http.StatusOK)
 		assert.Nil(t, EncodeReply(context.Background(), mockRespWriter, nil))
-	}
-}
-
-func TestEncodeReplyJsonableResponse(t *testing.T) {
-	var mockCtrl = gomock.NewController(t)
-	defer mockCtrl.Finish()
-
-	mockRespWriter := mock.NewResponseWriter(mockCtrl)
-
-	// JSON serializable response
-	{
+	})
+	t.Run("NoContent response", func(t *testing.T) {
+		mockRespWriter.EXPECT().WriteHeader(http.StatusNoContent)
+		assert.Nil(t, EncodeReply(context.Background(), mockRespWriter, StatusNoContent{}))
+	})
+	t.Run("Created without location response", func(t *testing.T) {
+		mockRespWriter.EXPECT().WriteHeader(http.StatusCreated)
+		assert.Nil(t, EncodeReply(context.Background(), mockRespWriter, StatusCreated{}))
+	})
+	t.Run("Created with location response", func(t *testing.T) {
+		var location = "http://localhost/path/to/new/resource"
+		headers := make(http.Header)
+		gomock.InOrder(
+			mockRespWriter.EXPECT().Header().Return(headers),
+			mockRespWriter.EXPECT().WriteHeader(http.StatusCreated),
+		)
+		assert.Nil(t, EncodeReply(context.Background(), mockRespWriter, StatusCreated{Location: location}))
+		assert.Len(t, headers, 1)
+		assert.Equal(t, location, headers["Location"][0])
+	})
+	t.Run("JSON serializable response", func(t *testing.T) {
 		headers := make(http.Header)
 		resp := map[string]string{"key1": "value1", "key2": "value2"}
 		json, _ := json.MarshalIndent(resp, "", " ")
-
-		mockRespWriter.EXPECT().WriteHeader(http.StatusOK).Times(1)
-		mockRespWriter.EXPECT().Header().Return(headers).Times(1)
-		mockRespWriter.EXPECT().Write(json).Times(1)
-
+		gomock.InOrder(
+			mockRespWriter.EXPECT().Header().Return(headers),
+			mockRespWriter.EXPECT().WriteHeader(http.StatusOK),
+			mockRespWriter.EXPECT().Write(json),
+		)
 		assert.Nil(t, EncodeReply(context.Background(), mockRespWriter, resp))
-		assert.Equal(t, 1, len(headers))
-	}
-}
-
-func TestEncodeReplyNonJsonableResponse(t *testing.T) {
-	var mockCtrl = gomock.NewController(t)
-	defer mockCtrl.Finish()
-
-	mockRespWriter := mock.NewResponseWriter(mockCtrl)
-
-	// Non-JSON serializable response
-	{
+		assert.Len(t, headers, 1)
+		assert.Equal(t, "application/json; charset=utf-8", headers["Content-Type"][0])
+	})
+	t.Run("Non-JSON serializable response", func(t *testing.T) {
 		headers := make(http.Header)
 		var resp nonJsonable
 
-		mockRespWriter.EXPECT().WriteHeader(http.StatusOK).Times(1)
-		mockRespWriter.EXPECT().Header().Return(headers).Times(1)
-		mockRespWriter.EXPECT().Write(gomock.Any()).Times(0)
+		mockRespWriter.EXPECT().WriteHeader(http.StatusOK)
+		mockRespWriter.EXPECT().Header().Return(headers)
 
 		assert.Nil(t, EncodeReply(context.Background(), mockRespWriter, resp))
 		assert.Equal(t, 1, len(headers))
-	}
+	})
 }
 
 func TestErrorHandler(t *testing.T) {
@@ -347,8 +343,8 @@ func TestErrorHandler(t *testing.T) {
 	mockRespWriter := mock.NewResponseWriter(mockCtrl)
 
 	t.Run("ForbiddenError", func(t *testing.T) {
-		mockRespWriter.EXPECT().WriteHeader(http.StatusForbidden).Times(1)
-		mockRespWriter.EXPECT().Write(gomock.Any()).Times(1)
+		mockRespWriter.EXPECT().WriteHeader(http.StatusForbidden)
+		mockRespWriter.EXPECT().Write(gomock.Any())
 		ErrorHandlerNoLog()(context.Background(), security.ForbiddenError{}, mockRespWriter)
 	})
 	t.Run("HTTPError", func(t *testing.T) {
@@ -356,8 +352,8 @@ func TestErrorHandler(t *testing.T) {
 			Status:  123,
 			Message: "abc",
 		}
-		mockRespWriter.EXPECT().WriteHeader(err.Status).Times(1)
-		mockRespWriter.EXPECT().Write([]byte(err.Message)).Times(1)
+		mockRespWriter.EXPECT().WriteHeader(err.Status)
+		mockRespWriter.EXPECT().Write([]byte(err.Message))
 		ErrorHandlerNoLog()(context.Background(), err, mockRespWriter)
 	})
 	t.Run("DetailedError", func(t *testing.T) {
@@ -366,18 +362,17 @@ func TestErrorHandler(t *testing.T) {
 		var message = "error.message"
 		mockError.EXPECT().Status().Return(status)
 		mockError.EXPECT().ErrorMessage().Return(message)
-		mockRespWriter.EXPECT().WriteHeader(status).Times(1)
-		mockRespWriter.EXPECT().Write([]byte(message)).Times(1)
+		mockRespWriter.EXPECT().WriteHeader(status)
+		mockRespWriter.EXPECT().Write([]byte(message))
 		ErrorHandlerNoLog()(context.Background(), mockError, mockRespWriter)
 	})
 	t.Run("ratelimit.ErrLimited", func(t *testing.T) {
-		mockRespWriter.EXPECT().WriteHeader(http.StatusTooManyRequests).Times(1)
-		mockRespWriter.EXPECT().Write(gomock.Any()).Times(0)
+		mockRespWriter.EXPECT().WriteHeader(http.StatusTooManyRequests)
 		ErrorHandlerNoLog()(context.Background(), ratelimit.ErrLimited, mockRespWriter)
 	})
 	t.Run("Internal server error", func(t *testing.T) {
 		message := "500"
-		mockRespWriter.EXPECT().WriteHeader(http.StatusInternalServerError).Times(1)
+		mockRespWriter.EXPECT().WriteHeader(http.StatusInternalServerError)
 		ErrorHandlerNoLog()(context.Background(), errors.New(message), mockRespWriter)
 	})
 }
