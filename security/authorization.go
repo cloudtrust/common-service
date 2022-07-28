@@ -23,7 +23,7 @@ func (a Action) String() string {
 type Service int
 
 const (
-	BridgeService = iota
+	BridgeService Service = iota
 	EventService
 	IDNowService
 	PaperCardService
@@ -36,7 +36,7 @@ const (
 type API int
 
 const (
-	CommunicationAPI = iota
+	CommunicationAPI API = iota
 	EventsAPI
 	KycAPI
 	ManagementAPI
