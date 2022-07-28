@@ -24,6 +24,7 @@ type Service int
 
 const (
 	BridgeService = iota
+	EventService
 	IDNowService
 	PaperCardService
 	SchedulerService
