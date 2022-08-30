@@ -15,7 +15,8 @@ type FieldsComparator interface {
 	CompareValueAndFunctionForUpdate(field Field, newValue *string, oldValueFunc func(Field) []string) FieldsComparator
 	CompareOptionalAndFunction(field Field, newValue csjson.OptionalString, oldValueFunc func(Field) []string) FieldsComparator
 
-	IsAnyFieldUpdated(fields ...Field) bool
+	IsAnyFieldsUpdated(fields ...Field) bool
+	IsFieldUpdated(field Field) bool
 	AreAllFieldsUpdated(fields ...Field) bool
 	UpdatedFields() []string
 }
@@ -72,7 +73,7 @@ func (fc *fieldsComparator) CompareValueAndFunction(field Field, newValue *strin
 
 func (fc *fieldsComparator) CompareValueAndFunctionForUpdate(field Field, newValue *string, oldValueFunc func(Field) []string) FieldsComparator {
 	if newValue == nil {
-		// Nothing to updated
+		// Nothing to update
 		return fc
 	}
 	return fc.CompareValueAndFunction(field, newValue, oldValueFunc)
@@ -80,7 +81,7 @@ func (fc *fieldsComparator) CompareValueAndFunctionForUpdate(field Field, newVal
 
 func (fc *fieldsComparator) CompareOptionalAndFunction(field Field, newValue csjson.OptionalString, oldValueFunc func(Field) []string) FieldsComparator {
 	if !newValue.Defined {
-		// Nothing to updated
+		// Nothing to update
 		return fc
 	}
 	return fc.CompareValueAndFunction(field, newValue.Value, oldValueFunc)
@@ -88,7 +89,7 @@ func (fc *fieldsComparator) CompareOptionalAndFunction(field Field, newValue csj
 
 // Return true if one of the given fields has been updated...
 // If no field is provided in parameters, just check if any field has been updated
-func (fc *fieldsComparator) IsAnyFieldUpdated(fields ...Field) bool {
+func (fc *fieldsComparator) IsAnyFieldsUpdated(fields ...Field) bool {
 	if len(fields) == 0 {
 		return len(fc.updatedFields) > 0
 	}
@@ -98,6 +99,11 @@ func (fc *fieldsComparator) IsAnyFieldUpdated(fields ...Field) bool {
 		}
 	}
 	return false
+}
+
+func (fc *fieldsComparator) IsFieldUpdated(field Field) bool {
+	_, ok := fc.updatedFields[field]
+	return ok
 }
 
 func (fc *fieldsComparator) AreAllFieldsUpdated(fields ...Field) bool {
