@@ -15,7 +15,7 @@ type FieldsComparator interface {
 	CompareValueAndFunctionForUpdate(field Field, newValue *string, oldValueFunc func(Field) []string) FieldsComparator
 	CompareOptionalAndFunction(field Field, newValue csjson.OptionalString, oldValueFunc func(Field) []string) FieldsComparator
 
-	IsAnyFieldsUpdated(fields ...Field) bool
+	IsAnyFieldUpdated(fields ...Field) bool
 	IsFieldUpdated(field Field) bool
 	AreAllFieldsUpdated(fields ...Field) bool
 	UpdatedFields() []string
@@ -89,7 +89,7 @@ func (fc *fieldsComparator) CompareOptionalAndFunction(field Field, newValue csj
 
 // Return true if one of the given fields has been updated...
 // If no field is provided in parameters, just check if any field has been updated
-func (fc *fieldsComparator) IsAnyFieldsUpdated(fields ...Field) bool {
+func (fc *fieldsComparator) IsAnyFieldUpdated(fields ...Field) bool {
 	if len(fields) == 0 {
 		return len(fc.updatedFields) > 0
 	}

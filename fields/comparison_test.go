@@ -36,8 +36,8 @@ func TestFieldsComparator(t *testing.T) {
 		})
 		t.Run("Case sensitivity", func(t *testing.T) {
 			var uppercaseValue1 = strings.ToUpper(value1)
-			assert.True(t, NewFieldsComparator().CaseSensitive(true).CompareValues(fieldEmail, &value1, &uppercaseValue1).IsAnyFieldsUpdated())
-			assert.False(t, NewFieldsComparator().CaseSensitive(false).CompareValues(fieldEmail, &value1, &uppercaseValue1).IsAnyFieldsUpdated())
+			assert.True(t, NewFieldsComparator().CaseSensitive(true).CompareValues(fieldEmail, &value1, &uppercaseValue1).IsAnyFieldUpdated())
+			assert.False(t, NewFieldsComparator().CaseSensitive(false).CompareValues(fieldEmail, &value1, &uppercaseValue1).IsAnyFieldUpdated())
 		})
 	})
 	t.Run("CompareValueAndFunction", func(t *testing.T) {
@@ -93,10 +93,10 @@ func TestUpdateFunctions(t *testing.T) {
 		assert.False(t, comparator.AreAllFieldsUpdated(BirthDate, Email, BusinessID))
 		assert.True(t, comparator.AreAllFieldsUpdated(FirstName, Email))
 	})
-	t.Run("IsAnyFieldsUpdated", func(t *testing.T) {
-		assert.False(t, comparator.IsAnyFieldsUpdated(BirthDate, BusinessID))
-		assert.True(t, comparator.IsAnyFieldsUpdated(BirthDate, Email, BusinessID))
-		assert.True(t, comparator.IsAnyFieldsUpdated(FirstName, Email))
+	t.Run("IsAnyFieldUpdated", func(t *testing.T) {
+		assert.False(t, comparator.IsAnyFieldUpdated(BirthDate, BusinessID))
+		assert.True(t, comparator.IsAnyFieldUpdated(BirthDate, Email, BusinessID))
+		assert.True(t, comparator.IsAnyFieldUpdated(FirstName, Email))
 	})
 	t.Run("UpdatedFields", func(t *testing.T) {
 		assert.Len(t, comparator.UpdatedFields(), 2)
