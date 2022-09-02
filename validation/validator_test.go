@@ -211,6 +211,7 @@ func TestValidateParameterDate(t *testing.T) {
 	var invalidDate = "57.13.2017"
 	var alternateFormatDate = "2020/04/12"
 	var summer = "21.06.2020"
+	var summerAltFormat = "2020/06/21"
 	var easter, _ = time.Parse(dateLayout, "12.04.2020")
 	var halloween, _ = time.Parse(dateLayout, "31.10.2020")
 	var notBetween = "30.07.2019"
@@ -230,6 +231,14 @@ func TestValidateParameterDate(t *testing.T) {
 	t.Run("Multiple layouts", func(t *testing.T) {
 		assert.NotNil(t, NewParameterValidator().ValidateParameterDate("param", &alternateFormatDate, dateLayout, true).Status())
 		assert.Nil(t, NewParameterValidator().ValidateParameterDateMultipleLayout("param", &alternateFormatDate, multipleLayouts, true).Status())
+	})
+	t.Run("Multiple layouts-After", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterDate("param", &alternateFormatDate, dateLayout, true).Status())
+		assert.Nil(t, NewParameterValidator().ValidateParameterDateAfterMultipleLayout("param", &summerAltFormat, multipleLayouts, easter, true).Status())
+	})
+	t.Run("Multiple layouts-Not after", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterDate("param", &alternateFormatDate, dateLayout, true).Status())
+		assert.NotNil(t, NewParameterValidator().ValidateParameterDateAfterMultipleLayout("param", &summerAltFormat, multipleLayouts, halloween, true).Status())
 	})
 	t.Run("After", func(t *testing.T) {
 		assert.Nil(t, NewParameterValidator().ValidateParameterDateAfter("param", &summer, dateLayout, easter, true).Status())
@@ -254,6 +263,9 @@ func TestValidateParameterDate(t *testing.T) {
 	})
 	t.Run("Valid check after failed validation-DateMultipleLayout", func(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterDateMultipleLayout("param", nil, multipleLayouts, false).Status())
+	})
+	t.Run("Valid check after failed validation-DateMultipleLayoutAfter", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterDateAfterMultipleLayout("param", nil, multipleLayouts, easter, false).Status())
 	})
 	t.Run("Valid check after failed validation-After", func(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterDateAfter("param", nil, dateLayout, easter, false).Status())
