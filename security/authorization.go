@@ -1,382 +1,5 @@
 package security
 
-import (
-	"context"
-	"encoding/json"
-	"net/http"
-	"strings"
-
-	cs "github.com/cloudtrust/common-service/v2"
-	"github.com/cloudtrust/common-service/v2/configuration"
-	errorhandler "github.com/cloudtrust/common-service/v2/errors"
-	"github.com/cloudtrust/common-service/v2/log"
-	"github.com/pkg/errors"
-)
-
-// AppendActionNames appends name of actions to a name slice
-func AppendActionNames(names []string, actions ...[]Action) []string {
-	for _, actionSet := range actions {
-		for _, action := range actionSet {
-			names = append(names, action.Name)
-		}
-	}
-	return names
-}
-
-func (am *authorizationManager) CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error {
-	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
-
-	infos, _ := json.Marshal(map[string]string{
-		"ThrownBy":    "CheckAuthorizationOnTargetUser",
-		"Action":      action,
-		"targetRealm": targetRealm,
-		"userID":      userID,
-	})
-
-	// Retrieve the group of the target user
-
-	var groupsRep []string
-	var err error
-	if groupsRep, err = am.keycloakClient.GetGroupNamesOfUser(ctx, accessToken, targetRealm, userID); err != nil {
-		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "infos", string(infos))
-		return suggestForbiddenError(err)
-	}
-
-	return am.checkAuthorizationOnUserGroups(ctx, action, targetRealm, groupsRep, infos)
-}
-
-func (am *authorizationManager) CheckAuthorizationOnSelfUser(ctx context.Context, action string) error {
-	var targetRealm = ctx.Value(cs.CtContextRealm).(string)
-	var userID = ctx.Value(cs.CtContextUserID).(string)
-
-	infos, _ := json.Marshal(map[string]string{
-		"ThrownBy":    "CheckAuthorizationOnSelfUser",
-		"Action":      action,
-		"targetRealm": targetRealm,
-		"userID":      userID,
-	})
-
-	// Target user is the owner of the token: groups can be found in context
-	var groupsRep = ctx.Value(cs.CtContextGroups).([]string)
-	return am.checkAuthorizationOnUserGroups(ctx, action, targetRealm, groupsRep, infos)
-}
-
-func (am *authorizationManager) checkAuthorizationOnUserGroups(ctx context.Context, action, targetRealm string, groupsRep []string, infos []byte) error {
-	if len(groupsRep) == 0 {
-		// No groups assigned, nothing allowed
-		am.logger.Info(ctx, "msg", "ForbiddenError: No groups assigned to this user, nothing allowed", "infos", string(infos))
-		return ForbiddenError{}
-	}
-
-	for _, targetGroup := range groupsRep {
-		if am.CheckAuthorizationOnTargetGroup(ctx, action, targetRealm, targetGroup) == nil {
-			return nil
-		}
-	}
-
-	am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to perform the action on user with such groups", "infos", string(infos))
-	return ForbiddenError{}
-}
-
-func (am *authorizationManager) CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error {
-	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
-	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
-	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
-
-	infos, _ := json.Marshal(map[string]string{
-		"ThrownBy":      "CheckAuthorizationOnTargetGroupID",
-		"Action":        action,
-		"targetRealm":   targetRealm,
-		"targetGroupID": targetGroupID,
-		"currentRealm":  currentRealm,
-		"currentGroups": strings.Join(currentGroups, "|"),
-	})
-
-	// Retrieve the name of the target group
-	var err error
-	var targetGroup string
-	if targetGroup, err = am.keycloakClient.GetGroupName(ctx, accessToken, targetRealm, targetGroupID); err != nil {
-		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "infos", string(infos))
-		return suggestForbiddenError(err)
-	}
-
-	if targetGroup == "" {
-		am.logger.Info(ctx, "msg", "ForbiddenError: Group not found", "infos", string(infos))
-		return ForbiddenError{}
-	}
-
-	return am.CheckAuthorizationOnTargetGroup(ctx, action, targetRealm, targetGroup)
-}
-func (am *authorizationManager) CheckAuthorizationForGroupsOnTargetGroup(realm string, groups []string, action, targetRealm, targetGroup string) error {
-	for _, group := range groups {
-		if authz, ok := (*am.authorizations)[realm][group][action]; ok && am.currentGroupAllowedForTargetGroup(authz, targetRealm, targetGroup) {
-			return nil
-		}
-	}
-
-	return ForbiddenError{}
-}
-
-func (am *authorizationManager) CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error {
-	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
-	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
-
-	err := am.CheckAuthorizationForGroupsOnTargetGroup(currentRealm, currentGroups, action, targetRealm, targetGroup)
-
-	if err != nil {
-		infos, _ := json.Marshal(map[string]string{
-			"ThrownBy":      "CheckAuthorizationOnTargetGroup",
-			"Action":        action,
-			"targetRealm":   targetRealm,
-			"targetGroup":   targetGroup,
-			"currentRealm":  currentRealm,
-			"currentGroups": strings.Join(currentGroups, "|"),
-		})
-		am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to perform the action on this group", "infos", string(infos))
-	}
-	return err
-}
-
-func (am *authorizationManager) currentGroupAllowedForTargetGroup(authz map[string]map[string]struct{}, targetRealm, targetGroup string) bool {
-	if targetGroupAllowed, wildcard := authz["*"]; wildcard {
-		_, allGroupsAllowed := targetGroupAllowed["*"]
-		_, groupAllowed := targetGroupAllowed[targetGroup]
-
-		if allGroupsAllowed || groupAllowed {
-			return true
-		}
-	}
-
-	if targetGroupAllowed, nonMasterRealmAllowed := authz["/"]; targetRealm != "master" && nonMasterRealmAllowed {
-		_, allGroupsAllowed := targetGroupAllowed["*"]
-		_, groupAllowed := targetGroupAllowed[targetGroup]
-
-		if allGroupsAllowed || groupAllowed {
-			return true
-		}
-	}
-
-	if targetGroupAllowed, realmAllowed := authz[targetRealm]; realmAllowed {
-		_, allGroupsAllowed := targetGroupAllowed["*"]
-		_, groupAllowed := targetGroupAllowed[targetGroup]
-
-		if allGroupsAllowed || groupAllowed {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (am *authorizationManager) CheckAuthorizationForGroupsOnTargetRealm(realm string, groups []string, action, targetRealm string) error {
-	for _, group := range groups {
-		_, wildcard := (*am.authorizations)[realm][group][action]["*"]
-		_, nonMasterRealmAllowed := (*am.authorizations)[realm][group][action]["/"]
-		_, realmAllowed := (*am.authorizations)[realm][group][action][targetRealm]
-
-		if wildcard || realmAllowed || (targetRealm != "master" && nonMasterRealmAllowed) {
-			return nil
-		}
-	}
-
-	return ForbiddenError{}
-}
-
-func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Context, action, targetRealm string) error {
-	var currentRealm = ctx.Value(cs.CtContextRealm).(string)
-	var currentGroups = ctx.Value(cs.CtContextGroups).([]string)
-
-	err := am.CheckAuthorizationForGroupsOnTargetRealm(currentRealm, currentGroups, action, targetRealm)
-
-	if err != nil {
-		infos, _ := json.Marshal(map[string]string{
-			"ThrownBy":      "CheckAuthorizationOnTargetRealm",
-			"Action":        action,
-			"targetRealm":   targetRealm,
-			"currentRealm":  currentRealm,
-			"currentGroups": strings.Join(currentGroups, "|"),
-		})
-		am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to perform the action on this realm", "infos", string(infos))
-	}
-	return err
-}
-
-// GetRightsOfCurrentUser returns the matrix rights of the current user
-func (am *authorizationManager) GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{} {
-	var currentRealm string
-	var currentGroups = []string{}
-	var currentRealmVal = ctx.Value(cs.CtContextRealm)
-	var currentGroupsVal = ctx.Value(cs.CtContextGroups)
-
-	if currentRealmVal != nil {
-		currentRealm = currentRealmVal.(string)
-	}
-
-	if currentGroupsVal != nil {
-		currentGroups = currentGroupsVal.([]string)
-	}
-
-	//3 dimensions table to express authorizations (group_of_user, action, target_realm) -> target_group for which the action is allowed
-	// We keep group_of_user as a user may be part of multiple groups
-	var rights = map[string]map[string]map[string]map[string]struct{}{}
-
-	for _, group := range currentGroups {
-		rightsForGroup, exist := (*am.authorizations)[currentRealm][group]
-
-		if exist {
-			rights[group] = rightsForGroup
-		}
-	}
-
-	return rights
-}
-
-func suggestForbiddenError(err error) error {
-	// Caller is suggesting to return a forbidden error except if err is an Unauthorized one
-	switch e := errors.Cause(err).(type) {
-	case errorhandler.DetailedError:
-		if e.Status() == http.StatusUnauthorized {
-			return err
-		}
-	}
-	return ForbiddenError{}
-}
-
-// ForbiddenError when an operation is not permitted.
-type ForbiddenError struct{}
-
-func (e ForbiddenError) Error() string {
-	return "ForbiddenError: Operation not permitted"
-}
-
-// AuthorizationsMatrix data structure
-// 4 dimensions table to express authorizations (realm_of_user, group_of_user, action, target_realm) -> target_group for which the action is allowed
-type AuthorizationsMatrix map[string]map[string]map[string]map[string]map[string]struct{}
-
-// LoadAuthorizations loads the authorization JSON into the data structure
-// Authorization matrix is a 4 dimensions table :
-//   - realm_of_user
-//   - role_of_user
-//   - action
-//   - target_realm
-// -> target_groups for which the action is allowed
-//
-// Note:
-//   '*' can be used to express all target realms
-//   '/' can be used to express all non master realms
-//   '*' can be used to express all target groups are allowed
-func (am *authorizationManager) ReloadAuthorizations(ctx context.Context) error {
-	authorizations, err := am.authorizationDBReader.GetAuthorizations(context.Background())
-	if err != nil {
-		return err
-	}
-
-	var matrix = make(AuthorizationsMatrix)
-
-	for _, authz := range authorizations {
-		// Realm of user
-		if _, ok := matrix[*authz.RealmID]; !ok {
-			matrix[*authz.RealmID] = make(map[string]map[string]map[string]map[string]struct{})
-		}
-
-		// Group of user
-		if _, ok := matrix[*authz.RealmID][*authz.GroupName]; !ok {
-			matrix[*authz.RealmID][*authz.GroupName] = make(map[string]map[string]map[string]struct{})
-		}
-
-		// Action
-		if _, ok := matrix[*authz.RealmID][*authz.GroupName][*authz.Action]; !ok {
-			matrix[*authz.RealmID][*authz.GroupName][*authz.Action] = make(map[string]map[string]struct{})
-		}
-
-		// Target Realm
-		if authz.TargetRealmID == nil {
-			continue
-		}
-
-		if _, ok := matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID]; !ok {
-			matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID] = make(map[string]struct{})
-		}
-
-		// Target Group
-		if authz.TargetGroupName == nil {
-			continue
-		}
-
-		matrix[*authz.RealmID][*authz.GroupName][*authz.Action][*authz.TargetRealmID][*authz.TargetGroupName] = struct{}{}
-	}
-
-	am.authorizations = &matrix
-
-	return nil
-}
-
-type authorizationManager struct {
-	authorizations        *AuthorizationsMatrix
-	authorizationDBReader AuthorizationDBReader
-	keycloakClient        KeycloakClient
-	logger                log.Logger
-}
-
-// KeycloakClient is the minimum interface required to access Keycloak
-type KeycloakClient interface {
-	GetGroupNamesOfUser(ctx context.Context, accessToken string, realmName, userID string) ([]string, error)
-	GetGroupName(ctx context.Context, accessToken string, realmName, groupID string) (string, error)
-}
-
-// AuthorizationDBReader interface
-type AuthorizationDBReader interface {
-	GetAuthorizations(context.Context) ([]configuration.Authorization, error)
-}
-
-// AuthorizationManager interface
-type AuthorizationManager interface {
-	CheckAuthorizationForGroupsOnTargetRealm(realm string, groups []string, action, targetRealm string) error
-	CheckAuthorizationForGroupsOnTargetGroup(realm string, groups []string, action, targetRealm, targetGroup string) error
-	CheckAuthorizationOnTargetRealm(ctx context.Context, action, targetRealm string) error
-	CheckAuthorizationOnTargetGroup(ctx context.Context, action, targetRealm, targetGroup string) error
-	CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error
-	CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error
-	CheckAuthorizationOnSelfUser(ctx context.Context, action string) error
-	GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{}
-	ReloadAuthorizations(ctx context.Context) error
-}
-
-// Authorizations data structure
-
-// NewAuthorizationManager loads the authorization from DB into a cache data structure and create an AuthorizationManager instance.
-// Authorization matrix is a 4 dimensions table :
-//   - realm_of_user
-//   - role_of_user
-//   - action
-//   - target_realm
-// -> target_groups for which the action is allowed
-//
-// Note:
-//   '*' can be used to express all target realms
-//   '/' can be used to express all non master realms
-//   '*' can be used to express all target groups are allowed
-func NewAuthorizationManager(authorizationDBReader AuthorizationDBReader, keycloakClient KeycloakClient, logger log.Logger) (AuthorizationManager, error) {
-	var manager = &authorizationManager{
-		authorizationDBReader: authorizationDBReader,
-		keycloakClient:        keycloakClient,
-		logger:                logger,
-	}
-
-	err := manager.ReloadAuthorizations(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	return manager, nil
-}
-
-// Action type
-type Action struct {
-	Name  string
-	Scope Scope
-}
-
 // Scope type
 type Scope string
 
@@ -387,6 +10,254 @@ var (
 	ScopeGroup  = Scope("group")
 )
 
+// Action type
+type Action struct {
+	Name  string
+	Scope Scope
+}
+
 func (a Action) String() string {
 	return a.Name
 }
+
+type Service int
+
+const (
+	BridgeService Service = iota
+	EventService
+	IDNowService
+	PaperCardService
+	SchedulerService
+	SignatureService
+	VoucherService
+	AccreditationService
+)
+
+type API int
+
+const (
+	CommunicationAPI API = iota
+	EventsAPI
+	KycAPI
+	ManagementAPI
+	StatisticAPI
+	TaskAPI
+	VideoCheckAPI
+	CardsAPI
+	SchedulerAPI
+	SignatureAPI
+)
+
+type ActionsIndex struct {
+	index map[Service]map[API][]Action
+}
+
+func (a *ActionsIndex) addAction(service Service, api API, name string, scope Scope) Action {
+	action := Action{Name: name, Scope: scope}
+
+	if _, ok := a.index[service]; !ok {
+		a.index[service] = map[API][]Action{}
+	}
+
+	a.index[service][api] = append(a.index[service][api], action)
+	return action
+}
+
+func (a *ActionsIndex) GetActionsForAPIs(service Service, apis ...API) []Action {
+	var actions []Action
+	for _, api := range apis {
+		actions = append(actions, a.index[service][api]...)
+	}
+	return actions
+}
+
+func (a *ActionsIndex) GetAllActions() []Action {
+	var res []Action
+	for _, apiActions := range a.index {
+		for _, actions := range apiActions {
+			res = append(res, actions...)
+		}
+	}
+	return res
+}
+
+func (a *ActionsIndex) GetActionNamesForAPIs(service Service, apis ...API) []string {
+	var names []string
+	for _, api := range apis {
+		for _, action := range a.index[service][api] {
+			names = append(names, action.Name)
+		}
+	}
+	return names
+}
+
+func (a *ActionsIndex) GetActionNamesForService(service Service) []string {
+	var names []string
+	for _, actions := range a.index[service] {
+		for _, action := range actions {
+			names = append(names, action.Name)
+		}
+	}
+	return names
+}
+
+var Actions = ActionsIndex{index: map[Service]map[API][]Action{}}
+
+var (
+	COMSendEmail = Actions.addAction(BridgeService, CommunicationAPI, "COM_SendEmail", ScopeRealm)
+	COMSendSMS   = Actions.addAction(BridgeService, CommunicationAPI, "COM_SendSMS", ScopeRealm)
+
+	EVGetActions       = Actions.addAction(BridgeService, EventsAPI, "EV_GetActions", ScopeGlobal)
+	EVGetEvents        = Actions.addAction(BridgeService, EventsAPI, "EV_GetEvents", ScopeRealm)
+	EVGetEventsSummary = Actions.addAction(BridgeService, EventsAPI, "EV_GetEventsSummary", ScopeRealm)
+	EVGetUserEvents    = Actions.addAction(BridgeService, EventsAPI, "EV_GetUserEvents", ScopeGroup)
+
+	KYCGetActions                      = Actions.addAction(BridgeService, KycAPI, "KYC_GetActions", ScopeGlobal)
+	KYCGetUserInSocialRealm            = Actions.addAction(BridgeService, KycAPI, "KYC_GetUserInSocialRealm", ScopeRealm)
+	KYCGetUser                         = Actions.addAction(BridgeService, KycAPI, "KYC_GetUser", ScopeGroup)
+	KYCGetUserByUsernameInSocialRealm  = Actions.addAction(BridgeService, KycAPI, "KYC_GetUserByUsernameInSocialRealm", ScopeRealm)
+	KYCGetUserByUsername               = Actions.addAction(BridgeService, KycAPI, "KYC_GetUserByUsername", ScopeGroup)
+	KYCValidateUserInSocialRealm       = Actions.addAction(BridgeService, KycAPI, "KYC_ValidateUserInSocialRealm", ScopeRealm)
+	KYCValidateUser                    = Actions.addAction(BridgeService, KycAPI, "KYC_ValidateUser", ScopeGroup)
+	KYCSendSmsConsentCodeInSocialRealm = Actions.addAction(BridgeService, KycAPI, "KYC_SendSmsConsentCodeInSocialRealm", ScopeRealm)
+	KYCSendSmsConsentCode              = Actions.addAction(BridgeService, KycAPI, "KYC_SendSmsConsentCode", ScopeGroup)
+	KYCSendSmsCodeInSocialRealm        = Actions.addAction(BridgeService, KycAPI, "KYC_SendSmsCodeInSocialRealm", ScopeRealm)
+	KYCSendSmsCode                     = Actions.addAction(BridgeService, KycAPI, "KYC_SendSmsCode", ScopeGroup)
+	KYCValidateUserBasicID             = Actions.addAction(BridgeService, KycAPI, "KYC_ValidateUserBasicID", ScopeRealm) /***TO BE REMOVED WHEN MULTI-ACCREDITATION WILL BE IMPLEMENTED***/ /***TO BE REMOVED WHEN MULTI-ACCREDITATION WILL BE IMPLEMENTED***/
+
+	MGMTGetActions                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetActions", ScopeGlobal)
+	MGMTGetRealms                           = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealms", ScopeGlobal)
+	MGMTGetRealm                            = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealm", ScopeRealm)
+	MGMTGetClient                           = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetClient", ScopeRealm)
+	MGMTGetClients                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetClients", ScopeRealm)
+	MGMTGetRequiredActions                  = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRequiredActions", ScopeRealm)
+	MGMTDeleteUser                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteUser", ScopeGroup)
+	MGMTGetUser                             = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUser", ScopeGroup)
+	MGMTUpdateUser                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateUser", ScopeGroup)
+	MGMTLockUser                            = Actions.addAction(BridgeService, ManagementAPI, "MGMT_LockUser", ScopeGroup)
+	MGMTUnlockUser                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UnlockUser", ScopeGroup)
+	MGMTGetUsers                            = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUsers", ScopeGroup)
+	MGMTCreateUser                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateUser", ScopeGroup)
+	MGMTCreateUserInSocialRealm             = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateUserInSocialRealm", ScopeRealm)
+	MGMTGetUserChecks                       = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUserChecks", ScopeGroup)
+	MGMTGetUserAccountStatus                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUserAccountStatus", ScopeGroup)
+	MGMTGetUserAccountStatusByEmail         = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUserAccountStatusByEmail", ScopeRealm)
+	MGMTGetRolesOfUser                      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRolesOfUser", ScopeGroup)
+	MGMTAddRoleToUser                       = Actions.addAction(BridgeService, ManagementAPI, "MGMT_AddRoleToUser", ScopeGroup)
+	MGMTDeleteRoleForUser                   = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteRoleForUser", ScopeGroup)
+	MGMTGetGroupsOfUser                     = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetGroupsOfUser", ScopeGroup)
+	MGMTSetGroupsToUser                     = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SetGroupsToUser", ScopeGroup)
+	MGMTAssignableGroupsToUser              = Actions.addAction(BridgeService, ManagementAPI, "MGMT_AssignableGroupsToUser", ScopeGroup)
+	MGMTGetAvailableTrustIDGroups           = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetAvailableTrustIDGroups", ScopeRealm)
+	MGMTGetTrustIDGroups                    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetTrustIDGroups", ScopeGroup)
+	MGMTSetTrustIDGroups                    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SetTrustIDGroups", ScopeGroup)
+	MGMTGetClientRolesForUser               = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetClientRolesForUser", ScopeGroup)
+	MGMTAddClientRolesToUser                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_AddClientRolesToUser", ScopeGroup)
+	MGMTDeleteClientRolesFromUser           = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteClientRolesFromUser", ScopeGroup)
+	MGMTResetPassword                       = Actions.addAction(BridgeService, ManagementAPI, "MGMT_ResetPassword", ScopeGroup)
+	MGMTExecuteActionsEmail                 = Actions.addAction(BridgeService, ManagementAPI, "MGMT_ExecuteActionsEmail", ScopeGroup)
+	MGMTRevokeAccreditations                = Actions.addAction(BridgeService, ManagementAPI, "ACCR_RevokeAccreditations", ScopeGroup)
+	MGMTSendSmsCode                         = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SendSmsCode", ScopeGroup)
+	MGMTSendOnboardingEmail                 = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SendOnboardingEmail", ScopeGroup)
+	MGMTSendOnboardingEmailInSocialRealm    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SendOnboardingEmailInSocialRealm", ScopeRealm)
+	MGMTSendReminderEmail                   = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SendReminderEmail", ScopeGroup)
+	MGMTResetSmsCounter                     = Actions.addAction(BridgeService, ManagementAPI, "MGMT_ResetSmsCounter", ScopeGroup)
+	MGMTCreateRecoveryCode                  = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateRecoveryCode", ScopeGroup)
+	MGMTCreateActivationCode                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateActivationCode", ScopeGroup)
+	MGMTGetCredentialsForUser               = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetCredentialsForUser", ScopeGroup)
+	MGMTDeleteCredentialsForUser            = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteCredentialsForUser", ScopeGroup)
+	MGMTResetCredentialFailuresForUser      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_ResetCredentialFailuresForUser", ScopeGroup)
+	MGMTClearUserLoginFailures              = Actions.addAction(BridgeService, ManagementAPI, "MGMT_ClearUserLoginFailures", ScopeGroup)
+	MGMTGetAttackDetectionStatus            = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetAttackDetectionStatus", ScopeGroup)
+	MGMTGetRoles                            = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRoles", ScopeRealm)
+	MGMTGetRole                             = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRole", ScopeRealm)
+	MGMTCreateRole                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateRole", ScopeRealm)
+	MGMTUpdateRole                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRole", ScopeRealm)
+	MGMTDeleteRole                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteRole", ScopeRealm)
+	MGMTGetGroups                           = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetGroups", ScopeRealm)
+	MGMTIncludedInGetGroups                 = Actions.addAction(BridgeService, ManagementAPI, "MGMT_IncludedInGetGroups", ScopeGroup)
+	MGMTCreateGroup                         = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateGroup", ScopeRealm)
+	MGMTDeleteGroup                         = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteGroup", ScopeGroup)
+	MGMTGetAuthorizations                   = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetAuthorizations", ScopeGroup)
+	MGMTUpdateAuthorizations                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateAuthorizations", ScopeGroup)
+	MGMTAddAuthorization                    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_AddAuthorization", ScopeGroup)
+	MGMTGetAuthorization                    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetAuthorization", ScopeGroup)
+	MGMTDeleteAuthorization                 = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteAuthorization", ScopeGroup)
+	MGMTGetClientRoles                      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetClientRoles", ScopeRealm)
+	MGMTCreateClientRole                    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateClientRole", ScopeRealm)
+	MGMTDeleteClientRole                    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteClientRole", ScopeRealm)
+	MGMTGetRealmCustomConfiguration         = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmCustomConfiguration", ScopeRealm)
+	MGMTUpdateRealmCustomConfiguration      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmCustomConfiguration", ScopeRealm)
+	MGMTGetRealmAdminConfiguration          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmAdminConfiguration", ScopeRealm)
+	MGMTUpdateRealmAdminConfiguration       = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmAdminConfiguration", ScopeRealm)
+	MGMTGetRealmBackOfficeConfiguration     = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmBackOfficeConfiguration", ScopeGroup)
+	MGMTUpdateRealmBackOfficeConfiguration  = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmBackOfficeConfiguration", ScopeGroup)
+	MGMTGetUserRealmBackOfficeConfiguration = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUserRealmBackOfficeConfiguration", ScopeRealm)
+	MGMTLinkShadowUser                      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_LinkShadowUser", ScopeRealm)
+	MGMTGetIdentityProviders                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetIdentityProviders", ScopeRealm)
+
+	STGetActions                      = Actions.addAction(BridgeService, StatisticAPI, "ST_GetActions", ScopeGlobal)
+	STGetStatistics                   = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatistics", ScopeRealm)
+	STGetStatisticsIdentifications    = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsIdentifications", ScopeRealm)
+	STGetStatisticsUsers              = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsUsers", ScopeRealm)
+	STGetStatisticsAuthenticators     = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsAuthenticators", ScopeRealm)
+	STGetStatisticsAuthentications    = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsAuthentications", ScopeRealm)
+	STGetStatisticsAuthenticationsLog = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsAuthenticationsLog", ScopeRealm)
+	STGetMigrationReport              = Actions.addAction(BridgeService, StatisticAPI, "ST_GetMigrationReport", ScopeRealm)
+
+	TSKDeleteDeniedToUUsers = Actions.addAction(BridgeService, TaskAPI, "TSK_DeleteDeniedToUUsers", ScopeGlobal)
+
+	IDNGetActions = Actions.addAction(IDNowService, VideoCheckAPI, "IDN_GetActions", ScopeGlobal)
+	IDNInit       = Actions.addAction(IDNowService, VideoCheckAPI, "IDN_Init", ScopeGroup)
+
+	PCGetActions            = Actions.addAction(PaperCardService, CardsAPI, "PC_GetActions", ScopeGlobal)
+	PCGetConfigurationRealm = Actions.addAction(PaperCardService, CardsAPI, "PC_GetConfigurationRealm", ScopeRealm)
+	PCSetConfigurationRealm = Actions.addAction(PaperCardService, CardsAPI, "PC_SetConfigurationRealm", ScopeRealm)
+	PCGetConfigurationSelf  = Actions.addAction(PaperCardService, CardsAPI, "PC_GetConfigurationSelf", ScopeRealm)
+	PCSetConfigurationSelf  = Actions.addAction(PaperCardService, CardsAPI, "PC_SetConfigurationSelf", ScopeRealm)
+	PCGetConfigurationBatch = Actions.addAction(PaperCardService, CardsAPI, "PC_GetConfigurationBatch", ScopeRealm)
+	PCSetConfigurationBatch = Actions.addAction(PaperCardService, CardsAPI, "PC_SetConfigurationBatch", ScopeRealm)
+	PCPreview               = Actions.addAction(PaperCardService, CardsAPI, "PC_Preview", ScopeRealm)
+	PCCreateBatch           = Actions.addAction(PaperCardService, CardsAPI, "PC_CreateBatch", ScopeRealm)
+	PCGetBatches            = Actions.addAction(PaperCardService, CardsAPI, "PC_GetBatches", ScopeRealm)
+	PCGetBatch              = Actions.addAction(PaperCardService, CardsAPI, "PC_GetBatch", ScopeRealm)
+	PCDeleteBatch           = Actions.addAction(PaperCardService, CardsAPI, "PC_DeleteBatch", ScopeRealm)
+	PCActivateBatch         = Actions.addAction(PaperCardService, CardsAPI, "PC_ActivateBatch", ScopeRealm)
+	PCBlockBatch            = Actions.addAction(PaperCardService, CardsAPI, "PC_BlockBatch", ScopeRealm)
+	PCDownloadBatch         = Actions.addAction(PaperCardService, CardsAPI, "PC_DownloadBatch", ScopeRealm)
+
+	SDLRGetActions = Actions.addAction(SchedulerService, SchedulerAPI, "SDLR_GetActions", ScopeGlobal)
+	SDLRGetTasks   = Actions.addAction(SchedulerService, SchedulerAPI, "SDLR_GetTasks", ScopeGlobal)
+	SDLRAddTasks   = Actions.addAction(SchedulerService, SchedulerAPI, "SDLR_AddTasks", ScopeGlobal)
+	SDLRDeleteTask = Actions.addAction(SchedulerService, SchedulerAPI, "SDLR_DeleteTask", ScopeGlobal)
+
+	SIGGetActions = Actions.addAction(SignatureService, SignatureAPI, "SIG_GetActions", ScopeGlobal)
+	// CH/AES was the default value: keep the same name
+	SIGSignDocuments_CH_AES = Actions.addAction(SignatureService, SignatureAPI, "SIG_SignDocuments", ScopeRealm)
+	SIGSignDocuments_CH_QES = Actions.addAction(SignatureService, SignatureAPI, "SIG_SignDocuments_CH_QES", ScopeRealm)
+	SIGSignDocuments_EU_AES = Actions.addAction(SignatureService, SignatureAPI, "SIG_SignDocuments_EU_AES", ScopeRealm)
+	SIGSignDocuments_EU_QES = Actions.addAction(SignatureService, SignatureAPI, "SIG_SignDocuments_EU_QES", ScopeRealm)
+
+	VOUGetActions          = Actions.addAction(VoucherService, ManagementAPI, "VOU_GetActions", ScopeGlobal)
+	VOUGetBatches          = Actions.addAction(VoucherService, ManagementAPI, "VOU_GetBatches", ScopeRealm)
+	VOUCreateBatch         = Actions.addAction(VoucherService, ManagementAPI, "VOU_CreateBatch", ScopeRealm)
+	VOUGetBatch            = Actions.addAction(VoucherService, ManagementAPI, "VOU_GetBatch", ScopeRealm)
+	VOURevokeBatch         = Actions.addAction(VoucherService, ManagementAPI, "VOU_RevokeBatch", ScopeRealm)
+	VOUDownloadBatch       = Actions.addAction(VoucherService, ManagementAPI, "VOU_DownloadBatch", ScopeRealm)
+	VOUGetVoucher          = Actions.addAction(VoucherService, ManagementAPI, "VOU_GetVoucher", ScopeRealm)
+	VOUGetConfiguration    = Actions.addAction(VoucherService, ManagementAPI, "VOU_GetConfiguration", ScopeRealm)
+	VOUUpdateConfiguration = Actions.addAction(VoucherService, ManagementAPI, "VOU_UpdateConfiguration", ScopeRealm)
+	VOUGetAbuseCounter     = Actions.addAction(VoucherService, ManagementAPI, "VOU_GetAbuseCounter", ScopeGroup)
+	VOUResetAbuseCounter   = Actions.addAction(VoucherService, ManagementAPI, "VOU_ResetAbuseCounter", ScopeGroup)
+
+	ACCRGetActions                   = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_GetActions", ScopeGlobal)
+	ACCRGetAllAccreditations         = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_GetAllAccreditations", ScopeGlobal)
+	ACCRGetEnabledAccreditations     = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_GetEnabledAccreditations", ScopeRealm)
+	ACCRGetAccreditation             = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_GetAccreditation", ScopeRealm)
+	ACCREnableAccreditation          = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_EnableAccreditation", ScopeRealm)
+	ACCRDisableAccreditation         = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_DisableAccreditation", ScopeRealm)
+	ACCRConfigureAccreditation       = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_ConfigureAccreditation", ScopeRealm)
+	ACCRGetAccreditationGroups       = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_GetAccreditationGroups", ScopeGroup)
+	ACCREnableAccreditationForGroup  = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_EnableAccreditationForGroup", ScopeGroup)
+	ACCRDisableAccreditationForGroup = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_DisableAccreditationForGroup", ScopeGroup)
+)
