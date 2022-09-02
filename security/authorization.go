@@ -193,7 +193,8 @@ var (
 	MGMTGetRealmBackOfficeConfiguration     = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmBackOfficeConfiguration", ScopeGroup)
 	MGMTUpdateRealmBackOfficeConfiguration  = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmBackOfficeConfiguration", ScopeGroup)
 	MGMTGetUserRealmBackOfficeConfiguration = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUserRealmBackOfficeConfiguration", ScopeRealm)
-	MGMTLinkShadowUser                      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_LinkShadowUser", ScopeRealm)
+	MGMTGetFederatedIdentities              = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetFederatedIdentities", ScopeGroup)
+	MGMTLinkShadowUser                      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_LinkShadowUser", ScopeGroup)
 	MGMTGetIdentityProviders                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetIdentityProviders", ScopeRealm)
 
 	STGetActions                      = Actions.addAction(BridgeService, StatisticAPI, "ST_GetActions", ScopeGlobal)
