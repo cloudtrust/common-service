@@ -123,7 +123,7 @@ var (
 	KYCSendSmsConsentCode              = Actions.addAction(BridgeService, KycAPI, "KYC_SendSmsConsentCode", ScopeGroup)
 	KYCSendSmsCodeInSocialRealm        = Actions.addAction(BridgeService, KycAPI, "KYC_SendSmsCodeInSocialRealm", ScopeRealm)
 	KYCSendSmsCode                     = Actions.addAction(BridgeService, KycAPI, "KYC_SendSmsCode", ScopeGroup)
-	KYCValidateUserBasicID             = Actions.addAction(BridgeService, KycAPI, "KYC_ValidateUserBasicID", ScopeRealm) /***TO BE REMOVED WHEN MULTI-ACCREDITATION WILL BE IMPLEMENTED***/ /***TO BE REMOVED WHEN MULTI-ACCREDITATION WILL BE IMPLEMENTED***/
+	KYCValidateUserBasicID             = Actions.addAction(BridgeService, KycAPI, "KYC_ValidateUserBasicID", ScopeGroup) /***TO BE REMOVED WHEN MULTI-ACCREDITATION WILL BE IMPLEMENTED***/ /***TO BE REMOVED WHEN MULTI-ACCREDITATION WILL BE IMPLEMENTED***/
 
 	MGMTGetActions                          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetActions", ScopeGlobal)
 	MGMTGetRealms                           = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealms", ScopeGlobal)
