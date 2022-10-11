@@ -4,13 +4,14 @@ import "encoding/json"
 
 // Constants
 const (
-	CheckKeyIDNow    = "IDNow"
-	CheckKeyPhysical = "physical-check"
+	CheckKeyIDNow          = "IDNow"
+	CheckKeyIDNowAutoIdent = "IDNowAutoIdent"
+	CheckKeyPhysical       = "physical-check"
 )
 
 var (
 	// AvailableCheckKeys lists all available check keys for RealmAdminConfiguration
-	AvailableCheckKeys = []string{CheckKeyIDNow, CheckKeyPhysical}
+	AvailableCheckKeys = []string{CheckKeyIDNow, CheckKeyPhysical, CheckKeyIDNowAutoIdent}
 )
 
 // RealmConfiguration struct. APISelfAccountEditingEnabled replaces former field APISelfMailEditingEnabled
@@ -49,9 +50,12 @@ type RealmAdminConfiguration struct {
 	ConsentRequiredSocial                 *bool           `json:"consent_required,omitempty"`
 	ConsentRequiredCorporate              *bool           `json:"consent_required_corp,omitempty"`
 	ShowGlnEditing                        *bool           `json:"show_gln_editing,omitempty"`
-	VoucherEnabled                        *bool           `json:"voucher_enabled"`
+	VideoIdentificationVoucherEnabled     *bool           `json:"video_identification_voucher_enabled"`
 	VideoIdentificationAccountingEnabled  *bool           `json:"video_identification_accounting_enabled"`
 	VideoIdentificationPrepaymentRequired *bool           `json:"video_identification_prepayment_required"`
+	AutoIdentificationVoucherEnabled      *bool           `json:"auto_identification_voucher_enabled"`
+	AutoIdentificationAccountingEnabled   *bool           `json:"auto_identification_accounting_enabled"`
+	AutoIdentificationPrepaymentRequired  *bool           `json:"auto_identification_prepayment_required"`
 }
 
 // Authorization struct
