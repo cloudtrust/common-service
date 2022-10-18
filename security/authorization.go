@@ -42,7 +42,7 @@ const (
 	ManagementAPI
 	StatisticAPI
 	TaskAPI
-	VideoCheckAPI
+	IDNowAPI
 	CardsAPI
 	SchedulerAPI
 	SignatureAPI
@@ -208,8 +208,9 @@ var (
 
 	TSKDeleteDeniedToUUsers = Actions.addAction(BridgeService, TaskAPI, "TSK_DeleteDeniedToUUsers", ScopeGlobal)
 
-	IDNGetActions = Actions.addAction(IDNowService, VideoCheckAPI, "IDN_GetActions", ScopeGlobal)
-	IDNInit       = Actions.addAction(IDNowService, VideoCheckAPI, "IDN_Init", ScopeGroup)
+	IDNGetActions     = Actions.addAction(IDNowService, IDNowAPI, "IDN_GetActions", ScopeGlobal)
+	IDNVideoIdentInit = Actions.addAction(IDNowService, IDNowAPI, "IDN_Init", ScopeGroup)
+	IDNAutoIdentInit  = Actions.addAction(IDNowService, IDNowAPI, "IDN_AutoIdentInit", ScopeGroup)
 
 	PCGetActions            = Actions.addAction(PaperCardService, CardsAPI, "PC_GetActions", ScopeGlobal)
 	PCGetConfigurationRealm = Actions.addAction(PaperCardService, CardsAPI, "PC_GetConfigurationRealm", ScopeRealm)
