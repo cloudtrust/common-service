@@ -9,42 +9,43 @@ import (
 // NoopKafkaConsumerGroup is an consumer group that does nothing.
 type NoopKafkaConsumerGroup struct{}
 
-// noop
+// Consume does noop
 func (n *NoopKafkaConsumerGroup) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
 	return nil
 }
 
-// noop
+// Errors creates a channel for errors
 func (n *NoopKafkaConsumerGroup) Errors() <-chan error {
 	return make(<-chan error)
 }
 
-// noop
+// Close does noop
 func (n *NoopKafkaConsumerGroup) Close() error {
 	return nil
 }
 
-// noop
+// Pause does noop
 func (n *NoopKafkaConsumerGroup) Pause(partitions map[string][]int32) {}
 
-// noop
+// Resume does noop
 func (n *NoopKafkaConsumerGroup) Resume(partitions map[string][]int32) {}
 
-// noop
+// PauseAll does noop
 func (n *NoopKafkaConsumerGroup) PauseAll() {}
 
-// noop
+// ResumeAll does noop
 func (n *NoopKafkaConsumerGroup) ResumeAll() {}
 
+// NoopKafkaProducer struct
 type NoopKafkaProducer struct{}
 
-// noop
+// SendMessage does noop
 func (n *NoopKafkaProducer) SendMessage(msg *sarama.ProducerMessage) (partition int32, offset int64, err error) {
 	return 0, 0, nil
 }
 
-// noop
+// SendMessages does noop
 func (n *NoopKafkaProducer) SendMessages(msgs []*sarama.ProducerMessage) error { return nil }
 
-// noop
+// Close does noop
 func (n *NoopKafkaProducer) Close() error { return nil }

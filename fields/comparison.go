@@ -6,6 +6,7 @@ import (
 	csjson "github.com/cloudtrust/common-service/v2/json"
 )
 
+// FieldsComparator interface
 type FieldsComparator interface {
 	CaseSensitive(caseSensitive bool) FieldsComparator
 
@@ -26,6 +27,7 @@ type fieldsComparator struct {
 	caseSensitive bool
 }
 
+// NewFieldsComparator create an instance of FieldsComparator
 func NewFieldsComparator() FieldsComparator {
 	return &fieldsComparator{updatedFields: make(map[Field]bool), caseSensitive: true}
 }

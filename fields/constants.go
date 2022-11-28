@@ -11,6 +11,7 @@ type field struct {
 	Attribute string
 }
 
+// GetKnownFields gets all known fields
 func GetKnownFields() []Field {
 	return allFields
 }

@@ -9,6 +9,7 @@ import (
 	cs "github.com/cloudtrust/common-service/v2"
 )
 
+// KafkaProducerConfig struct
 type KafkaProducerConfig struct {
 	Version      string
 	Brokers      []string
@@ -18,6 +19,7 @@ type KafkaProducerConfig struct {
 	Noop         bool
 }
 
+// GetKafkaProducerConfig gets a KafkaProducerConfig
 func GetKafkaProducerConfig(c cs.Configuration, prefix string) KafkaProducerConfig {
 	var cfg KafkaProducerConfig
 
@@ -34,6 +36,7 @@ func GetKafkaProducerConfig(c cs.Configuration, prefix string) KafkaProducerConf
 	return cfg
 }
 
+// NewEventKafkaProducer returns an event kafka producer
 func NewEventKafkaProducer(ctx context.Context, c KafkaProducerConfig, logger log.Logger) (sarama.SyncProducer, error) {
 	if c.Noop {
 		return &NoopKafkaProducer{}, nil
