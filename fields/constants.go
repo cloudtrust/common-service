@@ -76,4 +76,5 @@ var (
 	Source                = createField("src")
 	TrustIDAuthToken      = createField("trustIDAuthToken")
 	TrustIDGroups         = createField("trustIDGroups")
+	Username              = createNonAttributeField("username")
 )

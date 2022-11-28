@@ -200,6 +200,7 @@ var (
 	MGMTUpdateRealmCustomConfiguration      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmCustomConfiguration", ScopeRealm)
 	MGMTGetRealmAdminConfiguration          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmAdminConfiguration", ScopeRealm)
 	MGMTUpdateRealmAdminConfiguration       = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmAdminConfiguration", ScopeRealm)
+	MGMTGetRealmUserProfile                 = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmUserProfile", ScopeRealm)
 	MGMTGetRealmBackOfficeConfiguration     = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmBackOfficeConfiguration", ScopeGroup)
 	MGMTUpdateRealmBackOfficeConfiguration  = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmBackOfficeConfiguration", ScopeGroup)
 	MGMTGetUserRealmBackOfficeConfiguration = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUserRealmBackOfficeConfiguration", ScopeRealm)
