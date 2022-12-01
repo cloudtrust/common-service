@@ -38,7 +38,7 @@ func (h accessLogHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	defer func(begin time.Time) {
-		_ = h.logger.Log("method", req.Method, "uri", uri, "status_code", writer.Status(), "size", writer.Size(), "time", time.Since(begin))
+		_ = h.logger.Log("method", req.Method, "uri", uri, "status_code", writer.Status(), "size", writer.Size(), "time", time.Since(begin).Milliseconds())
 	}(time.Now())
 
 	h.handler.ServeHTTP(writer, req)
