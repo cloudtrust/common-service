@@ -3,6 +3,7 @@ package errorhandler
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // Constants for error messages
@@ -126,4 +127,17 @@ type UnauthorizedError struct{}
 
 func (e UnauthorizedError) Error() string {
 	return "UnauthorizedError: Unauthorized"
+}
+
+// IsDetailedError : check if the given error is a detailed error matching provided values
+func IsDetailedError(err error, code int, messageSuffix string) bool {
+	if err != nil {
+		switch detailed := err.(type) {
+		case DetailedError:
+			if detailed.Status() == code && strings.HasSuffix(detailed.ErrorMessage(), messageSuffix) {
+				return true
+			}
+		}
+	}
+	return false
 }
