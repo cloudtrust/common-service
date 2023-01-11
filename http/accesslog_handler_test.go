@@ -17,7 +17,7 @@ func TestAccessLogHTTPHandler(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockLogger := mock.NewLogger(mockCtrl)
-	mockLogger.EXPECT().Log("method", "GET", "uri", "/path/to/resource", "status_code", http.StatusOK, "size", 2, "time", gomock.Any()).Times(1)
+	mockLogger.EXPECT().Log("method", "GET", "uri", "/path/to/resource", "status_code", http.StatusOK, "size", 2, "request_duration", gomock.Any())
 
 	r := mux.NewRouter()
 
