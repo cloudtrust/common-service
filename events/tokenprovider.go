@@ -8,10 +8,12 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
+// TokenProvider struct
 type TokenProvider struct {
 	tokenSource oauth2.TokenSource
 }
 
+// NewTokenProvider creates an instance of sarama AccessTokenProvider
 func NewTokenProvider(clientID, clientSecret, tokenURL string) sarama.AccessTokenProvider {
 	cfg := clientcredentials.Config{
 		ClientID:     clientID,

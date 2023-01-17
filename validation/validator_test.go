@@ -205,6 +205,12 @@ func TestValidateParameterLength(t *testing.T) {
 	})
 }
 
+func TestValidateParameterIntBetween(t *testing.T) {
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterIntBetween("param", nil, 5, 10, false).Status())
+	})
+}
+
 func TestValidateParameterDate(t *testing.T) {
 	var dateLayout = "02.01.2006"
 	var multipleLayouts = []string{dateLayout, "2006/01/02"}
@@ -240,6 +246,10 @@ func TestValidateParameterDate(t *testing.T) {
 		assert.NotNil(t, NewParameterValidator().ValidateParameterDate("param", &alternateFormatDate, dateLayout, true).Status())
 		assert.NotNil(t, NewParameterValidator().ValidateParameterDateAfterMultipleLayout("param", &summerAltFormat, multipleLayouts, halloween, true).Status())
 	})
+	t.Run("Multiple layouts-Before", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterDate("param", &alternateFormatDate, dateLayout, true).Status())
+		assert.Nil(t, NewParameterValidator().ValidateParameterDateBeforeMultipleLayout("param", &summerAltFormat, multipleLayouts, halloween, true).Status())
+	})
 	t.Run("After", func(t *testing.T) {
 		assert.Nil(t, NewParameterValidator().ValidateParameterDateAfter("param", &summer, dateLayout, easter, true).Status())
 	})
@@ -266,6 +276,9 @@ func TestValidateParameterDate(t *testing.T) {
 	})
 	t.Run("Valid check after failed validation-DateMultipleLayoutAfter", func(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterDateAfterMultipleLayout("param", nil, multipleLayouts, easter, false).Status())
+	})
+	t.Run("Valid check after failed validation-DateMultipleLayoutBefore", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterDateBeforeMultipleLayout("param", nil, multipleLayouts, easter, false).Status())
 	})
 	t.Run("Valid check after failed validation-After", func(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterDateAfter("param", nil, dateLayout, easter, false).Status())

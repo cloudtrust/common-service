@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Events constants
 const (
 	CtEventType            = "ct_event_type"
 	CtEventAgentUsername   = "agent_username"
@@ -33,6 +34,7 @@ const (
 	CtEventUnknownUsername = "--UNKNOWN--"
 )
 
+// Event struct
 type Event struct {
 	time      time.Time
 	origin    string
@@ -64,10 +66,12 @@ func newEvent(origin string, eventType string, agentRealmName string, agentUserI
 	}
 }
 
+// NewEventOnUser creates an instance of Event
 func NewEventOnUser(origin string, eventType string, agentRealmName string, agentUserID string, agentUsername string, targetRealmName string, targetUserID string, targetUserName string, details map[string]string) Event {
 	return newEvent(origin, eventType, agentRealmName, agentUserID, agentUsername, targetRealmName, &targetUserID, &targetUserName, details)
 }
 
+// NewEventOnUserFromContext creates an instance of Event
 func NewEventOnUserFromContext(ctx context.Context, logger log.Logger, origin string, eventType string, targetRealmName string, targetUserID string, targetUserName string, details map[string]string) Event {
 	agentRealmName := extractAgentValueFromContext(ctx, logger, cs.CtContextRealm)
 	agentUserID := extractAgentValueFromContext(ctx, logger, cs.CtContextUserID)
@@ -76,10 +80,12 @@ func NewEventOnUserFromContext(ctx context.Context, logger log.Logger, origin st
 	return NewEventOnUser(origin, eventType, agentRealmName, agentUserID, agentUserName, targetRealmName, targetUserID, targetUserName, details)
 }
 
+// NewEvent creates an instance of Event
 func NewEvent(origin string, eventType string, agentRealmName string, agentUserID string, agentUsername string, targetRealmName string, details map[string]string) Event {
 	return newEvent(origin, eventType, agentRealmName, agentUserID, agentUsername, targetRealmName, nil, nil, details)
 }
 
+// NewEventFromContext creates an instance of Event
 func NewEventFromContext(ctx context.Context, logger log.Logger, origin string, eventType string, targetRealmName string, details map[string]string) Event {
 	agentRealmName := extractAgentValueFromContext(ctx, logger, cs.CtContextRealm)
 	agentUserID := extractAgentValueFromContext(ctx, logger, cs.CtContextUserID)

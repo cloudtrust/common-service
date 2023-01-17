@@ -9,6 +9,7 @@ import (
 	"github.com/cloudtrust/common-service/v2/log"
 )
 
+// AuditEventsReporterModule interface
 type AuditEventsReporterModule interface {
 	ReportEvent(ctx context.Context, event Event)
 }
@@ -19,6 +20,7 @@ type auditEventsReporterModule struct {
 	logger   log.Logger
 }
 
+// NewAuditEventReporterModule creates an instance of AuditEventsReporterModule
 func NewAuditEventReporterModule(producer sarama.SyncProducer, topic string, logger log.Logger) AuditEventsReporterModule {
 	return &auditEventsReporterModule{
 		producer: producer,

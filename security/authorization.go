@@ -20,8 +20,10 @@ func (a Action) String() string {
 	return a.Name
 }
 
+// Service type
 type Service int
 
+// Service values
 const (
 	BridgeService Service = iota
 	EventService
@@ -33,8 +35,10 @@ const (
 	AccreditationService
 )
 
+// API type
 type API int
 
+// API values
 const (
 	CommunicationAPI API = iota
 	EventsAPI
@@ -48,6 +52,7 @@ const (
 	SignatureAPI
 )
 
+// ActionsIndex struct
 type ActionsIndex struct {
 	index map[Service]map[API][]Action
 }
@@ -63,6 +68,7 @@ func (a *ActionsIndex) addAction(service Service, api API, name string, scope Sc
 	return action
 }
 
+// GetActionsForAPIs returns an array of actions
 func (a *ActionsIndex) GetActionsForAPIs(service Service, apis ...API) []Action {
 	var actions []Action
 	for _, api := range apis {
@@ -71,6 +77,7 @@ func (a *ActionsIndex) GetActionsForAPIs(service Service, apis ...API) []Action 
 	return actions
 }
 
+// GetAllActions returns an array of actions
 func (a *ActionsIndex) GetAllActions() []Action {
 	var res []Action
 	for _, apiActions := range a.index {
@@ -81,6 +88,7 @@ func (a *ActionsIndex) GetAllActions() []Action {
 	return res
 }
 
+// GetActionNamesForAPIs returns a list of names
 func (a *ActionsIndex) GetActionNamesForAPIs(service Service, apis ...API) []string {
 	var names []string
 	for _, api := range apis {
@@ -91,6 +99,7 @@ func (a *ActionsIndex) GetActionNamesForAPIs(service Service, apis ...API) []str
 	return names
 }
 
+// GetActionNamesForService returns a list of action names
 func (a *ActionsIndex) GetActionNamesForService(service Service) []string {
 	var names []string
 	for _, actions := range a.index[service] {
@@ -101,9 +110,10 @@ func (a *ActionsIndex) GetActionNamesForService(service Service) []string {
 	return names
 }
 
-var Actions = ActionsIndex{index: map[Service]map[API][]Action{}}
-
+// Package variables
 var (
+	Actions = ActionsIndex{index: map[Service]map[API][]Action{}}
+
 	COMSendEmail = Actions.addAction(BridgeService, CommunicationAPI, "COM_SendEmail", ScopeRealm)
 	COMSendSMS   = Actions.addAction(BridgeService, CommunicationAPI, "COM_SendSMS", ScopeRealm)
 
@@ -190,6 +200,7 @@ var (
 	MGMTUpdateRealmCustomConfiguration      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmCustomConfiguration", ScopeRealm)
 	MGMTGetRealmAdminConfiguration          = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmAdminConfiguration", ScopeRealm)
 	MGMTUpdateRealmAdminConfiguration       = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmAdminConfiguration", ScopeRealm)
+	MGMTGetRealmUserProfile                 = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmUserProfile", ScopeRealm)
 	MGMTGetRealmBackOfficeConfiguration     = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetRealmBackOfficeConfiguration", ScopeGroup)
 	MGMTUpdateRealmBackOfficeConfiguration  = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateRealmBackOfficeConfiguration", ScopeGroup)
 	MGMTGetUserRealmBackOfficeConfiguration = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetUserRealmBackOfficeConfiguration", ScopeRealm)

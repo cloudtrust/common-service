@@ -29,6 +29,7 @@ type Validator interface {
 	ValidateParameterDateMultipleLayout(prmName string, value *string, dateLayout []string, mandatory bool) Validator
 	ValidateParameterDateAfterMultipleLayout(prmName string, value *string, dateLayout []string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateAfter(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator
+	ValidateParameterDateBeforeMultipleLayout(prmName string, value *string, dateLayout []string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateBefore(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator
 	ValidateParameterDateBetween(prmName string, value *string, dateLayout string, refAfter time.Time, refBetween time.Time, mandatory bool) Validator
 	ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator
@@ -167,6 +168,10 @@ func (v *successValidator) ValidateParameterDateAfter(prmName string, value *str
 	return v.validateParameterDate(prmName, value, []string{dateLayout}, &reference, nil, mandatory)
 }
 
+func (v *successValidator) ValidateParameterDateBeforeMultipleLayout(prmName string, value *string, dateLayout []string, reference time.Time, mandatory bool) Validator {
+	return v.validateParameterDate(prmName, value, dateLayout, nil, &reference, mandatory)
+}
+
 func (v *successValidator) ValidateParameterDateBefore(prmName string, value *string, dateLayout string, reference time.Time, mandatory bool) Validator {
 	return v.validateParameterDate(prmName, value, []string{dateLayout}, nil, &reference, mandatory)
 }
@@ -240,11 +245,11 @@ func (v *successValidator) Status() error {
 	return nil
 }
 
-func (v *failedValidator) ValidateParameter(prmName string, validatable Validatable, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameter(_ string, _ Validatable, _ bool) Validator {
 	return v
 }
 
-func (v *failedValidator) ValidateParameterFunc(validator func() error) Validator {
+func (v *failedValidator) ValidateParameterFunc(_ func() error) Validator {
 	return v
 }
 
@@ -252,23 +257,23 @@ func (v *failedValidator) ValidateParameterNotNil(_ string, _ interface{}) Valid
 	return v
 }
 
-func (v *failedValidator) ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterIn(_ string, _ *string, _ map[string]bool, _ bool) Validator {
 	return v
 }
 
-func (v *failedValidator) ValidateParameterRegExp(prmName string, value *string, regExp string, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterRegExp(_ string, _ *string, _ string, _ bool) Validator {
 	return v
 }
 
-func (v *failedValidator) ValidateParameterPhoneNumber(prmName string, value *string, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterPhoneNumber(_ string, _ *string, _ bool) Validator {
 	return v
 }
 
-func (v *failedValidator) ValidateParameterLength(prmName string, value *string, min, max int, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterLength(_ string, _ *string, _, _ int, _ bool) Validator {
 	return v
 }
 
-func (v *failedValidator) ValidateParameterIntBetween(prmName string, value *int, min, max int, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterIntBetween(_ string, _ *int, _, _ int, _ bool) Validator {
 	return v
 }
 
@@ -276,15 +281,19 @@ func (v *failedValidator) ValidateParameterDate(_ string, _ *string, _ string, _
 	return v
 }
 
-func (v *failedValidator) ValidateParameterDateMultipleLayout(prmName string, value *string, dateLayout []string, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterDateMultipleLayout(_ string, _ *string, _ []string, _ bool) Validator {
 	return v
 }
 
-func (v *failedValidator) ValidateParameterDateAfterMultipleLayout(prmName string, value *string, dateLayout []string, reference time.Time, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterDateAfterMultipleLayout(_ string, _ *string, _ []string, _ time.Time, _ bool) Validator {
 	return v
 }
 
 func (v *failedValidator) ValidateParameterDateAfter(_ string, _ *string, _ string, _ time.Time, _ bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterDateBeforeMultipleLayout(_ string, _ *string, _ []string, _ time.Time, _ bool) Validator {
 	return v
 }
 
@@ -296,11 +305,11 @@ func (v *failedValidator) ValidateParameterDateBetween(_ string, _ *string, _ st
 	return v
 }
 
-func (v *failedValidator) ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterLargeDuration(_ string, _ *string, _ bool) Validator {
 	return v
 }
 
-func (v *failedValidator) ValidateParameterBase64(prmName string, value *string, mandatory bool) Validator {
+func (v *failedValidator) ValidateParameterBase64(_ string, _ *string, _ bool) Validator {
 	return v
 }
 

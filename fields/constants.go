@@ -11,6 +11,7 @@ type field struct {
 	Attribute string
 }
 
+// GetKnownFields gets all known fields
 func GetKnownFields() []Field {
 	return allFields
 }
@@ -75,4 +76,5 @@ var (
 	Source                = createField("src")
 	TrustIDAuthToken      = createField("trustIDAuthToken")
 	TrustIDGroups         = createField("trustIDGroups")
+	Username              = createNonAttributeField("username")
 )

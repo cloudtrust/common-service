@@ -284,6 +284,7 @@ type TokenAudienceString struct {
 	Groups         []string `json:"groups,omitempty"`
 }
 
+// TokenAudience interface
 type TokenAudience interface {
 	GetSubject() string
 	GetUsername() string
