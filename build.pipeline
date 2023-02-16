@@ -1,1 +1,1 @@
-goLibBuildPipeline('back-common-service', true)
+goLibBuildPipeline('back-common-service', true, 'ssh://git@github.com/cloudtrust/common-service')
