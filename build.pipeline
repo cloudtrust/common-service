@@ -1,1 +1,1 @@
-goLibBuildPipeline('common-service')
+goLibBuildPipeline('back-common-service')
