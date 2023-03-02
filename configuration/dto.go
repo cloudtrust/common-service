@@ -45,7 +45,10 @@ type RealmAdminConfiguration struct {
 	Mode                                  *string         `json:"mode"`
 	AvailableChecks                       map[string]bool `json:"available-checks,omitempty"`
 	SelfRegisterEnabled                   *bool           `json:"self_register_enabled"`
-	Theme                                 *string         `json:"theme,omitempty"`
+	RegisterTheme                         *string         `json:"register_theme,omitempty"`
+	SseTheme                              *string         `json:"sse_theme,omitempty"`
+	BoTheme                               *string         `json:"bo_theme,omitempty"`
+	SignerTheme                           *string         `json:"signer_theme,omitempty"`
 	NeedVerifiedContact                   *bool           `json:"need_verified_contact,omitempty"`
 	ConsentRequiredSocial                 *bool           `json:"consent_required,omitempty"`
 	ConsentRequiredCorporate              *bool           `json:"consent_required_corp,omitempty"`
