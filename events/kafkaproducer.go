@@ -57,6 +57,8 @@ func NewEventKafkaProducer(ctx context.Context, c KafkaProducerConfig, logger lo
 	config.Net.SASL.Mechanism = sarama.SASLTypeOAuth
 	config.Net.SASL.TokenProvider = NewTokenProvider(c.ClientID, c.ClientSecret, c.TokenURL)
 
+	config.Net.TLS.Enable = true
+
 	producer, err := sarama.NewSyncProducer(c.Brokers, config)
 	if err != nil {
 		logger.Error(ctx, "msg", "Failed to start Kafka producer", "error", err)
