@@ -17,6 +17,7 @@ type KafkaProducerConfig struct {
 	ClientSecret string
 	TokenURL     string
 	Noop         bool
+	TLSEnabled   bool
 }
 
 // GetKafkaProducerConfig gets a KafkaProducerConfig
@@ -31,6 +32,7 @@ func GetKafkaProducerConfig(c cs.Configuration, prefix string) KafkaProducerConf
 		cfg.ClientID = c.GetString(prefix + "-client-id")
 		cfg.ClientSecret = c.GetString(prefix + "-client-secret")
 		cfg.TokenURL = c.GetString(prefix + "-token-url")
+		cfg.TLSEnabled = c.GetBool(prefix + "-tls-enabled")
 	}
 
 	return cfg
@@ -57,7 +59,7 @@ func NewEventKafkaProducer(ctx context.Context, c KafkaProducerConfig, logger lo
 	config.Net.SASL.Mechanism = sarama.SASLTypeOAuth
 	config.Net.SASL.TokenProvider = NewTokenProvider(c.ClientID, c.ClientSecret, c.TokenURL)
 
-	config.Net.TLS.Enable = true
+	config.Net.TLS.Enable = c.TLSEnabled
 
 	producer, err := sarama.NewSyncProducer(c.Brokers, config)
 	if err != nil {
