@@ -40,7 +40,7 @@ func (os OptionalString) ToValueExt(undefinedValue *string, defaultValue *string
 	if !os.Defined {
 		return undefinedValue
 	}
-	if !os.Defined || os.Value == nil {
+	if os.Value == nil {
 		return defaultValue
 	}
 	return os.Value
