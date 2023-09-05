@@ -21,6 +21,6 @@ type cloudtrustLoggerWrapper struct {
 }
 
 func (c *cloudtrustLoggerWrapper) Write(p []byte) (n int, err error) {
-	c.logger.Info(context.Background(), "saramaMsg", string(p))
+	c.logger.Info(context.Background(), "msg", string(p), "tag", "sarama")
 	return len(p), nil
 }

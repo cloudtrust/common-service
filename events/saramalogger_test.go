@@ -16,7 +16,7 @@ func TestWrite(t *testing.T) {
 		logger: logger,
 	}
 	test := "test"
-	logger.EXPECT().Info(gomock.Any(), "saramaMsg", test)
+	logger.EXPECT().Info(gomock.Any(), "msg", test, "tag", "sarama")
 
 	writer.Write([]byte(test))
 }
