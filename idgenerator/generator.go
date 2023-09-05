@@ -27,7 +27,7 @@ type generator struct {
 
 // Generate a unique id with following format: <componentName>-<componentID>-<time>-<random number>
 func (g *generator) NextID() string {
-	var id = strconv.FormatUint(rand.Uint64(), 10)
+	var id = rand.Uint64()
 	var time = strconv.FormatInt(time.Now().Unix(), 10)
-	return fmt.Sprintf("%s-%s-%s-%s", g.componentName, g.componentID, time, id)
+	return fmt.Sprintf("%s-%s-%s-%020d", g.componentName, g.componentID, time, id)
 }

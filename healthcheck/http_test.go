@@ -29,7 +29,7 @@ func TestHTTPHealth(t *testing.T) {
 	}
 
 	{
-		var checker = newHTTPEndpointChecker("dummy", "https://www.elca.ch/not/found", 10*time.Second, 200, 10*time.Second)
+		var checker = newHTTPEndpointChecker("dummy", "https://github.com/not/found", 10*time.Second, 200, 10*time.Second)
 		var status = checker.CheckStatus()
 		assert.Equal(t, *status.State, "DOWN")
 		assert.NotNil(t, status.Message)
