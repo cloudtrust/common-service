@@ -3,7 +3,7 @@ package events
 import (
 	"context"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 )
 
 // NoopKafkaConsumerGroup is an consumer group that does nothing.
@@ -49,3 +49,30 @@ func (n *NoopKafkaProducer) SendMessages(msgs []*sarama.ProducerMessage) error {
 
 // Close does noop
 func (n *NoopKafkaProducer) Close() error { return nil }
+
+// noop
+func (n *NoopKafkaProducer) TxnStatus() sarama.ProducerTxnStatusFlag {
+	return 0
+}
+
+// noop
+func (n *NoopKafkaProducer) IsTransactional() bool { return true }
+
+// noop
+func (n *NoopKafkaProducer) BeginTxn() error { return nil }
+
+// noop
+func (n *NoopKafkaProducer) CommitTxn() error { return nil }
+
+// noop
+func (n *NoopKafkaProducer) AbortTxn() error { return nil }
+
+// noop
+func (n *NoopKafkaProducer) AddOffsetsToTxn(offsets map[string][]*sarama.PartitionOffsetMetadata, groupId string) error {
+	return nil
+}
+
+// noop
+func (n *NoopKafkaProducer) AddMessageToTxn(msg *sarama.ConsumerMessage, groupId string, metadata *string) error {
+	return nil
+}

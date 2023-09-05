@@ -5,7 +5,7 @@ import (
 
 	"github.com/cloudtrust/common-service/v2/log"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	cs "github.com/cloudtrust/common-service/v2"
 )
 
