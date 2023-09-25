@@ -34,7 +34,8 @@ func (a *auditEventsReporterChecker) CheckStatus() HealthStatus {
 
 	finished := make(chan bool)
 	go func() {
-		event := events.NewEvent("healthcheck", "LIVENESS_PROBE", "master", "health_checker", "health_checker", "master", map[string]string{})
+		//event := events.NewEvent("healthcheck", "LIVENESS_PROBE", "master", "health_checker", "health_checker", "master", map[string]string{})
+		event := events.NewEvent("healthcheck", "", "master", "health_checker", "health_checker", "master", map[string]string{})
 		a.reporter.ReportEvent(context.Background(), event)
 		finished <- true
 	}()
