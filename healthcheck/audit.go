@@ -18,23 +18,29 @@ type auditEventsReporterChecker struct {
 
 func newAuditEventsReporterChecker(alias string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration, logger log.Logger) BasicChecker {
 	healthStatusType := "auditEventreporter"
+	response := HealthStatus{Name: &alias, Type: &healthStatusType, CacheDuration: cacheDuration}
+	response.connection("init")
+	response.stateUp()
 	return &auditEventsReporterChecker{
 		alias:    alias,
 		reporter: reporter,
 		timeout:  timeout,
-		response: HealthStatus{Name: &alias, Type: &healthStatusType, CacheDuration: cacheDuration},
+		response: response,
 		logger:   logger,
 	}
 }
 
 func (a *auditEventsReporterChecker) CheckStatus() HealthStatus {
-	if !a.response.hasExpired() {
-		return a.response
+	if a.response.hasExpired() {
+		go a.updateStatus()
 	}
 
+	return a.response
+}
+
+func (a *auditEventsReporterChecker) updateStatus() {
 	finished := make(chan bool)
 	go func() {
-		//event := events.NewEvent("healthcheck", "LIVENESS_PROBE", "master", "health_checker", "health_checker", "master", map[string]string{})
 		event := events.NewEvent("healthcheck", "", "master", "health_checker", "health_checker", "master", map[string]string{})
 		a.reporter.ReportEvent(context.Background(), event)
 		finished <- true
@@ -50,6 +56,4 @@ func (a *auditEventsReporterChecker) CheckStatus() HealthStatus {
 	}
 
 	a.response.touch()
-
-	return a.response
 }

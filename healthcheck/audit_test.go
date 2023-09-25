@@ -17,14 +17,25 @@ func TestAuditEventsReporterChecker(t *testing.T) {
 	var mockAuditEventReporter = mock.NewAuditEventsReporterModule(mockCtrl)
 
 	t.Run("Success ", func(t *testing.T) {
-		var auditEventReporterChecker = newAuditEventsReporterChecker("alias", mockAuditEventReporter, 10*time.Second, 10*time.Second, log.NewNopLogger())
+		var auditEventReporterChecker = newAuditEventsReporterChecker("alias", mockAuditEventReporter, 1*time.Second, 1*time.Second, log.NewNopLogger())
+		// first call
 		mockAuditEventReporter.EXPECT().ReportEvent(gomock.Any(), gomock.Any()).Times(1)
 
 		var res = auditEventReporterChecker.CheckStatus()
 		assert.NotNil(t, res.Connection)
+		assert.Equal(t, "init", *res.Connection)
+
+		time.Sleep(2 * time.Second)
+		mockAuditEventReporter.EXPECT().ReportEvent(gomock.Any(), gomock.Any()).Times(1)
+
+		// usual success call
+		res = auditEventReporterChecker.CheckStatus()
+		assert.NotNil(t, res.Connection)
 		assert.Equal(t, "established", *res.Connection)
 
-		// Mock is configured to be called only once... A new call would let the test success as result is cached
+		time.Sleep(500 * time.Millisecond)
+
+		// Get succes from the cache
 		res = auditEventReporterChecker.CheckStatus()
 		assert.NotNil(t, res.Connection)
 		assert.Equal(t, "established", *res.Connection)
@@ -36,7 +47,15 @@ func TestAuditEventsReporterChecker(t *testing.T) {
 			time.Sleep(2 * time.Second)
 		})
 
+		// first call
 		var res = auditEventReporterChecker.CheckStatus()
+		assert.NotNil(t, res.Connection)
+		assert.Equal(t, "init", *res.Connection)
+
+		time.Sleep(2 * time.Second)
+
+		// Call with down status
+		res = auditEventReporterChecker.CheckStatus()
 		assert.NotNil(t, res.Message)
 		assert.Equal(t, "Events reporter timeout", *res.Message)
 	})
