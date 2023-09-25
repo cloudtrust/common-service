@@ -111,9 +111,10 @@ func TestValidateParameterNotNil(t *testing.T) {
 }
 
 func TestValidateParameterIn(t *testing.T) {
-	var weekend = map[string]bool{"saturday": true, "sunday": true}
+	var weekend = map[string]bool{"saturday": true, "sunday": true, "wednesday": false}
 	var validValue = "sunday"
 	var invalidValue = "green"
+	var disallowedValue = "wednesday"
 
 	t.Run("Nil value, not mandatory", func(t *testing.T) {
 		assert.Nil(t, NewParameterValidator().ValidateParameterIn("param", nil, weekend, false).Status())
@@ -126,6 +127,9 @@ func TestValidateParameterIn(t *testing.T) {
 	})
 	t.Run("Invalid value", func(t *testing.T) {
 		assert.NotNil(t, NewParameterValidator().ValidateParameterIn("param", &invalidValue, weekend, true).Status())
+	})
+	t.Run("Disallowed value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterIn("param", &disallowedValue, weekend, true).Status())
 	})
 	t.Run("Valid check after failed validation", func(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterIn("param", nil, weekend, false).Status())
