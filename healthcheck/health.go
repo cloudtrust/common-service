@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/cloudtrust/common-service/v2/events"
 	commonhttp "github.com/cloudtrust/common-service/v2/http"
 	log "github.com/cloudtrust/common-service/v2/log"
 	"github.com/go-kit/kit/ratelimit"
@@ -17,6 +18,7 @@ type HealthChecker interface {
 	AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
 	AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
 	AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration)
+	AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration)
 	MakeHandler(rateLimit ratelimit.Allower) http.HandlerFunc
 }
 
@@ -129,6 +131,11 @@ func (hc *healthchecker) AddHTTPEndpoints(endpoints map[string]string, timeoutDu
 func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration) {
 	hc.logger.Info(context.Background(), "msg", "Adding database", "processor", name)
 	hc.AddHealthChecker(name, newDatabaseChecker(name, db, cacheDuration))
+}
+
+func (hc *healthchecker) AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration) {
+	hc.logger.Info(context.Background(), "msg", "Adding audit event reporter module", "processor", name)
+	hc.AddHealthChecker(name, newAuditEventsReporterChecker(name, reporter, timeout, cacheDuration, hc.logger))
 }
 
 // MakeHandler makes a HTTP handler that returns health check information
