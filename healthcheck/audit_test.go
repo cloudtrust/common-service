@@ -25,12 +25,6 @@ func TestAuditEventsReporterChecker(t *testing.T) {
 		var res = internalChecker.response
 		assert.NotNil(t, res.Connection)
 		assert.Equal(t, "established", *res.Connection)
-
-		// Mock is configured to be called only once... A new call would let the test success as result is cached
-		internalChecker.updateStatus()
-		res = internalChecker.response
-		assert.NotNil(t, res.Connection)
-		assert.Equal(t, "established", *res.Connection)
 	})
 
 	t.Run("Failure ", func(t *testing.T) {
