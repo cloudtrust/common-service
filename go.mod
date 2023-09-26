@@ -3,7 +3,7 @@ module github.com/cloudtrust/common-service/v2
 go 1.17
 
 require (
-	github.com/IBM/sarama v1.41.1 
+	github.com/IBM/sarama v1.41.1
 	github.com/gbrlsnchs/jwt/v2 v2.0.0
 	github.com/getsentry/raven-go v0.2.0
 	github.com/go-kit/kit v0.12.0
@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/influxdata/influxdb1-client v0.0.0-20200827194710-b269163b24ab
-	github.com/nyaruka/phonenumbers v1.0.74
+	github.com/nyaruka/phonenumbers v1.1.8
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4

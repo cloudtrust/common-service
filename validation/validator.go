@@ -94,7 +94,7 @@ func (v *successValidator) ValidateParameterIn(prmName string, value *string, al
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}
 	} else {
-		if _, ok := allowedValues[*value]; !ok {
+		if allowed, ok := allowedValues[*value]; !ok || !allowed {
 			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
 		}
 	}
