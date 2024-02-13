@@ -50,6 +50,7 @@ const (
 	CardsAPI
 	SchedulerAPI
 	SignatureAPI
+	EventStatisticAPI
 )
 
 // ActionsIndex struct
@@ -116,11 +117,6 @@ var (
 
 	COMSendEmail = Actions.addAction(BridgeService, CommunicationAPI, "COM_SendEmail", ScopeRealm)
 	COMSendSMS   = Actions.addAction(BridgeService, CommunicationAPI, "COM_SendSMS", ScopeRealm)
-
-	EVGetActions       = Actions.addAction(BridgeService, EventsAPI, "EV_GetActions", ScopeGlobal)
-	EVGetEvents        = Actions.addAction(BridgeService, EventsAPI, "EV_GetEvents", ScopeRealm)
-	EVGetEventsSummary = Actions.addAction(BridgeService, EventsAPI, "EV_GetEventsSummary", ScopeRealm)
-	EVGetUserEvents    = Actions.addAction(BridgeService, EventsAPI, "EV_GetUserEvents", ScopeGroup)
 
 	KYCGetActions                       = Actions.addAction(BridgeService, KycAPI, "KYC_GetActions", ScopeGlobal)
 	KYCGetRealmUserProfileInSocialRealm = Actions.addAction(BridgeService, KycAPI, "KYC_GetRealmUserProfileInSocialRealm", ScopeGlobal)
@@ -210,16 +206,23 @@ var (
 	MGMTLinkShadowUser                      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_LinkShadowUser", ScopeGroup)
 	MGMTGetIdentityProviders                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetIdentityProviders", ScopeRealm)
 
-	STGetActions                      = Actions.addAction(BridgeService, StatisticAPI, "ST_GetActions", ScopeGlobal)
-	STGetStatistics                   = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatistics", ScopeRealm)
-	STGetStatisticsIdentifications    = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsIdentifications", ScopeRealm)
-	STGetStatisticsUsers              = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsUsers", ScopeRealm)
-	STGetStatisticsAuthenticators     = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsAuthenticators", ScopeRealm)
-	STGetStatisticsAuthentications    = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsAuthentications", ScopeRealm)
-	STGetStatisticsAuthenticationsLog = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsAuthenticationsLog", ScopeRealm)
-	STGetMigrationReport              = Actions.addAction(BridgeService, StatisticAPI, "ST_GetMigrationReport", ScopeRealm)
+	STGetActions                   = Actions.addAction(BridgeService, StatisticAPI, "ST_GetActions", ScopeGlobal)
+	STGetStatisticsIdentifications = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsIdentifications", ScopeRealm)
+	STGetStatisticsUsers           = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsUsers", ScopeRealm)
+	STGetStatisticsAuthenticators  = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsAuthenticators", ScopeRealm)
+	STGetMigrationReport           = Actions.addAction(BridgeService, StatisticAPI, "ST_GetMigrationReport", ScopeRealm)
 
 	TSKDeleteDeniedToUUsers = Actions.addAction(BridgeService, TaskAPI, "TSK_DeleteDeniedToUUsers", ScopeGlobal)
+
+	EVGetActions       = Actions.addAction(EventService, EventsAPI, "EV_GetActions", ScopeGlobal)
+	EVGetEvents        = Actions.addAction(EventService, EventsAPI, "EV_GetEvents", ScopeRealm)
+	EVGetEventsSummary = Actions.addAction(EventService, EventsAPI, "EV_GetEventsSummary", ScopeRealm)
+	EVGetUserEvents    = Actions.addAction(EventService, EventsAPI, "EV_GetUserEvents", ScopeGroup)
+
+	STEventGetActions                 = Actions.addAction(EventService, EventStatisticAPI, "ST_EventGetActions", ScopeGlobal)
+	STGetStatistics                   = Actions.addAction(EventService, EventStatisticAPI, "ST_GetStatistics", ScopeRealm)
+	STGetStatisticsAuthentications    = Actions.addAction(EventService, EventStatisticAPI, "ST_GetStatisticsAuthentications", ScopeRealm)
+	STGetStatisticsAuthenticationsLog = Actions.addAction(EventService, EventStatisticAPI, "ST_GetStatisticsAuthenticationsLog", ScopeRealm)
 
 	IDNGetActions     = Actions.addAction(IDNowService, IDNowAPI, "IDN_GetActions", ScopeGlobal)
 	IDNVideoIdentInit = Actions.addAction(IDNowService, IDNowAPI, "IDN_Init", ScopeGroup)
