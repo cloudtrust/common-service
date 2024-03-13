@@ -78,3 +78,18 @@ func AddLargeDurationE(date time.Time, value string) (time.Time, error) {
 	}
 	return date.AddDate(duration.years, duration.months, duration.days), nil
 }
+
+// SubstractLargeDuration substracts a specified duration value from the given date. In case of any error, the provided date is returned untouched.
+func SubstractLargeDuration(date time.Time, value string) time.Time {
+	var duration, _ = SubstractLargeDurationE(date, value)
+	return duration
+}
+
+// SubstractLargeDurationE substracts a specified duration value from the given date.
+func SubstractLargeDurationE(date time.Time, value string) (time.Time, error) {
+	var duration, err = parseLargeDuration(value)
+	if err != nil {
+		return date, err
+	}
+	return date.AddDate(-duration.years, -duration.months, -duration.days), nil
+}
