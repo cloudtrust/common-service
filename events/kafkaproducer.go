@@ -10,6 +10,7 @@ import (
 )
 
 // KafkaProducerConfig struct
+// Deprecated: KafkaProducerConfig is deprecated. Use kafka-client instead
 type KafkaProducerConfig struct {
 	Version      string
 	Brokers      []string
@@ -21,6 +22,7 @@ type KafkaProducerConfig struct {
 }
 
 // GetKafkaProducerConfig gets a KafkaProducerConfig
+// Deprecated: GetKafkaProducerConfig is deprecated. Use kafka-client instead
 func GetKafkaProducerConfig(c cs.Configuration, prefix string) KafkaProducerConfig {
 	var cfg KafkaProducerConfig
 
