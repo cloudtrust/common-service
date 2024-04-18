@@ -154,7 +154,7 @@ func (hc *healthchecker) MakeHandler(rateLimit ratelimit.Allower) http.HandlerFu
 	})
 }
 
-func (hc *healthchecker) getCurrentStatus(ctx context.Context, _ interface{}) (interface{}, error) {
+func (hc *healthchecker) getCurrentStatus(ctx context.Context, _ any) (any, error) {
 	var status = hc.CheckStatus()
 	var response = commonhttp.GenericResponse{
 		StatusCode:       http.StatusOK,

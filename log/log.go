@@ -12,10 +12,10 @@ import (
 
 // Logger interface for logging with level
 type Logger interface {
-	Debug(ctx context.Context, keyvals ...interface{})
-	Info(ctx context.Context, keyvals ...interface{})
-	Warn(ctx context.Context, keyvals ...interface{})
-	Error(ctx context.Context, keyvals ...interface{})
+	Debug(ctx context.Context, keyvals ...any)
+	Info(ctx context.Context, keyvals ...any)
+	Warn(ctx context.Context, keyvals ...any)
+	Error(ctx context.Context, keyvals ...any)
 	ToGoKitLogger() kit_log.Logger
 }
 
@@ -36,7 +36,7 @@ func NewLeveledLogger(l kit_log.Logger) Logger {
 //
 // The returned Logger replaces all value elements (odd indexes) containing a
 // Valuer with their generated value for each call to its Log method.
-func With(logger Logger, keyvals ...interface{}) Logger {
+func With(logger Logger, keyvals ...any) Logger {
 	return &ctLogger{
 		logger: kit_log.With(logger.ToGoKitLogger(), keyvals...),
 	}
@@ -67,22 +67,22 @@ func ConvertToLevel(strLevel string) (kit_level.Option, error) {
 	return level, nil
 }
 
-func (l *ctLogger) Debug(ctx context.Context, keyvals ...interface{}) {
+func (l *ctLogger) Debug(ctx context.Context, keyvals ...any) {
 	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
 	_ = kit_level.Debug(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Info(ctx context.Context, keyvals ...interface{}) {
+func (l *ctLogger) Info(ctx context.Context, keyvals ...any) {
 	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
 	_ = kit_level.Info(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Warn(ctx context.Context, keyvals ...interface{}) {
+func (l *ctLogger) Warn(ctx context.Context, keyvals ...any) {
 	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
 	_ = kit_level.Warn(l.logger).Log(keyvals...)
 }
 
-func (l *ctLogger) Error(ctx context.Context, keyvals ...interface{}) {
+func (l *ctLogger) Error(ctx context.Context, keyvals ...any) {
 	keyvals = append(keyvals, extractInfoFromContext(ctx)...)
 	_ = kit_level.Error(l.logger).Log(keyvals...)
 }
@@ -99,8 +99,8 @@ var (
 	}
 )
 
-func extractInfoFromContext(ctx context.Context) []interface{} {
-	var keyvals = []interface{}{}
+func extractInfoFromContext(ctx context.Context) []any {
+	var keyvals = []any{}
 
 	if ctx == nil {
 		return keyvals

@@ -41,7 +41,7 @@ func TestNoopInfluxClient(t *testing.T) {
 
 	noop.Ping(1)
 	noop.WriteLoop(nil)
-	noop.Stats(context.TODO(), "name", map[string]string{}, map[string]interface{}{})
+	noop.Stats(context.TODO(), "name", map[string]string{}, map[string]any{})
 	noop.Close()
 }
 
@@ -88,7 +88,7 @@ func TestTrueInfluxClient(t *testing.T) {
 	// Stats fails
 	{
 		var tags = map[string]string{}
-		var fields = map[string]interface{}{}
+		var fields = map[string]any{}
 		err := influx.Stats(context.TODO(), "name", tags, fields)
 		assert.NotNil(t, err)
 	}

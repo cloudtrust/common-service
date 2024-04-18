@@ -38,7 +38,7 @@ func TestGetRealmConfigurations(t *testing.T) {
 	})
 	t.Run("Invalid JSON", func(t *testing.T) {
 		mockDB.EXPECT().QueryRow(gomock.Any(), realmID).Return(mockSQLRow)
-		mockSQLRow.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+		mockSQLRow.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
 			*(dest[0]).(*string) = `{`
 			*(dest[1]).(*string) = `{}`
 			return nil
@@ -48,7 +48,7 @@ func TestGetRealmConfigurations(t *testing.T) {
 	})
 	t.Run("Success", func(t *testing.T) {
 		mockDB.EXPECT().QueryRow(gomock.Any(), realmID).Return(mockSQLRow)
-		mockSQLRow.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+		mockSQLRow.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
 			*(dest[0]).(*string) = `{}`
 			*(dest[1]).(*string) = `{}`
 			return nil
@@ -167,7 +167,7 @@ func TestGetAuthorizations(t *testing.T) {
 	t.Run("Query returns 2 rows", func(t *testing.T) {
 		gomock.InOrder(
 			mockSQLRows.EXPECT().Next().Return(true),
-			mockSQLRows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+			mockSQLRows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
 				*(dest[0]).(*string) = "realm#1"
 				*(dest[1]).(*string) = "group#1"
 				*(dest[2]).(*string) = notInScopeAction
@@ -176,7 +176,7 @@ func TestGetAuthorizations(t *testing.T) {
 				return nil
 			}),
 			mockSQLRows.EXPECT().Next().Return(true),
-			mockSQLRows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+			mockSQLRows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
 				*(dest[0]).(*string) = "realm#2"
 				*(dest[1]).(*string) = "group#2"
 				*(dest[2]).(*string) = allowedAction

@@ -1,6 +1,6 @@
 module github.com/cloudtrust/common-service/v2
 
-go 1.17
+go 1.21.0
 
 require (
 	github.com/IBM/sarama v1.41.1

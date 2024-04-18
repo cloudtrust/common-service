@@ -37,7 +37,7 @@ type GenericResponse struct {
 	StatusCode       int
 	Headers          map[string]string
 	MimeContent      *MimeContent
-	JSONableResponse interface{}
+	JSONableResponse any
 }
 
 var protoRegex = regexp.MustCompile(`(?i)(?:proto=)(https|http)`)
@@ -70,7 +70,7 @@ func (r *GenericResponse) WriteResponse(w http.ResponseWriter) {
 	}
 }
 
-func writeJSON(jsonableResponse interface{}, w http.ResponseWriter, statusCode int) {
+func writeJSON(jsonableResponse any, w http.ResponseWriter, statusCode int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(statusCode)
 
@@ -82,17 +82,17 @@ func writeJSON(jsonableResponse interface{}, w http.ResponseWriter, statusCode i
 }
 
 // BasicDecodeRequest does not expect parameters
-func BasicDecodeRequest(ctx context.Context, req *http.Request) (interface{}, error) {
+func BasicDecodeRequest(ctx context.Context, req *http.Request) (any, error) {
 	return DecodeRequestWithHeaders(ctx, req, map[string]string{}, map[string]string{}, nil)
 }
 
 // DecodeRequest gets the HTTP parameters and body content
-func DecodeRequest(ctx context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string) (interface{}, error) {
+func DecodeRequest(ctx context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string) (any, error) {
 	return DecodeRequestWithHeaders(ctx, req, pathParams, queryParams, nil)
 }
 
 // DecodeRequestWithHeaders gets the HTTP parameters, headers and body content
-func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string, headers []string) (interface{}, error) {
+func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string, headers []string) (any, error) {
 	var request = map[string]string{}
 
 	// Fetch and validate path parameter such as realm, userID, ...
@@ -152,7 +152,7 @@ func getScheme(req *http.Request) string {
 }
 
 // EncodeReply encodes the reply.
-func EncodeReply(_ context.Context, w http.ResponseWriter, rep interface{}) error {
+func EncodeReply(_ context.Context, w http.ResponseWriter, rep any) error {
 	if rep == nil {
 		w.WriteHeader(http.StatusOK)
 		return nil

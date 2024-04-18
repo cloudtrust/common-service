@@ -39,7 +39,7 @@ func TestCreateNoopJaegerClient(t *testing.T) {
 	jaeger.Close()
 
 	var e = jaeger.MakeEndpointTracingMW("name")(
-		func(_ context.Context, _ interface{}) (interface{}, error) {
+		func(_ context.Context, _ any) (any, error) {
 			return expected, nil
 		},
 	)
@@ -109,7 +109,7 @@ func TestHTTPTracingMW(t *testing.T) {
 	})
 }
 
-func dummyEndpoint(ctx context.Context, request interface{}) (response interface{}, err error) {
+func dummyEndpoint(ctx context.Context, request any) (response any, err error) {
 	return nil, nil
 }
 

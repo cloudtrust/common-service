@@ -98,8 +98,7 @@ func TestValidateParameterNotNil(t *testing.T) {
 	t.Run("Not nil value", func(t *testing.T) {
 		assert.Nil(t, NewParameterValidator().ValidateParameterNotNil("param", t).Status())
 	})
-	// This should be "Nil interface{}", but it confuses sonar-scanner
-	t.Run("Nil interface", func(t *testing.T) {
+	t.Run("Nil any", func(t *testing.T) {
 		// Skip this test as it fails on the CI
 		t.Skip()
 		var s = mystruct{OneField: nil}
