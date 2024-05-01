@@ -22,6 +22,7 @@ type Validator interface {
 	ValidateParameterNotNil(prmName string, value any) Validator
 	ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator
 	ValidateParameterRegExp(prmName string, value *string, regExp string, mandatory bool) Validator
+	ValidateParameterRegExpSlice(prmName string, values []string, regExp string, mandatory bool) Validator
 	ValidateParameterPhoneNumber(prmName string, value *string, mandatory bool) Validator
 	ValidateParameterLength(prmName string, value *string, min, max int, mandatory bool) Validator
 	ValidateParameterIntBetween(prmName string, value *int, min, max int, mandatory bool) Validator
@@ -110,6 +111,22 @@ func (v *successValidator) ValidateParameterRegExp(prmName string, value *string
 		res, _ := regexp.MatchString(regExp, *value)
 		if !res {
 			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+	}
+	return v
+}
+
+func (v *successValidator) ValidateParameterRegExpSlice(prmName string, values []string, regExp string, mandatory bool) Validator {
+	if values == nil {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		} else {
+			for _, v := range values {
+				res, _ := regexp.MatchString(regExp, v)
+				if !res {
+					return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+				}
+			}
 		}
 	}
 	return v
@@ -262,6 +279,10 @@ func (v *failedValidator) ValidateParameterIn(_ string, _ *string, _ map[string]
 }
 
 func (v *failedValidator) ValidateParameterRegExp(_ string, _ *string, _ string, _ bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterRegExpSlice(prmName string, values []string, regExp string, mandatory bool) Validator {
 	return v
 }
 

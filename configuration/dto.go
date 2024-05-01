@@ -16,20 +16,21 @@ var (
 
 // RealmConfiguration struct. APISelfAccountEditingEnabled replaces former field APISelfMailEditingEnabled
 type RealmConfiguration struct {
-	DefaultClientID                     *string `json:"default_client_id,omitempty"`
-	DefaultRedirectURI                  *string `json:"default_redirect_uri,omitempty"`
-	APISelfAuthenticatorDeletionEnabled *bool   `json:"api_self_authenticator_deletion_enabled,omitempty"`
-	APISelfPasswordChangeEnabled        *bool   `json:"api_self_password_change_enabled,omitempty"`
-	DeprecatedAPISelfMailEditingEnabled *bool   `json:"api_self_mail_editing_enabled,omitempty"`
-	APISelfAccountEditingEnabled        *bool   `json:"api_self_account_editing_enabled,omitempty"`
-	APISelfAccountDeletionEnabled       *bool   `json:"api_self_account_deletion_enabled,omitempty"`
-	ShowAuthenticatorsTab               *bool   `json:"show_authenticators_tab,omitempty"`
-	ShowPasswordTab                     *bool   `json:"show_password_tab,omitempty"`
-	ShowProfileTab                      *bool   `json:"show_profile_tab,omitempty"`
-	ShowMailEditing                     *bool   `json:"show_mail_editing,omitempty"`
-	ShowAccountDeletionButton           *bool   `json:"show_account_deletion_button,omitempty"`
-	SelfServiceDefaultTab               *string `json:"self_service_default_tab,omitempty"`
-	AllowedBackURL                      *string `json:"allowed_back_url,omitempty"`
+	DefaultClientID                     *string  `json:"default_client_id,omitempty"`
+	DefaultRedirectURI                  *string  `json:"default_redirect_uri,omitempty"`
+	APISelfAuthenticatorDeletionEnabled *bool    `json:"api_self_authenticator_deletion_enabled,omitempty"`
+	APISelfPasswordChangeEnabled        *bool    `json:"api_self_password_change_enabled,omitempty"`
+	DeprecatedAPISelfMailEditingEnabled *bool    `json:"api_self_mail_editing_enabled,omitempty"`
+	APISelfAccountEditingEnabled        *bool    `json:"api_self_account_editing_enabled,omitempty"`
+	APISelfAccountDeletionEnabled       *bool    `json:"api_self_account_deletion_enabled,omitempty"`
+	ShowAuthenticatorsTab               *bool    `json:"show_authenticators_tab,omitempty"`
+	ShowPasswordTab                     *bool    `json:"show_password_tab,omitempty"`
+	ShowProfileTab                      *bool    `json:"show_profile_tab,omitempty"`
+	ShowMailEditing                     *bool    `json:"show_mail_editing,omitempty"`
+	ShowAccountDeletionButton           *bool    `json:"show_account_deletion_button,omitempty"`
+	SelfServiceDefaultTab               *string  `json:"self_service_default_tab,omitempty"`
+	AllowedBackURL                      *string  `json:"allowed_back_url,omitempty"` // DEPRECATED
+	AllowedBackURLs                     []string `json:"allowed_back_urls,omitempty"`
 
 	RedirectCancelledRegistrationURL  *string   `json:"redirect_cancelled_registration_url,omitempty"`
 	RedirectSuccessfulRegistrationURL *string   `json:"redirect_successful_registration_url,omitempty"`
