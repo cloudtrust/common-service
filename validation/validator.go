@@ -117,18 +117,19 @@ func (v *successValidator) ValidateParameterRegExp(prmName string, value *string
 }
 
 func (v *successValidator) ValidateParameterRegExpSlice(prmName string, values []string, regExp string, mandatory bool) Validator {
-	if values == nil {
+	if len(values) == 0 {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
-		} else {
-			for _, v := range values {
-				res, _ := regexp.MatchString(regExp, v)
-				if !res {
-					return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
-				}
+		}
+	} else {
+		for _, v := range values {
+			res, _ := regexp.MatchString(regExp, v)
+			if !res {
+				return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
 			}
 		}
 	}
+
 	return v
 }
 

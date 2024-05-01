@@ -157,6 +157,34 @@ func TestValidateParameterRegExp(t *testing.T) {
 	})
 }
 
+func TestValidateParameterRegExpSlice(t *testing.T) {
+	var regexp = `^s[a-z]+day$`
+	var validValue = "sunday"
+	var invalidValue = "friday"
+
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterRegExpSlice("param", nil, regexp, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpSlice("param", nil, regexp, true).Status())
+	})
+	t.Run("Valid value", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterRegExpSlice("param", []string{validValue}, regexp, true).Status())
+	})
+	t.Run("Valid values", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterRegExpSlice("param", []string{validValue, "sunnyday"}, regexp, true).Status())
+	})
+	t.Run("Invalid value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpSlice("param", []string{invalidValue}, regexp, true).Status())
+	})
+	t.Run("Invalid and valid values", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpSlice("param", []string{validValue, invalidValue}, regexp, true).Status())
+	})
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterRegExpSlice("param", nil, regexp, false).Status())
+	})
+}
+
 func TestValidateParameterPhoneNumber(t *testing.T) {
 	t.Run("Nil value, not mandatory", func(t *testing.T) {
 		assert.Nil(t, NewParameterValidator().ValidateParameterPhoneNumber("param", nil, false).Status())
