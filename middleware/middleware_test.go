@@ -25,7 +25,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func dummyEndpoint(ctx context.Context, request interface{}) (response interface{}, err error) {
+func dummyEndpoint(ctx context.Context, request any) (response any, err error) {
 	return nil, nil
 }
 

@@ -10,8 +10,8 @@ const (
 	layout = "02.01.2006"
 )
 
-// ToTimePtr converts an interface{} value as a Time pointer. Error is not possible, defaults to nil
-func ToTimePtr(value interface{}) *time.Time {
+// ToTimePtr converts an 'any' value as a Time pointer. Error is not possible, defaults to nil
+func ToTimePtr(value any) *time.Time {
 	if value == nil {
 		return nil
 	}
@@ -30,8 +30,8 @@ func ToTimePtr(value interface{}) *time.Time {
 	return nil
 }
 
-// ToStringPtr converts an interface{} value as a string pointer
-func ToStringPtr(value interface{}) *string {
+// ToStringPtr converts an 'any' value as a string pointer
+func ToStringPtr(value any) *string {
 	if value == nil {
 		return nil
 	}
@@ -43,8 +43,8 @@ func ToStringPtr(value interface{}) *string {
 	return &res
 }
 
-// ToInt converts an interface{} value as int and returns a default value in case of error
-func ToInt(value interface{}, defaultValue int) int {
+// ToInt converts an 'any' value as int and returns a default value in case of error
+func ToInt(value any, defaultValue int) int {
 	switch v := value.(type) {
 	case int:
 		return v
@@ -75,8 +75,8 @@ func ToInt(value interface{}, defaultValue int) int {
 	}
 }
 
-// ToFloat converts an interface{} value as float64 and returns a default value in case of error
-func ToFloat(value interface{}, defaultValue float64) float64 {
+// ToFloat converts an 'any' value as float64 and returns a default value in case of error
+func ToFloat(value any, defaultValue float64) float64 {
 	switch v := value.(type) {
 	case int:
 		return float64(v)

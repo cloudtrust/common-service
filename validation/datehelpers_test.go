@@ -12,6 +12,7 @@ func TestLargeDuration(t *testing.T) {
 	t.Run("Empty duration", func(t *testing.T) {
 		assert.False(t, IsValidLargeDuration(""))
 		assert.Equal(t, now, AddLargeDuration(now, ""))
+		assert.Equal(t, now, SubstractLargeDuration(now, ""))
 	})
 	t.Run("Invalid duration", func(t *testing.T) {
 		var duration = "2d3y4"
@@ -23,5 +24,8 @@ func TestLargeDuration(t *testing.T) {
 
 		var after = now.AddDate(3, 1, 4*7+2)
 		assert.Equal(t, after, AddLargeDuration(now, duration))
+
+		var before = now.AddDate(-3, -1, -(4*7 + 2))
+		assert.Equal(t, before, SubstractLargeDuration(now, duration))
 	})
 }

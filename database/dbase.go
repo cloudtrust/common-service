@@ -55,15 +55,15 @@ func (db *basicCloudtrustDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (
 	return NewTransaction(tx), nil
 }
 
-func (db *basicCloudtrustDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (db *basicCloudtrustDB) Exec(query string, args ...any) (sql.Result, error) {
 	return db.dbConn.Exec(query, args...)
 }
 
-func (db *basicCloudtrustDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
+func (db *basicCloudtrustDB) Query(query string, args ...any) (sqltypes.SQLRows, error) {
 	return db.dbConn.Query(query, args...)
 }
 
-func (db *basicCloudtrustDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
+func (db *basicCloudtrustDB) QueryRow(query string, args ...any) sqltypes.SQLRow {
 	return db.dbConn.QueryRow(query, args...)
 }
 
@@ -324,7 +324,7 @@ func (rcdb *ReconnectableCloudtrustDB) BeginTx(ctx context.Context, opts *sql.Tx
 }
 
 // Exec an SQL query
-func (rcdb *ReconnectableCloudtrustDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (rcdb *ReconnectableCloudtrustDB) Exec(query string, args ...any) (sql.Result, error) {
 	rcdb.logger.Debug(context.TODO(), "msg", "'Exec() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {
@@ -339,7 +339,7 @@ func (rcdb *ReconnectableCloudtrustDB) Exec(query string, args ...interface{}) (
 }
 
 // Query a multiple-rows SQL result
-func (rcdb *ReconnectableCloudtrustDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
+func (rcdb *ReconnectableCloudtrustDB) Query(query string, args ...any) (sqltypes.SQLRows, error) {
 	rcdb.logger.Debug(context.TODO(), "msg", "'Query() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {
@@ -354,7 +354,7 @@ func (rcdb *ReconnectableCloudtrustDB) Query(query string, args ...interface{}) 
 }
 
 // QueryRow a single-row SQL result
-func (rcdb *ReconnectableCloudtrustDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
+func (rcdb *ReconnectableCloudtrustDB) QueryRow(query string, args ...any) sqltypes.SQLRow {
 	rcdb.logger.Debug(context.TODO(), "msg", "'QueryRow() called'")
 	dbConn, err := rcdb.getActiveConnection()
 	if err != nil {

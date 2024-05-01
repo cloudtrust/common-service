@@ -16,9 +16,9 @@ type DbTransactionIntf interface {
 	Commit() error
 	Rollback() error
 
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	QueryRow(query string, args ...interface{}) *sql.Row
+	Exec(query string, args ...any) (sql.Result, error)
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
 }
 
 // NewTransaction creates a transaction
@@ -49,14 +49,14 @@ func (tx *dbTransaction) Close() error {
 	return tx.Rollback()
 }
 
-func (tx *dbTransaction) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (tx *dbTransaction) Exec(query string, args ...any) (sql.Result, error) {
 	return tx.tx.Exec(query, args...)
 }
 
-func (tx *dbTransaction) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
+func (tx *dbTransaction) Query(query string, args ...any) (sqltypes.SQLRows, error) {
 	return tx.tx.Query(query, args...)
 }
 
-func (tx *dbTransaction) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
+func (tx *dbTransaction) QueryRow(query string, args ...any) sqltypes.SQLRow {
 	return tx.tx.QueryRow(query, args...)
 }

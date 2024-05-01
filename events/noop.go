@@ -7,6 +7,7 @@ import (
 )
 
 // NoopKafkaConsumerGroup is an consumer group that does nothing.
+// Deprecated: NoopKafkaConsumerGroup is deprecated. Use the one implemented in kafka-client instead
 type NoopKafkaConsumerGroup struct{}
 
 // Consume does noop
@@ -37,6 +38,7 @@ func (n *NoopKafkaConsumerGroup) PauseAll() {}
 func (n *NoopKafkaConsumerGroup) ResumeAll() {}
 
 // NoopKafkaProducer struct
+// Deprecated: NoopKafkaProducer is deprecated. Use the one implemented in kafka-client instead
 type NoopKafkaProducer struct{}
 
 // SendMessage does noop

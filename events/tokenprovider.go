@@ -14,6 +14,7 @@ type TokenProvider struct {
 }
 
 // NewTokenProvider creates an instance of sarama AccessTokenProvider
+// Deprecated: NewTokenProvider is deprecated. Use the one implemented in kafka-client instead
 func NewTokenProvider(clientID, clientSecret, tokenURL string) sarama.AccessTokenProvider {
 	cfg := clientcredentials.Config{
 		ClientID:     clientID,

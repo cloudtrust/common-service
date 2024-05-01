@@ -20,7 +20,7 @@ func (r *NoopSQLRows) NextResultSet() bool { return false }
 func (r *NoopSQLRows) Err() error { return nil }
 
 // Scan implements SQLRows.Scan(...)
-func (r *NoopSQLRows) Scan(dest ...interface{}) error { return nil }
+func (r *NoopSQLRows) Scan(dest ...any) error { return nil }
 
 // Close implements SQLRows.Close()
 func (r *NoopSQLRows) Close() error { return nil }
@@ -29,7 +29,7 @@ func (r *NoopSQLRows) Close() error { return nil }
 type NoopSQLRow struct{}
 
 // Scan implements SQLRow.Scan(...)
-func (r *NoopSQLRow) Scan(dest ...interface{}) error {
+func (r *NoopSQLRow) Scan(dest ...any) error {
 	return nil
 }
 
@@ -42,17 +42,17 @@ func (db *NoopDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (sqltypes.Tr
 }
 
 // Exec does nothing.
-func (db *NoopDB) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (db *NoopDB) Exec(query string, args ...any) (sql.Result, error) {
 	return NoopResult{}, nil
 }
 
 // Query does nothing.
-func (db *NoopDB) Query(query string, args ...interface{}) (sqltypes.SQLRows, error) {
+func (db *NoopDB) Query(query string, args ...any) (sqltypes.SQLRows, error) {
 	return &NoopSQLRows{}, nil
 }
 
 // QueryRow does nothing.
-func (db *NoopDB) QueryRow(query string, args ...interface{}) sqltypes.SQLRow {
+func (db *NoopDB) QueryRow(query string, args ...any) sqltypes.SQLRow {
 	return &NoopSQLRow{}
 }
 

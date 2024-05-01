@@ -21,7 +21,7 @@ func MakeEndpointLoggingMW(logger log.Logger) cs.Middleware {
 // MakeEndpointLoggingInMW makes a logging middleware
 func MakeEndpointLoggingInMW(logger log.Logger) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
-		return func(ctx context.Context, req interface{}) (interface{}, error) {
+		return func(ctx context.Context, req any) (any, error) {
 			logger.Debug(ctx, "req", req)
 			res, err := next(ctx, req)
 			logger.Debug(ctx, "res", "hidden")
@@ -33,7 +33,7 @@ func MakeEndpointLoggingInMW(logger log.Logger) cs.Middleware {
 // MakeEndpointLoggingOutMW makes a logging middleware
 func MakeEndpointLoggingOutMW(logger log.Logger) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
-		return func(ctx context.Context, req interface{}) (interface{}, error) {
+		return func(ctx context.Context, req any) (any, error) {
 			logger.Debug(ctx, "req", "hidden")
 			res, err := next(ctx, req)
 			logger.Debug(ctx, "res", res)
@@ -45,7 +45,7 @@ func MakeEndpointLoggingOutMW(logger log.Logger) cs.Middleware {
 // MakeEndpointLoggingInOutMW makes a logging middleware
 func MakeEndpointLoggingInOutMW(logger log.Logger) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
-		return func(ctx context.Context, req interface{}) (interface{}, error) {
+		return func(ctx context.Context, req any) (any, error) {
 			logger.Debug(ctx, "req", req)
 			res, err := next(ctx, req)
 			logger.Debug(ctx, "res", res)
@@ -59,7 +59,7 @@ func MakeEndpointLoggingInOutMW(logger log.Logger) cs.Middleware {
 func MakeEndpointInstrumentingMW(m metrics.Metrics, histoName string) cs.Middleware {
 	h := m.NewHistogram(histoName)
 	return func(next cs.Endpoint) cs.Endpoint {
-		return func(ctx context.Context, req interface{}) (interface{}, error) {
+		return func(ctx context.Context, req any) (any, error) {
 			defer func(begin time.Time) {
 				h.With("corr_id", ctx.Value(cs.CtContextCorrelationID).(string)).Observe(time.Since(begin).Seconds())
 			}(time.Now())

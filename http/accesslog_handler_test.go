@@ -21,7 +21,7 @@ func TestAccessLogHTTPHandler(t *testing.T) {
 
 	r := mux.NewRouter()
 
-	r.Handle("/path/to/resource", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
+	r.Handle("/path/to/resource", makeHandler(func(_ context.Context, _ any) (response any, err error) {
 		return GenericResponse{
 			StatusCode:       http.StatusOK,
 			Headers:          map[string]string{"X-Test": "here"},

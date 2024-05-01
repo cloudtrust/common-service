@@ -12,7 +12,7 @@ type TestType struct {
 	OptValue2 OptionalString `json:"value2"`
 }
 
-func marshal(intf interface{}) string {
+func marshal(intf any) string {
 	var bytes, _ = json.Marshal(intf)
 	return string(bytes)
 }

@@ -37,7 +37,7 @@ type Metrics interface {
 	NewGauge(name string) Gauge
 	NewHistogram(name string) Histogram
 	WriteLoop(c <-chan time.Time)
-	Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error
+	Stats(_ context.Context, name string, tags map[string]string, fields map[string]any) error
 	Ping(timeout time.Duration) (time.Duration, string, error)
 	Close()
 }
@@ -160,7 +160,7 @@ func (m *influxMetrics) WriteLoop(c <-chan time.Time) {
 	m.metrics.WriteLoop(context.Background(), c, m.influx)
 }
 
-func (m *influxMetrics) Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error {
+func (m *influxMetrics) Stats(_ context.Context, name string, tags map[string]string, fields map[string]any) error {
 	// Create a new point batch
 	var batchPoints influx.BatchPoints
 	{
@@ -213,7 +213,7 @@ func (m *NoopMetrics) NewGauge(name string) Gauge { return &NoopGauge{} }
 func (m *NoopMetrics) NewHistogram(name string) Histogram { return &NoopHistogram{} }
 
 // Stats does nothing
-func (m *NoopMetrics) Stats(_ context.Context, name string, tags map[string]string, fields map[string]interface{}) error {
+func (m *NoopMetrics) Stats(_ context.Context, name string, tags map[string]string, fields map[string]any) error {
 	return nil
 }
 

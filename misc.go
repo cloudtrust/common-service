@@ -6,20 +6,20 @@ import (
 )
 
 // Endpoint type
-type Endpoint func(ctx context.Context, request interface{}) (response interface{}, err error)
+type Endpoint func(ctx context.Context, request any) (response any, err error)
 
 // Middleware type
 type Middleware func(Endpoint) Endpoint
 
 // Configuration interface
 type Configuration interface {
-	SetDefault(key string, value interface{})
+	SetDefault(key string, value any)
 
 	BindEnv(input ...string) error
 
-	Set(key string, value interface{})
+	Set(key string, value any)
 
-	Get(key string) interface{}
+	Get(key string) any
 	GetString(key string) string
 	GetStringSlice(key string) []string
 	GetBool(key string) bool

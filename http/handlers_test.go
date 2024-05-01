@@ -26,7 +26,7 @@ import (
 
 func makeHandler(e endpoint.Endpoint) *http_transport.Server {
 	return http_transport.NewServer(e,
-		func(ctx context.Context, req *http.Request) (interface{}, error) {
+		func(ctx context.Context, req *http.Request) (any, error) {
 			return BasicDecodeRequest(ctx, req)
 		},
 		EncodeReply,
@@ -37,7 +37,7 @@ func makeHandler(e endpoint.Endpoint) *http_transport.Server {
 func TestHttpGenericResponse(t *testing.T) {
 	r := mux.NewRouter()
 	// Test with JSON content
-	r.Handle("/path/to/json", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
+	r.Handle("/path/to/json", makeHandler(func(_ context.Context, _ any) (response any, err error) {
 		return GenericResponse{
 			StatusCode:       http.StatusNotFound,
 			Headers:          map[string]string{"Location": "here"},
@@ -46,7 +46,7 @@ func TestHttpGenericResponse(t *testing.T) {
 		}, nil
 	}))
 	// Test with MimeContent
-	r.Handle("/path/to/jpeg", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
+	r.Handle("/path/to/jpeg", makeHandler(func(_ context.Context, _ any) (response any, err error) {
 		mime := MimeContent{
 			MimeType: "image/jpg",
 			Content:  []byte("not a real jpeg"),
@@ -60,7 +60,7 @@ func TestHttpGenericResponse(t *testing.T) {
 		}, nil
 	}))
 	// Test with neither JSON content nor MimeContent
-	r.Handle("/path/to/empty", makeHandler(func(_ context.Context, _ interface{}) (response interface{}, err error) {
+	r.Handle("/path/to/empty", makeHandler(func(_ context.Context, _ any) (response any, err error) {
 		return GenericResponse{StatusCode: http.StatusNoContent}, nil
 	}))
 
@@ -110,7 +110,7 @@ func TestHTTPManagementHandler(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	var e = func(ctx context.Context, req interface{}) (interface{}, error) {
+	var e = func(ctx context.Context, req any) (any, error) {
 		var m = req.(map[string]string)
 		res := fmt.Sprint(len(m))
 		if v, err := m["pathParameter1"]; err {
@@ -122,7 +122,7 @@ func TestHTTPManagementHandler(t *testing.T) {
 		return res, nil
 	}
 	handler := http_transport.NewServer(e,
-		func(ctx context.Context, req *http.Request) (interface{}, error) {
+		func(ctx context.Context, req *http.Request) (any, error) {
 			pathParams := map[string]string{
 				"pathParameter1": "^[a-zA-Z0-9-]+$",
 				"pathParameter2": "^[a-zA-Z0-9-]+$",
@@ -202,7 +202,7 @@ func genericTestDecodeRequestWithHeader(ctx context.Context, tls *tls.Connection
 		"queryParam2": "^[a-zA-Z0-9-]+$",
 	}
 
-	var r interface{}
+	var r any
 	var err error
 
 	if headers != nil {

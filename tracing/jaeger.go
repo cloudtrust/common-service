@@ -39,7 +39,7 @@ func (o *noopOpentracingClient) TryStartSpanWithTag(ctx context.Context, operati
 }
 func (o *noopOpentracingClient) MakeEndpointTracingMW(operationName string) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
-		return func(ctx context.Context, request interface{}) (interface{}, error) {
+		return func(ctx context.Context, request any) (any, error) {
 			return next(ctx, request)
 		}
 	}
@@ -74,7 +74,7 @@ func (o *internalOpentracingClient) TryStartSpanWithTag(ctx context.Context, ope
 // MakeEndpointTracingMW makes a middleware that handle the tracing with jaeger.
 func (o *internalOpentracingClient) MakeEndpointTracingMW(operationName string) cs.Middleware {
 	return func(next cs.Endpoint) cs.Endpoint {
-		return func(ctx context.Context, request interface{}) (interface{}, error) {
+		return func(ctx context.Context, request any) (any, error) {
 			if span := opentracing.SpanFromContext(ctx); span != nil {
 				span = o.Tracer.StartSpan(operationName, opentracing.ChildOf(span.Context()))
 				defer span.Finish()

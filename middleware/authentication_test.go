@@ -170,7 +170,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	})
 }
 
-func checkContextEndpoint(ctx context.Context, request interface{}) (response interface{}, err error) {
+func checkContextEndpoint(ctx context.Context, request any) (response any, err error) {
 	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
 	var realm = ctx.Value(cs.CtContextRealm).(string)
 	var user = ctx.Value(cs.CtContextUsername).(string)

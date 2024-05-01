@@ -30,7 +30,7 @@ func TestAuditEventsReporterChecker(t *testing.T) {
 	t.Run("Failure ", func(t *testing.T) {
 		var auditEventReporterChecker = newAuditEventsReporterChecker("alias", mockAuditEventReporter, 1*time.Second, 10*time.Second, log.NewNopLogger())
 		internalChecker := auditEventReporterChecker.(*auditEventsReporterChecker)
-		mockAuditEventReporter.EXPECT().ReportEvent(gomock.Any(), gomock.Any()).Do(func(arg0 interface{}, arg1 interface{}) {
+		mockAuditEventReporter.EXPECT().ReportEvent(gomock.Any(), gomock.Any()).Do(func(arg0 any, arg1 any) {
 			time.Sleep(2 * time.Second)
 		})
 

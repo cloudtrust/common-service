@@ -73,7 +73,7 @@ func isInArray(array []string, value string) bool {
 	return false
 }
 
-func checkNull(value string) interface{} {
+func checkNull(value string) any {
 	if value == "" {
 		return nil
 	}

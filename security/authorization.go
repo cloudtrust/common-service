@@ -229,8 +229,6 @@ var (
 	IDNAutoIdentInit  = Actions.addAction(IDNowService, IDNowAPI, "IDN_AutoIdentInit", ScopeGroup)
 
 	PCGetActions            = Actions.addAction(PaperCardService, CardsAPI, "PC_GetActions", ScopeGlobal)
-	PCGetConfigurationRealm = Actions.addAction(PaperCardService, CardsAPI, "PC_GetConfigurationRealm", ScopeRealm)
-	PCSetConfigurationRealm = Actions.addAction(PaperCardService, CardsAPI, "PC_SetConfigurationRealm", ScopeRealm)
 	PCGetConfigurationSelf  = Actions.addAction(PaperCardService, CardsAPI, "PC_GetConfigurationSelf", ScopeRealm)
 	PCSetConfigurationSelf  = Actions.addAction(PaperCardService, CardsAPI, "PC_SetConfigurationSelf", ScopeRealm)
 	PCGetConfigurationBatch = Actions.addAction(PaperCardService, CardsAPI, "PC_GetConfigurationBatch", ScopeRealm)

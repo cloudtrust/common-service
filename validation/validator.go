@@ -19,7 +19,7 @@ type Validatable interface {
 type Validator interface {
 	ValidateParameter(prmName string, validatable Validatable, mandatory bool) Validator
 	ValidateParameterFunc(validator func() error) Validator
-	ValidateParameterNotNil(prmName string, value interface{}) Validator
+	ValidateParameterNotNil(prmName string, value any) Validator
 	ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator
 	ValidateParameterRegExp(prmName string, value *string, regExp string, mandatory bool) Validator
 	ValidateParameterPhoneNumber(prmName string, value *string, mandatory bool) Validator
@@ -77,7 +77,7 @@ func (v *successValidator) ValidateParameterFunc(validator func() error) Validat
 	return v
 }
 
-func (v *successValidator) ValidateParameterNotNil(prmName string, value interface{}) Validator {
+func (v *successValidator) ValidateParameterNotNil(prmName string, value any) Validator {
 	if value == nil {
 		return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 	}
@@ -253,7 +253,7 @@ func (v *failedValidator) ValidateParameterFunc(_ func() error) Validator {
 	return v
 }
 
-func (v *failedValidator) ValidateParameterNotNil(_ string, _ interface{}) Validator {
+func (v *failedValidator) ValidateParameterNotNil(_ string, _ any) Validator {
 	return v
 }
 

@@ -108,7 +108,7 @@ func TestCheckMigrationVersion(t *testing.T) {
 		// Current version is higher than the minimum version requirement
 		var version = "1.6"
 		mockDB.EXPECT().QueryRow(gomock.Any()).Return(row)
-		row.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+		row.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
 			var ptrVersion = dest[0].(*string)
 			*ptrVersion = version
 			return nil
@@ -121,7 +121,7 @@ func TestCheckMigrationVersion(t *testing.T) {
 		var row = mock.NewSQLRow(mockCtrl)
 		var version = "1.3"
 		mockDB.EXPECT().QueryRow(gomock.Any()).Return(row)
-		row.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...interface{}) error {
+		row.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
 			var ptrVersion = dest[0].(*string)
 			*ptrVersion = version
 			return nil
