@@ -220,7 +220,6 @@ var (
 	EVGetUserEvents    = Actions.addAction(EventService, EventsAPI, "EV_GetUserEvents", ScopeGroup)
 
 	STEventGetActions                 = Actions.addAction(EventService, EventStatisticAPI, "ST_EventGetActions", ScopeGlobal)
-	STGetStatistics                   = Actions.addAction(EventService, EventStatisticAPI, "ST_GetStatistics", ScopeRealm)
 	STGetStatisticsAuthentications    = Actions.addAction(EventService, EventStatisticAPI, "ST_GetStatisticsAuthentications", ScopeRealm)
 	STGetStatisticsAuthenticationsLog = Actions.addAction(EventService, EventStatisticAPI, "ST_GetStatisticsAuthenticationsLog", ScopeRealm)
 
