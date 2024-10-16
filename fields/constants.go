@@ -17,7 +17,7 @@ func GetKnownFields() []Field {
 }
 
 func genericCreateField(key string, attrb string) Field {
-	var res = &field{
+	res := &field{
 		Field:     key,
 		Attribute: attrb,
 	}
@@ -77,4 +77,5 @@ var (
 	TrustIDAuthToken      = createField("trustIDAuthToken")
 	TrustIDGroups         = createField("trustIDGroups")
 	Username              = createNonAttributeField("username")
+	OnboardingStatus      = createField("onboardingStatus")
 )
