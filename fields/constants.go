@@ -67,6 +67,7 @@ var (
 	NameID                = createField("saml.persistent.name.id.for.*")
 	Nationality           = createFieldPII("nationality")
 	OnboardingCompleted   = createField("onboardingCompleted")
+	OnboardingStatus      = createField("onboardingStatus")
 	PendingChecks         = createField("pendingChecks")
 	PhoneNumber           = createField("phoneNumber")
 	PhoneNumberToValidate = createField("phoneNumberToValidate")
@@ -77,5 +78,4 @@ var (
 	TrustIDAuthToken      = createField("trustIDAuthToken")
 	TrustIDGroups         = createField("trustIDGroups")
 	Username              = createNonAttributeField("username")
-	OnboardingStatus      = createField("onboardingStatus")
 )
