@@ -17,11 +17,19 @@ func GetRootAsCloudtrustEvent(buf []byte, offset flatbuffers.UOffsetT) *Cloudtru
 	return x
 }
 
+func FinishCloudtrustEventBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
 func GetSizePrefixedRootAsCloudtrustEvent(buf []byte, offset flatbuffers.UOffsetT) *CloudtrustEvent {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &CloudtrustEvent{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
+}
+
+func FinishSizePrefixedCloudtrustEventBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
 }
 
 func (rcv *CloudtrustEvent) Init(buf []byte, i flatbuffers.UOffsetT) {
