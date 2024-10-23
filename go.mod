@@ -9,7 +9,7 @@ require (
 	github.com/go-kit/kit v0.12.0
 	github.com/go-kit/log v0.2.0
 	github.com/golang/mock v1.6.0
-	github.com/google/flatbuffers v2.0.6+incompatible
+	github.com/google/flatbuffers v24.3.25+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/influxdata/influxdb1-client v0.0.0-20200827194710-b269163b24ab

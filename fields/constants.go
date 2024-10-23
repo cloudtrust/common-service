@@ -17,7 +17,7 @@ func GetKnownFields() []Field {
 }
 
 func genericCreateField(key string, attrb string) Field {
-	var res = &field{
+	res := &field{
 		Field:     key,
 		Attribute: attrb,
 	}
@@ -67,6 +67,7 @@ var (
 	NameID                = createField("saml.persistent.name.id.for.*")
 	Nationality           = createFieldPII("nationality")
 	OnboardingCompleted   = createField("onboardingCompleted")
+	OnboardingStatus      = createField("onboardingStatus")
 	PendingChecks         = createField("pendingChecks")
 	PhoneNumber           = createField("phoneNumber")
 	PhoneNumberToValidate = createField("phoneNumberToValidate")
