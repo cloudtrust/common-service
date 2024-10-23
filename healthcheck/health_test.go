@@ -10,9 +10,9 @@ import (
 
 	"github.com/cloudtrust/common-service/v2/healthcheck/mock"
 	"github.com/cloudtrust/common-service/v2/log"
-	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestEmptyHealthCheck(t *testing.T) {

@@ -1,6 +1,6 @@
 module github.com/cloudtrust/common-service/v2
 
-go 1.21.0
+go 1.22
 
 require (
 	github.com/IBM/sarama v1.41.1
@@ -16,8 +16,9 @@ require (
 	github.com/nyaruka/phonenumbers v1.1.8
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
+	go.uber.org/mock v0.5.0
 	golang.org/x/net v0.24.0
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
 	gopkg.in/h2non/gentleman.v2 v2.0.5
@@ -43,10 +44,10 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
-	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect

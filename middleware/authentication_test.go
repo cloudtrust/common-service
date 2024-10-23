@@ -15,8 +15,8 @@ import (
 	"github.com/cloudtrust/common-service/v2/middleware/mock"
 	"github.com/gbrlsnchs/jwt/v2"
 	http_transport "github.com/go-kit/kit/transport/http"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 const (

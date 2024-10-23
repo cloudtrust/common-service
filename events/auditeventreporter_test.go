@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/cloudtrust/common-service/v2/events/mock"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestReportEvent(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/cloudtrust/common-service/v2/metrics/mock"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestNoopSentry(t *testing.T) {

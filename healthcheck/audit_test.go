@@ -6,8 +6,8 @@ import (
 
 	"github.com/cloudtrust/common-service/v2/healthcheck/mock"
 	log "github.com/cloudtrust/common-service/v2/log"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestAuditEventsReporterChecker(t *testing.T) {
