@@ -19,9 +19,9 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/ratelimit"
 	http_transport "github.com/go-kit/kit/transport/http"
-	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func makeHandler(e endpoint.Endpoint) *http_transport.Server {

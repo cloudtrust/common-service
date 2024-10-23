@@ -16,9 +16,9 @@ import (
 
 	cs "github.com/cloudtrust/common-service/v2"
 	"github.com/cloudtrust/common-service/v2/tracing/mock"
-	"github.com/golang/mock/gomock"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestCreateNoopJaegerClient(t *testing.T) {

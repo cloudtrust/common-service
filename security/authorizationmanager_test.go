@@ -15,8 +15,8 @@ import (
 	cs "github.com/cloudtrust/common-service/v2"
 	"github.com/cloudtrust/common-service/v2/log"
 	"github.com/cloudtrust/common-service/v2/security/mock"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestCheckAuthorizationOnTargetRealm(t *testing.T) {

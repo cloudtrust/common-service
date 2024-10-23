@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/cloudtrust/common-service/v2/events/mock"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestWrite(t *testing.T) {

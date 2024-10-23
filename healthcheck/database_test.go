@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/cloudtrust/common-service/v2/healthcheck/mock"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestDbHealthCheck(t *testing.T) {
