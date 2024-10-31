@@ -60,6 +60,7 @@ type RealmAdminConfiguration struct {
 	AutoIdentificationVoucherEnabled      *bool           `json:"auto_identification_voucher_enabled"`
 	AutoIdentificationAccountingEnabled   *bool           `json:"auto_identification_accounting_enabled"`
 	AutoIdentificationPrepaymentRequired  *bool           `json:"auto_identification_prepayment_required"`
+	OnboardingStatusEnabled               *bool           `json:"onboarding_status_enabled"`
 }
 
 // Authorization struct
