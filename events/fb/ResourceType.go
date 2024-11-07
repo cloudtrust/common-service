@@ -32,14 +32,16 @@ const (
 	ResourceTypeCLIENT_ROLE_MAPPING           ResourceType = 22
 	ResourceTypeCLIENT_SCOPE                  ResourceType = 23
 	ResourceTypeCLIENT_SCOPE_MAPPING          ResourceType = 24
-	ResourceTypeCLUSTER_NODE                  ResourceType = 25
-	ResourceTypeCOMPONENT                     ResourceType = 26
-	ResourceTypeAUTHORIZATION_RESOURCE_SERVER ResourceType = 27
-	ResourceTypeAUTHORIZATION_RESOURCE        ResourceType = 28
-	ResourceTypeAUTHORIZATION_SCOPE           ResourceType = 29
-	ResourceTypeAUTHORIZATION_POLICY          ResourceType = 30
-	ResourceTypeUNKNOWN                       ResourceType = 31
-	ResourceTypeNOT_APPLICABLE                ResourceType = 32
+	ResourceTypeCLIENT_SCOPE_CLIENT_MAPPING   ResourceType = 25
+	ResourceTypeCLUSTER_NODE                  ResourceType = 26
+	ResourceTypeCOMPONENT                     ResourceType = 27
+	ResourceTypeAUTHORIZATION_RESOURCE_SERVER ResourceType = 28
+	ResourceTypeAUTHORIZATION_RESOURCE        ResourceType = 29
+	ResourceTypeAUTHORIZATION_SCOPE           ResourceType = 30
+	ResourceTypeAUTHORIZATION_POLICY          ResourceType = 31
+	ResourceTypeCUSTOM                        ResourceType = 32
+	ResourceTypeUNKNOWN                       ResourceType = 33
+	ResourceTypeNOT_APPLICABLE                ResourceType = 34
 )
 
 var EnumNamesResourceType = map[ResourceType]string{
@@ -68,12 +70,14 @@ var EnumNamesResourceType = map[ResourceType]string{
 	ResourceTypeCLIENT_ROLE_MAPPING:           "CLIENT_ROLE_MAPPING",
 	ResourceTypeCLIENT_SCOPE:                  "CLIENT_SCOPE",
 	ResourceTypeCLIENT_SCOPE_MAPPING:          "CLIENT_SCOPE_MAPPING",
+	ResourceTypeCLIENT_SCOPE_CLIENT_MAPPING:   "CLIENT_SCOPE_CLIENT_MAPPING",
 	ResourceTypeCLUSTER_NODE:                  "CLUSTER_NODE",
 	ResourceTypeCOMPONENT:                     "COMPONENT",
 	ResourceTypeAUTHORIZATION_RESOURCE_SERVER: "AUTHORIZATION_RESOURCE_SERVER",
 	ResourceTypeAUTHORIZATION_RESOURCE:        "AUTHORIZATION_RESOURCE",
 	ResourceTypeAUTHORIZATION_SCOPE:           "AUTHORIZATION_SCOPE",
 	ResourceTypeAUTHORIZATION_POLICY:          "AUTHORIZATION_POLICY",
+	ResourceTypeCUSTOM:                        "CUSTOM",
 	ResourceTypeUNKNOWN:                       "UNKNOWN",
 	ResourceTypeNOT_APPLICABLE:                "NOT_APPLICABLE",
 }
@@ -104,12 +108,14 @@ var EnumValuesResourceType = map[string]ResourceType{
 	"CLIENT_ROLE_MAPPING":           ResourceTypeCLIENT_ROLE_MAPPING,
 	"CLIENT_SCOPE":                  ResourceTypeCLIENT_SCOPE,
 	"CLIENT_SCOPE_MAPPING":          ResourceTypeCLIENT_SCOPE_MAPPING,
+	"CLIENT_SCOPE_CLIENT_MAPPING":   ResourceTypeCLIENT_SCOPE_CLIENT_MAPPING,
 	"CLUSTER_NODE":                  ResourceTypeCLUSTER_NODE,
 	"COMPONENT":                     ResourceTypeCOMPONENT,
 	"AUTHORIZATION_RESOURCE_SERVER": ResourceTypeAUTHORIZATION_RESOURCE_SERVER,
 	"AUTHORIZATION_RESOURCE":        ResourceTypeAUTHORIZATION_RESOURCE,
 	"AUTHORIZATION_SCOPE":           ResourceTypeAUTHORIZATION_SCOPE,
 	"AUTHORIZATION_POLICY":          ResourceTypeAUTHORIZATION_POLICY,
+	"CUSTOM":                        ResourceTypeCUSTOM,
 	"UNKNOWN":                       ResourceTypeUNKNOWN,
 	"NOT_APPLICABLE":                ResourceTypeNOT_APPLICABLE,
 }
