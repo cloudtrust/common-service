@@ -33,6 +33,7 @@ const (
 	SignatureService
 	VoucherService
 	AccreditationService
+	MailingService
 )
 
 // API type
@@ -275,4 +276,10 @@ var (
 	ACCRGetAccreditationGroups       = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_GetAccreditationGroups", ScopeGroup)
 	ACCREnableAccreditationForGroup  = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_EnableAccreditationForGroup", ScopeGroup)
 	ACCRDisableAccreditationForGroup = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_DisableAccreditationForGroup", ScopeGroup)
+
+	MAILGetActions       = Actions.addAction(MailingService, ManagementAPI, "MAIL_GetActions", ScopeGlobal)
+	MAILGetJobs          = Actions.addAction(MailingService, ManagementAPI, "MAIL_GetJobs", ScopeRealm)
+	MAILSetJobs          = Actions.addAction(MailingService, ManagementAPI, "MAIL_SetJobs", ScopeRealm)
+	MAILGetConfiguration = Actions.addAction(MailingService, ManagementAPI, "MAIL_GetConfiguration", ScopeRealm)
+	MAILSetConfiguration = Actions.addAction(MailingService, ManagementAPI, "MAIL_SetConfiguration", ScopeRealm)
 )
