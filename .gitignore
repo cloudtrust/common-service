@@ -16,7 +16,6 @@
 **/.DS_Store
 .vscode/
 vendor/
-mock/
 bin/
 **/debug
 **/*.coverprofile
