@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/IBM/sarama v1.43.3
-	github.com/gbrlsnchs/jwt/v2 v2.0.0
+	github.com/gbrlsnchs/jwt/v3 v3.0.1
 	github.com/getsentry/raven-go v0.2.0
 	github.com/go-kit/kit v0.13.0
 	github.com/go-kit/log v0.2.1
