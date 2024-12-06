@@ -16,7 +16,7 @@ require (
 	github.com/nyaruka/phonenumbers v1.4.1
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	go.uber.org/mock v0.5.0
 	golang.org/x/net v0.32.0
