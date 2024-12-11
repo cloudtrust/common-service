@@ -5,9 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/IBM/sarama"
 	"github.com/cloudtrust/common-service/v2/log"
 )
+
+type Producer interface {
+	SendPartitionedMessageBytes(partitionKey string, content []byte) error
+}
 
 // AuditEventsReporterModule interface
 type AuditEventsReporterModule interface {
@@ -15,16 +18,14 @@ type AuditEventsReporterModule interface {
 }
 
 type auditEventsReporterModule struct {
-	producer sarama.SyncProducer
-	topic    string
+	producer Producer
 	logger   log.Logger
 }
 
 // NewAuditEventReporterModule creates an instance of AuditEventsReporterModule
-func NewAuditEventReporterModule(producer sarama.SyncProducer, topic string, logger log.Logger) AuditEventsReporterModule {
+func NewAuditEventReporterModule(producer Producer, logger log.Logger) AuditEventsReporterModule {
 	return &auditEventsReporterModule{
 		producer: producer,
-		topic:    topic,
 		logger:   logger,
 	}
 }
@@ -38,8 +39,7 @@ func (e *auditEventsReporterModule) ReportEvent(ctx context.Context, event Event
 		key = "DEFAULT-KEY"
 	}
 
-	msg := &sarama.ProducerMessage{Topic: e.topic, Key: sarama.StringEncoder(key), Value: sarama.StringEncoder(base64Event)}
-	_, _, err := e.producer.SendMessage(msg)
+	err := e.producer.SendPartitionedMessageBytes(key, []byte(base64Event))
 
 	if err != nil {
 		event.details[CtEventAuditTime] = event.time.String()
