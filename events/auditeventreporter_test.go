@@ -13,10 +13,9 @@ import (
 func TestReportEvent(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
-	producer := mock.NewSyncProducer(mockCtrl)
-	topic := "testTopic"
+	producer := mock.NewProducer(mockCtrl)
 	logger := mock.NewLogger(mockCtrl)
-	eventReporter := NewAuditEventReporterModule(producer, topic, logger)
+	eventReporter := NewAuditEventReporterModule(producer, logger)
 	ctx := context.Background()
 	event := Event{
 		time:      time.Now().UTC(),
@@ -30,13 +29,13 @@ func TestReportEvent(t *testing.T) {
 	}
 
 	t.Run("SUCCESS", func(t *testing.T) {
-		producer.EXPECT().SendMessage(gomock.Any()).Return(int32(0), int64(0), nil)
+		producer.EXPECT().SendPartitionedMessageBytes(gomock.Any(), gomock.Any()).Return(nil)
 
 		eventReporter.ReportEvent(ctx, event)
 	})
 
 	t.Run("FAILURE", func(t *testing.T) {
-		producer.EXPECT().SendMessage(gomock.Any()).Return(int32(0), int64(0), fmt.Errorf("Kafka failure"))
+		producer.EXPECT().SendPartitionedMessageBytes(gomock.Any(), gomock.Any()).Return(fmt.Errorf("Kafka failure"))
 		logger.EXPECT().Error(gomock.Any(), "msg", "failed to persist event in kafka", "err", "Kafka failure", "eventJSON", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
 		eventReporter.ReportEvent(ctx, event)
 	})
