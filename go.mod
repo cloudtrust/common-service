@@ -4,10 +4,10 @@ go 1.22
 
 require (
 	github.com/IBM/sarama v1.43.3
-	github.com/gbrlsnchs/jwt/v2 v2.0.0
 	github.com/getsentry/raven-go v0.2.0
 	github.com/go-kit/kit v0.13.0
 	github.com/go-kit/log v0.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/mock v1.6.0
 	github.com/google/flatbuffers v24.3.25+incompatible
 	github.com/google/uuid v1.6.0
