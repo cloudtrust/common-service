@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -13,8 +14,8 @@ import (
 	errorhandler "github.com/cloudtrust/common-service/v2/errors"
 	comhttp "github.com/cloudtrust/common-service/v2/http"
 	"github.com/cloudtrust/common-service/v2/middleware/mock"
-	"github.com/gbrlsnchs/jwt/v2"
 	http_transport "github.com/go-kit/kit/transport/http"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -43,7 +44,8 @@ func TestSplitIssuer(t *testing.T) {
 
 func TestUnmarshalTokenAudience(t *testing.T) {
 	t.Run("Valid token", func(t *testing.T) {
-		payload, _, _ := jwt.Parse(tokenAudNone)
+		jwtToken, _, _ := jwt.NewParser().ParseUnverified(tokenAudNone, jwt.MapClaims{})
+		payload, _ := json.Marshal(jwtToken.Claims)
 		token, err := unmarshalTokenAudience(payload)
 		assert.Nil(t, err)
 		assert.Equal(t, "admin", token.GetUsername())

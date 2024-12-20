@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 	errorhandler "github.com/cloudtrust/common-service/v2/errors"
 	"github.com/cloudtrust/common-service/v2/log"
 	"github.com/cloudtrust/common-service/v2/security"
-	"github.com/gbrlsnchs/jwt/v2"
+	"github.com/golang-jwt/jwt/v5"
 	errorsPkg "github.com/pkg/errors"
 )
 
@@ -202,7 +203,13 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 // ParseAndValidateOIDCToken ensures the OIDC token given in parameter is valid. This method must be public as it is used externally by some projects
 func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloakClient KeycloakClient, audienceRequired string, logger log.Logger) (TokenAudience, error) {
 
-	payload, _, err := jwt.Parse(accessToken)
+	token, _, err := jwt.NewParser().ParseUnverified(accessToken, jwt.MapClaims{})
+	if err != nil {
+		logger.Info(ctx, "msg", "Authorization error", "err", err)
+		return nil, security.ForbiddenError{}
+	}
+
+	payload, err := json.Marshal(token.Claims)
 	if err != nil {
 		logger.Info(ctx, "msg", "Authorization error", "err", err)
 		return nil, security.ForbiddenError{}
@@ -308,14 +315,14 @@ func unmarshalTokenAudience(payload []byte) (TokenAudience, error) {
 	// First we try with a string array, if a failure occurs we try with a string
 	{
 		var jot TokenAudienceStringArray
-		if err = jwt.Unmarshal(payload, &jot); err == nil {
+		if err = json.Unmarshal(payload, &jot); err == nil {
 			return &jot, nil
 		}
 	}
 
 	{
 		var jot TokenAudienceString
-		if err = jwt.Unmarshal(payload, &jot); err == nil {
+		if err = json.Unmarshal(payload, &jot); err == nil {
 			return &jot, nil
 		}
 	}
