@@ -223,7 +223,7 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 	}
 
 	if !jot.AssertMatchingAudience(audienceRequired) {
-		logger.Info(ctx, "msg", "Authorization error: Incorrect audience")
+		logger.Info(ctx, "msg", "Authorization error: Incorrect audience", "audience", jot.GetAudience())
 		return nil, security.ForbiddenError{}
 	}
 
@@ -297,6 +297,7 @@ type TokenAudience interface {
 	GetUsername() string
 	GetIssuer() string
 	GetGroups() []string
+	GetAudience() any
 
 	AssertMatchingAudience(requiredValue string) bool
 }
@@ -341,6 +342,9 @@ func (ta *TokenAudienceStringArray) GetIssuer() string { return ta.Issuer }
 // GetGroups provides the groups from the token
 func (ta *TokenAudienceStringArray) GetGroups() []string { return ta.Groups }
 
+// GetAudience provides the audience from the token
+func (ta *TokenAudienceStringArray) GetAudience() any { return ta.Audience }
+
 // AssertMatchingAudience checks if the required audience is in the token list of audiences
 func (ta *TokenAudienceStringArray) AssertMatchingAudience(requiredValue string) bool {
 	return AssertMatchingAudience(ta.Audience, requiredValue)
@@ -357,6 +361,9 @@ func (ta *TokenAudienceString) GetIssuer() string { return ta.Issuer }
 
 // GetGroups provides the groups from the token
 func (ta *TokenAudienceString) GetGroups() []string { return ta.Groups }
+
+// GetAudience provides the audience from the token
+func (ta *TokenAudienceString) GetAudience() any { return ta.Audience }
 
 // AssertMatchingAudience checks if the required audience is in the token list of audiences
 func (ta *TokenAudienceString) AssertMatchingAudience(requiredValue string) bool {
