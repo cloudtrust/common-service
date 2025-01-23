@@ -35,6 +35,7 @@ type RealmConfiguration struct {
 	RedirectCancelledRegistrationURL  *string   `json:"redirect_cancelled_registration_url,omitempty"`
 	RedirectSuccessfulRegistrationURL *string   `json:"redirect_successful_registration_url,omitempty"`
 	OnboardingRedirectURI             *string   `json:"onboarding_redirect_uri,omitempty"`
+	IdentificationURI                 *string   `json:"identification_uri,omitempty"`
 	OnboardingClientID                *string   `json:"onboarding_client_id,omitempty"`
 	SelfRegisterGroupNames            *[]string `json:"self_register_group_names,omitempty"`
 
