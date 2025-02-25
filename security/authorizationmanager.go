@@ -52,12 +52,14 @@ type AuthorizationManager interface {
 //   - role_of_user
 //   - action
 //   - target_realm
+//
 // -> target_groups for which the action is allowed
 //
 // Note:
-//   '*' can be used to express all target realms
-//   '/' can be used to express all non master realms
-//   '*' can be used to express all target groups are allowed
+//
+//	'*' can be used to express all target realms
+//	'/' can be used to express all non master realms
+//	'*' can be used to express all target groups are allowed
 func NewAuthorizationManager(authorizationDBReader AuthorizationDBReader, keycloakClient KeycloakClient, logger log.Logger) (AuthorizationManager, error) {
 	var manager = &authorizationManager{
 		authorizationDBReader: authorizationDBReader,
@@ -309,15 +311,19 @@ type AuthorizationsMatrix map[string]map[string]map[string]map[string]map[string
 //   - role_of_user
 //   - action
 //   - target_realm
+//
 // -> target_groups for which the action is allowed
 //
 // Note:
-//   '*' can be used to express all target realms
-//   '/' can be used to express all non master realms
-//   '*' can be used to express all target groups are allowed
+//
+//	'*' can be used to express all target realms
+//	'/' can be used to express all non master realms
+//	'*' can be used to express all target groups are allowed
 func (am *authorizationManager) ReloadAuthorizations(ctx context.Context) error {
+	am.logger.Info(ctx, "msg", "Reload authorizations triggered")
 	authorizations, err := am.authorizationDBReader.GetAuthorizations(context.Background())
 	if err != nil {
+		am.logger.Warn(ctx, "msg", "Failed to get authorizations from DB", "err", err)
 		return err
 	}
 
@@ -357,6 +363,7 @@ func (am *authorizationManager) ReloadAuthorizations(ctx context.Context) error 
 	}
 
 	am.authorizations = &matrix
+	am.logger.Info(ctx, "msg", "Authorizations reloaded")
 
 	return nil
 }
