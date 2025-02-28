@@ -30,7 +30,6 @@ const (
 	IDNowService
 	PaperCardService
 	SchedulerService
-	SignatureService
 	VoucherService
 	AccreditationService
 	MailingService
@@ -50,7 +49,6 @@ const (
 	IDNowAPI
 	CardsAPI
 	SchedulerAPI
-	SignatureAPI
 	EventStatisticAPI
 )
 
@@ -246,13 +244,6 @@ var (
 	SDLRGetTasks   = Actions.addAction(SchedulerService, SchedulerAPI, "SDLR_GetTasks", ScopeGlobal)
 	SDLRAddTasks   = Actions.addAction(SchedulerService, SchedulerAPI, "SDLR_AddTasks", ScopeGlobal)
 	SDLRDeleteTask = Actions.addAction(SchedulerService, SchedulerAPI, "SDLR_DeleteTask", ScopeGlobal)
-
-	SIGGetActions = Actions.addAction(SignatureService, SignatureAPI, "SIG_GetActions", ScopeGlobal)
-	// CH/AES was the default value: keep the same name
-	SIGSignDocuments_CH_AES = Actions.addAction(SignatureService, SignatureAPI, "SIG_SignDocuments", ScopeRealm)
-	SIGSignDocuments_CH_QES = Actions.addAction(SignatureService, SignatureAPI, "SIG_SignDocuments_CH_QES", ScopeRealm)
-	SIGSignDocuments_EU_AES = Actions.addAction(SignatureService, SignatureAPI, "SIG_SignDocuments_EU_AES", ScopeRealm)
-	SIGSignDocuments_EU_QES = Actions.addAction(SignatureService, SignatureAPI, "SIG_SignDocuments_EU_QES", ScopeRealm)
 
 	VOUGetActions          = Actions.addAction(VoucherService, ManagementAPI, "VOU_GetActions", ScopeGlobal)
 	VOUGetBatches          = Actions.addAction(VoucherService, ManagementAPI, "VOU_GetBatches", ScopeRealm)
