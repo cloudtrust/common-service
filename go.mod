@@ -3,7 +3,7 @@ module github.com/cloudtrust/common-service/v2
 go 1.22
 
 require (
-	github.com/IBM/sarama v1.45.0
+	github.com/IBM/sarama v1.45.1
 	github.com/getsentry/raven-go v0.2.0
 	github.com/go-kit/kit v0.13.0
 	github.com/go-kit/log v0.2.1
