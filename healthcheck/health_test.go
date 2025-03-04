@@ -47,7 +47,7 @@ func TestHealthCheckHandler(t *testing.T) {
 	var alias1 = "alias-localhost"
 	var alias2 = "alias-db"
 	var hc = NewHealthChecker("http-test-module", log.NewNopLogger())
-	hc.AddDatabase(alias1, mockDB, 15*time.Second, mockTime)
+	hc.AddDatabase(alias1, mockDB, 15*time.Second)
 
 	var allower = testAllower{allow: true}
 	var disallower = testAllower{allow: false}
@@ -78,7 +78,7 @@ func TestHealthCheckHandler(t *testing.T) {
 	})
 
 	var endpoints = map[string]string{alias2: "http://localhost:11111/"}
-	hc.AddHTTPEndpoints(endpoints, 2*time.Second, 200, time.Duration(0), mockTime)
+	hc.AddHTTPEndpoints(endpoints, 2*time.Second, 200, time.Duration(0))
 
 	t.Run("State is DOWN", func(t *testing.T) {
 		// Second call: 2 health checkers, one state is DOWN

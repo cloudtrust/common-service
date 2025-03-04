@@ -15,10 +15,10 @@ import (
 type HealthChecker interface {
 	CheckStatus() HealthResponse
 	AddHealthChecker(name string, checker BasicChecker)
-	AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider)
-	AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider)
-	AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration, timeProvider TimeProvider)
-	AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration, timeProvider TimeProvider)
+	AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
+	AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
+	AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration)
+	AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration)
 	MakeHandler(rateLimit ratelimit.Allower) http.HandlerFunc
 }
 
@@ -118,25 +118,25 @@ func (hc *healthchecker) AddHealthChecker(name string, checker BasicChecker) {
 	hc.checkers = append(hc.checkers, checker)
 }
 
-func (hc *healthchecker) AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider) {
+func (hc *healthchecker) AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) {
 	hc.logger.Info(context.Background(), "msg", "Adding HTTP endpoint", "processor", name, "url", targetURL)
-	hc.AddHealthChecker(name, newHTTPEndpointChecker(name, targetURL, timeoutDuration, expectedStatus, cacheDuration, timeProvider))
+	hc.AddHealthChecker(name, newHTTPEndpointChecker(name, targetURL, timeoutDuration, expectedStatus, cacheDuration, RealTimeProvider{}))
 }
 
-func (hc *healthchecker) AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider) {
+func (hc *healthchecker) AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) {
 	for key, value := range endpoints {
-		hc.AddHTTPEndpoint(key, value, timeoutDuration, expectedStatus, cacheDuration, timeProvider)
+		hc.AddHTTPEndpoint(key, value, timeoutDuration, expectedStatus, cacheDuration)
 	}
 }
 
-func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration, timeProvider TimeProvider) {
+func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration) {
 	hc.logger.Info(context.Background(), "msg", "Adding database", "processor", name)
-	hc.AddHealthChecker(name, newDatabaseChecker(name, db, cacheDuration, timeProvider))
+	hc.AddHealthChecker(name, newDatabaseChecker(name, db, cacheDuration, RealTimeProvider{}))
 }
 
-func (hc *healthchecker) AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration, timeProvider TimeProvider) {
+func (hc *healthchecker) AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration) {
 	hc.logger.Info(context.Background(), "msg", "Adding audit event reporter module", "processor", name)
-	hc.AddHealthChecker(name, newAuditEventsReporterChecker(name, reporter, timeout, cacheDuration, hc.logger, timeProvider))
+	hc.AddHealthChecker(name, newAuditEventsReporterChecker(name, reporter, timeout, cacheDuration, hc.logger, RealTimeProvider{}))
 }
 
 // MakeHandler makes a HTTP handler that returns health check information
