@@ -17,9 +17,9 @@ type auditEventsReporterChecker struct {
 	failureCounter int
 }
 
-func newAuditEventsReporterChecker(alias string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration, logger log.Logger) BasicChecker {
+func newAuditEventsReporterChecker(alias string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration, logger log.Logger, timeProvider TimeProvider) BasicChecker {
 	healthStatusType := "auditEventreporter"
-	response := HealthStatus{Name: &alias, Type: &healthStatusType, CacheDuration: cacheDuration}
+	response := HealthStatus{Name: &alias, Type: &healthStatusType, CacheDuration: cacheDuration, TimeProvider: timeProvider}
 	response.connection("init")
 	response.stateUp()
 	return &auditEventsReporterChecker{

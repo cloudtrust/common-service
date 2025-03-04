@@ -15,9 +15,11 @@ func TestDbHealthCheck(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	var mockDB = mock.NewHealthDatabase(mockCtrl)
+	var mockTime = mock.NewTimeProvider(mockCtrl)
+	mockTime.EXPECT().Now().Return(testTime).AnyTimes()
 
 	{
-		var dbChecker = newDatabaseChecker("alias", mockDB, 10*time.Second)
+		var dbChecker = newDatabaseChecker("alias", mockDB, 10*time.Second, mockTime)
 		mockDB.EXPECT().Ping().Return(nil)
 		var res = dbChecker.CheckStatus()
 		assert.NotNil(t, res.Connection)
@@ -25,7 +27,7 @@ func TestDbHealthCheck(t *testing.T) {
 	}
 
 	{
-		var dbChecker = newDatabaseChecker("alias", mockDB, 10*time.Second)
+		var dbChecker = newDatabaseChecker("alias", mockDB, 10*time.Second, mockTime)
 		var errMsg = "Error message"
 		var err = errors.New(errMsg)
 

@@ -15,10 +15,10 @@ import (
 type HealthChecker interface {
 	CheckStatus() HealthResponse
 	AddHealthChecker(name string, checker BasicChecker)
-	AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
-	AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
-	AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration)
-	AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration)
+	AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider)
+	AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider)
+	AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration, timeProvider TimeProvider)
+	AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration, timeProvider TimeProvider)
 	MakeHandler(rateLimit ratelimit.Allower) http.HandlerFunc
 }
 
@@ -50,14 +50,15 @@ type HealthStatus struct {
 	Connection    *string       `json:"connection,omitempty"`
 	ValideUntil   time.Time     `json:"-"`
 	CacheDuration time.Duration `json:"-"`
+	TimeProvider  TimeProvider  `json:"-"`
 }
 
 func (hs *HealthStatus) hasExpired() bool {
-	return time.Now().After(hs.ValideUntil)
+	return hs.TimeProvider.Now().After(hs.ValideUntil)
 }
 
 func (hs *HealthStatus) touch() {
-	hs.ValideUntil = time.Now().Add(hs.CacheDuration)
+	hs.ValideUntil = hs.TimeProvider.Now().Add(hs.CacheDuration)
 }
 
 func (hs *HealthStatus) connection(status string) {
@@ -117,25 +118,25 @@ func (hc *healthchecker) AddHealthChecker(name string, checker BasicChecker) {
 	hc.checkers = append(hc.checkers, checker)
 }
 
-func (hc *healthchecker) AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) {
+func (hc *healthchecker) AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider) {
 	hc.logger.Info(context.Background(), "msg", "Adding HTTP endpoint", "processor", name, "url", targetURL)
-	hc.AddHealthChecker(name, newHTTPEndpointChecker(name, targetURL, timeoutDuration, expectedStatus, cacheDuration))
+	hc.AddHealthChecker(name, newHTTPEndpointChecker(name, targetURL, timeoutDuration, expectedStatus, cacheDuration, timeProvider))
 }
 
-func (hc *healthchecker) AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) {
+func (hc *healthchecker) AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider) {
 	for key, value := range endpoints {
-		hc.AddHTTPEndpoint(key, value, timeoutDuration, expectedStatus, cacheDuration)
+		hc.AddHTTPEndpoint(key, value, timeoutDuration, expectedStatus, cacheDuration, timeProvider)
 	}
 }
 
-func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration) {
+func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration, timeProvider TimeProvider) {
 	hc.logger.Info(context.Background(), "msg", "Adding database", "processor", name)
-	hc.AddHealthChecker(name, newDatabaseChecker(name, db, cacheDuration))
+	hc.AddHealthChecker(name, newDatabaseChecker(name, db, cacheDuration, timeProvider))
 }
 
-func (hc *healthchecker) AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration) {
+func (hc *healthchecker) AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration, timeProvider TimeProvider) {
 	hc.logger.Info(context.Background(), "msg", "Adding audit event reporter module", "processor", name)
-	hc.AddHealthChecker(name, newAuditEventsReporterChecker(name, reporter, timeout, cacheDuration, hc.logger))
+	hc.AddHealthChecker(name, newAuditEventsReporterChecker(name, reporter, timeout, cacheDuration, hc.logger, timeProvider))
 }
 
 // MakeHandler makes a HTTP handler that returns health check information

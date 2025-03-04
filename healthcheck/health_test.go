@@ -15,6 +15,11 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+var (
+	testDuration = 50 * time.Millisecond
+	testTime     = time.Date(1998, time.September, 3, 15, 0, 0, 0, time.UTC)
+)
+
 func TestEmptyHealthCheck(t *testing.T) {
 	var hc = NewHealthChecker("test-module", log.NewNopLogger())
 	var res = hc.CheckStatus()
@@ -36,10 +41,13 @@ func TestHealthCheckHandler(t *testing.T) {
 	var mockDB = mock.NewHealthDatabase(mockCtrl)
 	mockDB.EXPECT().Ping().Return(nil).Times(1)
 
+	var mockTime = mock.NewTimeProvider(mockCtrl)
+	mockTime.EXPECT().Now().Return(testTime).AnyTimes()
+
 	var alias1 = "alias-localhost"
 	var alias2 = "alias-db"
 	var hc = NewHealthChecker("http-test-module", log.NewNopLogger())
-	hc.AddDatabase(alias1, mockDB, 15*time.Second)
+	hc.AddDatabase(alias1, mockDB, 15*time.Second, mockTime)
 
 	var allower = testAllower{allow: true}
 	var disallower = testAllower{allow: false}
@@ -70,7 +78,7 @@ func TestHealthCheckHandler(t *testing.T) {
 	})
 
 	var endpoints = map[string]string{alias2: "http://localhost:11111/"}
-	hc.AddHTTPEndpoints(endpoints, 2*time.Second, 200, time.Duration(0))
+	hc.AddHTTPEndpoints(endpoints, 2*time.Second, 200, time.Duration(0), mockTime)
 
 	t.Run("State is DOWN", func(t *testing.T) {
 		// Second call: 2 health checkers, one state is DOWN
@@ -95,15 +103,35 @@ func httpGet(targetURL string) (string, int, error) {
 }
 
 func TestHealthStatusCache(t *testing.T) {
-	var hs = HealthStatus{CacheDuration: 50 * time.Millisecond}
-	assert.True(t, hs.hasExpired())
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	hs.touch()
-	assert.False(t, hs.hasExpired())
+	mockTime := mock.NewTimeProvider(mockCtrl)
 
-	time.Sleep(2 * time.Millisecond)
-	assert.False(t, hs.hasExpired())
+	t.Run("untouched", func(t *testing.T) {
+		hs := HealthStatus{CacheDuration: testDuration, TimeProvider: mockTime}
+		mockTime.EXPECT().Now().Return(testTime)
 
-	time.Sleep(50 * time.Millisecond)
-	assert.True(t, hs.hasExpired())
+		assert.True(t, hs.hasExpired())
+	})
+
+	t.Run("not expired", func(t *testing.T) {
+		hs := HealthStatus{CacheDuration: testDuration, TimeProvider: mockTime}
+		mockTime.EXPECT().Now().Return(testTime)
+		hs.touch()
+
+		mockTime.EXPECT().Now().Return(testTime.Add(testDuration).Add(-time.Millisecond))
+
+		assert.False(t, hs.hasExpired())
+	})
+
+	t.Run("expired", func(t *testing.T) {
+		hs := HealthStatus{CacheDuration: testDuration, TimeProvider: mockTime}
+		mockTime.EXPECT().Now().Return(testTime)
+		hs.touch()
+
+		mockTime.EXPECT().Now().Return(testTime.Add(testDuration).Add(time.Millisecond))
+
+		assert.True(t, hs.hasExpired())
+	})
 }

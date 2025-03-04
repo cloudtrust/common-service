@@ -15,7 +15,7 @@ type httpChecker struct {
 	response       HealthStatus
 }
 
-func newHTTPEndpointChecker(alias string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration) BasicChecker {
+func newHTTPEndpointChecker(alias string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration, timeProvider TimeProvider) BasicChecker {
 	var httpClient = gentleman.New()
 	{
 		httpClient = httpClient.URL(targetURL)
@@ -26,7 +26,7 @@ func newHTTPEndpointChecker(alias string, targetURL string, timeoutDuration time
 		alias:          alias,
 		httpClient:     httpClient,
 		expectedStatus: expectedStatus,
-		response:       HealthStatus{Name: &alias, Type: &http, CacheDuration: cacheDuration},
+		response:       HealthStatus{Name: &alias, Type: &http, CacheDuration: cacheDuration, TimeProvider: timeProvider},
 	}
 }
 
