@@ -15,6 +15,11 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+var (
+	testDuration = 50 * time.Millisecond
+	testTime     = time.Date(1998, time.September, 3, 15, 0, 0, 0, time.UTC)
+)
+
 func TestEmptyHealthCheck(t *testing.T) {
 	var hc = NewHealthChecker("test-module", log.NewNopLogger())
 	var res = hc.CheckStatus()
@@ -35,6 +40,9 @@ func TestHealthCheckHandler(t *testing.T) {
 
 	var mockDB = mock.NewHealthDatabase(mockCtrl)
 	mockDB.EXPECT().Ping().Return(nil).Times(1)
+
+	var mockTime = mock.NewTimeProvider(mockCtrl)
+	mockTime.EXPECT().Now().Return(testTime).AnyTimes()
 
 	var alias1 = "alias-localhost"
 	var alias2 = "alias-db"
@@ -95,15 +103,35 @@ func httpGet(targetURL string) (string, int, error) {
 }
 
 func TestHealthStatusCache(t *testing.T) {
-	var hs = HealthStatus{CacheDuration: 50 * time.Millisecond}
-	assert.True(t, hs.hasExpired())
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	hs.touch()
-	assert.False(t, hs.hasExpired())
+	mockTime := mock.NewTimeProvider(mockCtrl)
 
-	time.Sleep(2 * time.Millisecond)
-	assert.False(t, hs.hasExpired())
+	t.Run("untouched", func(t *testing.T) {
+		hs := HealthStatus{CacheDuration: testDuration, TimeProvider: mockTime}
+		mockTime.EXPECT().Now().Return(testTime)
 
-	time.Sleep(50 * time.Millisecond)
-	assert.True(t, hs.hasExpired())
+		assert.True(t, hs.hasExpired())
+	})
+
+	t.Run("not expired", func(t *testing.T) {
+		hs := HealthStatus{CacheDuration: testDuration, TimeProvider: mockTime}
+		mockTime.EXPECT().Now().Return(testTime)
+		hs.touch()
+
+		mockTime.EXPECT().Now().Return(testTime.Add(testDuration).Add(-time.Millisecond))
+
+		assert.False(t, hs.hasExpired())
+	})
+
+	t.Run("expired", func(t *testing.T) {
+		hs := HealthStatus{CacheDuration: testDuration, TimeProvider: mockTime}
+		mockTime.EXPECT().Now().Return(testTime)
+		hs.touch()
+
+		mockTime.EXPECT().Now().Return(testTime.Add(testDuration).Add(time.Millisecond))
+
+		assert.True(t, hs.hasExpired())
+	})
 }

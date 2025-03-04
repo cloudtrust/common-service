@@ -14,12 +14,12 @@ type databaseChecker struct {
 }
 
 // newDatabaseChecker creates a database health checker
-func newDatabaseChecker(alias string, dbase HealthDatabase, cacheDuration time.Duration) BasicChecker {
+func newDatabaseChecker(alias string, dbase HealthDatabase, cacheDuration time.Duration, timeProvider TimeProvider) BasicChecker {
 	var database = "database"
 	return &databaseChecker{
 		alias:    alias,
 		dbase:    dbase,
-		response: HealthStatus{Name: &alias, Type: &database, CacheDuration: cacheDuration},
+		response: HealthStatus{Name: &alias, Type: &database, CacheDuration: cacheDuration, TimeProvider: timeProvider},
 	}
 }
 

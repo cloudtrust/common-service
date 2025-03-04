@@ -15,9 +15,11 @@ func TestAuditEventsReporterChecker(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	var mockAuditEventReporter = mock.NewAuditEventsReporterModule(mockCtrl)
+	var mockTime = mock.NewTimeProvider(mockCtrl)
+	mockTime.EXPECT().Now().Return(testTime).AnyTimes()
 
 	t.Run("Success ", func(t *testing.T) {
-		var auditEventReporterChecker = newAuditEventsReporterChecker("alias", mockAuditEventReporter, 10*time.Second, 10*time.Second, log.NewNopLogger())
+		var auditEventReporterChecker = newAuditEventsReporterChecker("alias", mockAuditEventReporter, 10*time.Second, 10*time.Second, log.NewNopLogger(), mockTime)
 		internalChecker := auditEventReporterChecker.(*auditEventsReporterChecker)
 		mockAuditEventReporter.EXPECT().ReportEvent(gomock.Any(), gomock.Any()).Times(1)
 
@@ -28,7 +30,7 @@ func TestAuditEventsReporterChecker(t *testing.T) {
 	})
 
 	t.Run("Failure ", func(t *testing.T) {
-		var auditEventReporterChecker = newAuditEventsReporterChecker("alias", mockAuditEventReporter, 1*time.Second, 10*time.Second, log.NewNopLogger())
+		var auditEventReporterChecker = newAuditEventsReporterChecker("alias", mockAuditEventReporter, 1*time.Second, 10*time.Second, log.NewNopLogger(), mockTime)
 		internalChecker := auditEventReporterChecker.(*auditEventsReporterChecker)
 		mockAuditEventReporter.EXPECT().ReportEvent(gomock.Any(), gomock.Any()).Do(func(arg0 any, arg1 any) {
 			time.Sleep(2 * time.Second)
