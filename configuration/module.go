@@ -121,6 +121,10 @@ func (c *ConfigurationReaderDBModule) GetAuthorizations(ctx context.Context) ([]
 			res = append(res, authz)
 		}
 	}
+	if err = rows.Err(); err != nil {
+		c.logger.Warn(ctx, "msg", "Can't get authorizations. Failed to iterate on every items", "err", err.Error())
+		return nil, err
+	}
 
 	return res, nil
 }
