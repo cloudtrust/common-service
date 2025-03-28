@@ -136,6 +136,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	req.Header.Set("Authorization", "Basic "+token)
 
 	t.Run("Valid authorization token - Basic", func(t *testing.T) {
+		mockLogger.EXPECT().Info(gomock.Any(), "auth", "User authenticated", "username", "username").Times(1)
 		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})
@@ -143,6 +144,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	req.Header.Set("Authorization", "basic "+token)
 
 	t.Run("Valid authorization token - basic", func(t *testing.T) {
+		mockLogger.EXPECT().Info(gomock.Any(), "auth", "User authenticated", "username", "username").Times(1)
 		var result = getAuthenticationResultTest(m, req)
 		assert.Equal(t, http.StatusOK, result.StatusCode)
 	})
