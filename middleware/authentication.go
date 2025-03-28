@@ -49,6 +49,9 @@ func MakeHTTPBasicAuthenticationFuncMW(credsMatcher func(token string) (*string,
 				httpErrorHandler(ctx, http.StatusUnauthorized, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
 				return
 			}
+
+			logger.Info(ctx, "auth", "User authenticated", "username", *authenticated)
+
 			ctx = context.WithValue(req.Context(), cs.CtContextUsername, *authenticated)
 
 			next.ServeHTTP(w, req.WithContext(ctx))
