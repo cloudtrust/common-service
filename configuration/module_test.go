@@ -164,6 +164,15 @@ func TestGetAuthorizations(t *testing.T) {
 		assert.Equal(t, scanError, err)
 	})
 
+	t.Run("error during iteration", func(t *testing.T) {
+		iterationErr := errors.New("iteration error")
+		mockSQLRows.EXPECT().Next().Return(false)
+		mockSQLRows.EXPECT().Err().Return(iterationErr)
+
+		_, err := module.GetAuthorizations(ctx)
+		assert.Equal(t, iterationErr, err)
+	})
+
 	t.Run("Query returns 2 rows", func(t *testing.T) {
 		gomock.InOrder(
 			mockSQLRows.EXPECT().Next().Return(true),
@@ -185,6 +194,7 @@ func TestGetAuthorizations(t *testing.T) {
 				return nil
 			}),
 			mockSQLRows.EXPECT().Next().Return(false),
+			mockSQLRows.EXPECT().Err(),
 		)
 
 		var res, err = module.GetAuthorizations(ctx)
