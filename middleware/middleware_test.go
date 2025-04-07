@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
-	"time"
 
 	errorhandler "github.com/cloudtrust/common-service/v2/errors"
 
@@ -20,10 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 func dummyEndpoint(ctx context.Context, request any) (response any, err error) {
 	return nil, nil

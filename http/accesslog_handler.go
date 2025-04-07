@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	log "github.com/go-kit/kit/log"
+	log "github.com/go-kit/log"
 )
 
 type accessLogHandler struct {
