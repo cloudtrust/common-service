@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -191,7 +191,7 @@ func genericTestDecodeRequestWithHeader(ctx context.Context, tls *tls.Connection
 	if forwarded != nil {
 		req.Header.Set("Forwarded", *forwarded)
 	}
-	req.Body = ioutil.NopCloser(bytes.NewBufferString(input))
+	req.Body = io.NopCloser(bytes.NewBufferString(input))
 	req.URL = &url
 	pathParams := map[string]string{
 		"pathParam1": "^[a-zA-Z0-9-]+$",

@@ -37,16 +37,12 @@ func parseLargeDuration(value string) (largeDuration, error) {
 		switch extract[2] {
 		case "y":
 			duration.years += number
-			break
 		case "m":
 			duration.months += number
-			break
 		case "w":
 			duration.days += 7 * number
-			break
 		case "d":
 			duration.days += number
-			break
 		}
 	}
 	if totalLen != 0 {
@@ -58,10 +54,7 @@ func parseLargeDuration(value string) (largeDuration, error) {
 // IsValidLargeDuration tells whether a duration provided as a string is valid or not
 func IsValidLargeDuration(value string) bool {
 	var _, err = parseLargeDuration(value)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // AddLargeDuration adds a specified duration value to the given date. In case of any error, the provided date is returned untouched.

@@ -176,10 +176,8 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 				switch errorsPkg.Cause(err).(type) {
 				case security.ForbiddenError:
 					httpErrorHandler(ctx, http.StatusForbidden, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-					break
 				case errorhandler.UnauthorizedError:
 					httpErrorHandler(ctx, http.StatusUnauthorized, errors.New(errorhandler.MsgErrInvalidParam+"."+errorhandler.Token), w)
-					break
 				}
 				return
 			}
@@ -265,7 +263,6 @@ func ExtractGroups(kcGroups []string) []string {
 // Audience can be a string or a string array according the specification.
 // The libraries are not supporting tit at this time (Fix in progress), meanwhile we circumvent it with a quick fix.
 type TokenAudienceStringArray struct {
-	hdr            *header
 	Issuer         string   `json:"iss,omitempty"`
 	Subject        string   `json:"sub,omitempty"`
 	Audience       []string `json:"aud,omitempty"`
@@ -279,7 +276,6 @@ type TokenAudienceStringArray struct {
 
 // TokenAudienceString is JWT token with an Audience field represented as a string
 type TokenAudienceString struct {
-	hdr            *header
 	Issuer         string   `json:"iss,omitempty"`
 	Subject        string   `json:"sub,omitempty"`
 	Audience       string   `json:"aud,omitempty"`
@@ -300,13 +296,6 @@ type TokenAudience interface {
 	GetAudience() any
 
 	AssertMatchingAudience(requiredValue string) bool
-}
-
-type header struct {
-	Algorithm   string `json:"alg,omitempty"`
-	KeyID       string `json:"kid,omitempty"`
-	Type        string `json:"typ,omitempty"`
-	ContentType string `json:"cty,omitempty"`
 }
 
 func unmarshalTokenAudience(payload []byte) (TokenAudience, error) {
