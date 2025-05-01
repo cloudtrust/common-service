@@ -6,8 +6,8 @@ import (
 
 	cs "github.com/cloudtrust/common-service/v2"
 	errorhandler "github.com/cloudtrust/common-service/v2/errors"
-	kit_log "github.com/go-kit/kit/log"
-	kit_level "github.com/go-kit/kit/log/level"
+	kit_log "github.com/go-kit/log"
+	kit_level "github.com/go-kit/log/level"
 )
 
 // Logger interface for logging with level

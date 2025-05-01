@@ -41,7 +41,7 @@ func (fc *fieldsComparator) compareStrings(value1, value2 string) bool {
 	if fc.caseSensitive {
 		return value1 == value2
 	}
-	return strings.ToLower(value1) == strings.ToLower(value2)
+	return strings.EqualFold(value1, value2)
 }
 
 func (fc *fieldsComparator) CompareValues(field Field, newValue, oldValue *string) FieldsComparator {
