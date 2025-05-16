@@ -15,33 +15,37 @@ const (
 	ResourceTypeAUTH_EXECUTION_FLOW           ResourceType = 5
 	ResourceTypeAUTH_EXECUTION                ResourceType = 6
 	ResourceTypeAUTHENTICATOR_CONFIG          ResourceType = 7
-	ResourceTypeREQUIRED_ACTION               ResourceType = 8
-	ResourceTypeIDENTITY_PROVIDER             ResourceType = 9
-	ResourceTypeIDENTITY_PROVIDER_MAPPER      ResourceType = 10
-	ResourceTypePROTOCOL_MAPPER               ResourceType = 11
-	ResourceTypeUSER                          ResourceType = 12
-	ResourceTypeUSER_LOGIN_FAILURE            ResourceType = 13
-	ResourceTypeUSER_SESSION                  ResourceType = 14
-	ResourceTypeUSER_FEDERATION_PROVIDER      ResourceType = 15
-	ResourceTypeUSER_FEDERATION_MAPPER        ResourceType = 16
-	ResourceTypeGROUP                         ResourceType = 17
-	ResourceTypeGROUP_MEMBERSHIP              ResourceType = 18
-	ResourceTypeCLIENT                        ResourceType = 19
-	ResourceTypeCLIENT_INITIAL_ACCESS_MODEL   ResourceType = 20
-	ResourceTypeCLIENT_ROLE                   ResourceType = 21
-	ResourceTypeCLIENT_ROLE_MAPPING           ResourceType = 22
-	ResourceTypeCLIENT_SCOPE                  ResourceType = 23
-	ResourceTypeCLIENT_SCOPE_MAPPING          ResourceType = 24
-	ResourceTypeCLIENT_SCOPE_CLIENT_MAPPING   ResourceType = 25
-	ResourceTypeCLUSTER_NODE                  ResourceType = 26
-	ResourceTypeCOMPONENT                     ResourceType = 27
-	ResourceTypeAUTHORIZATION_RESOURCE_SERVER ResourceType = 28
-	ResourceTypeAUTHORIZATION_RESOURCE        ResourceType = 29
-	ResourceTypeAUTHORIZATION_SCOPE           ResourceType = 30
-	ResourceTypeAUTHORIZATION_POLICY          ResourceType = 31
-	ResourceTypeCUSTOM                        ResourceType = 32
-	ResourceTypeUNKNOWN                       ResourceType = 33
-	ResourceTypeNOT_APPLICABLE                ResourceType = 34
+	ResourceTypeREQUIRED_ACTION_CONFIG        ResourceType = 8
+	ResourceTypeREQUIRED_ACTION               ResourceType = 9
+	ResourceTypeIDENTITY_PROVIDER             ResourceType = 10
+	ResourceTypeIDENTITY_PROVIDER_MAPPER      ResourceType = 11
+	ResourceTypePROTOCOL_MAPPER               ResourceType = 12
+	ResourceTypeUSER                          ResourceType = 13
+	ResourceTypeUSER_LOGIN_FAILURE            ResourceType = 14
+	ResourceTypeUSER_SESSION                  ResourceType = 15
+	ResourceTypeUSER_FEDERATION_PROVIDER      ResourceType = 16
+	ResourceTypeUSER_FEDERATION_MAPPER        ResourceType = 17
+	ResourceTypeGROUP                         ResourceType = 18
+	ResourceTypeGROUP_MEMBERSHIP              ResourceType = 19
+	ResourceTypeCLIENT                        ResourceType = 20
+	ResourceTypeCLIENT_INITIAL_ACCESS_MODEL   ResourceType = 21
+	ResourceTypeCLIENT_ROLE                   ResourceType = 22
+	ResourceTypeCLIENT_ROLE_MAPPING           ResourceType = 23
+	ResourceTypeCLIENT_SCOPE                  ResourceType = 24
+	ResourceTypeCLIENT_SCOPE_MAPPING          ResourceType = 25
+	ResourceTypeCLIENT_SCOPE_CLIENT_MAPPING   ResourceType = 26
+	ResourceTypeCLUSTER_NODE                  ResourceType = 27
+	ResourceTypeCOMPONENT                     ResourceType = 28
+	ResourceTypeAUTHORIZATION_RESOURCE_SERVER ResourceType = 29
+	ResourceTypeAUTHORIZATION_RESOURCE        ResourceType = 30
+	ResourceTypeAUTHORIZATION_SCOPE           ResourceType = 31
+	ResourceTypeAUTHORIZATION_POLICY          ResourceType = 32
+	ResourceTypeCUSTOM                        ResourceType = 33
+	ResourceTypeUSER_PROFILE                  ResourceType = 34
+	ResourceTypeORGANIZATION                  ResourceType = 35
+	ResourceTypeORGANIZATION_MEMBERSHIP       ResourceType = 36
+	ResourceTypeUNKNOWN                       ResourceType = 37
+	ResourceTypeNOT_APPLICABLE                ResourceType = 38
 )
 
 var EnumNamesResourceType = map[ResourceType]string{
@@ -53,6 +57,7 @@ var EnumNamesResourceType = map[ResourceType]string{
 	ResourceTypeAUTH_EXECUTION_FLOW:           "AUTH_EXECUTION_FLOW",
 	ResourceTypeAUTH_EXECUTION:                "AUTH_EXECUTION",
 	ResourceTypeAUTHENTICATOR_CONFIG:          "AUTHENTICATOR_CONFIG",
+	ResourceTypeREQUIRED_ACTION_CONFIG:        "REQUIRED_ACTION_CONFIG",
 	ResourceTypeREQUIRED_ACTION:               "REQUIRED_ACTION",
 	ResourceTypeIDENTITY_PROVIDER:             "IDENTITY_PROVIDER",
 	ResourceTypeIDENTITY_PROVIDER_MAPPER:      "IDENTITY_PROVIDER_MAPPER",
@@ -78,6 +83,9 @@ var EnumNamesResourceType = map[ResourceType]string{
 	ResourceTypeAUTHORIZATION_SCOPE:           "AUTHORIZATION_SCOPE",
 	ResourceTypeAUTHORIZATION_POLICY:          "AUTHORIZATION_POLICY",
 	ResourceTypeCUSTOM:                        "CUSTOM",
+	ResourceTypeUSER_PROFILE:                  "USER_PROFILE",
+	ResourceTypeORGANIZATION:                  "ORGANIZATION",
+	ResourceTypeORGANIZATION_MEMBERSHIP:       "ORGANIZATION_MEMBERSHIP",
 	ResourceTypeUNKNOWN:                       "UNKNOWN",
 	ResourceTypeNOT_APPLICABLE:                "NOT_APPLICABLE",
 }
@@ -91,6 +99,7 @@ var EnumValuesResourceType = map[string]ResourceType{
 	"AUTH_EXECUTION_FLOW":           ResourceTypeAUTH_EXECUTION_FLOW,
 	"AUTH_EXECUTION":                ResourceTypeAUTH_EXECUTION,
 	"AUTHENTICATOR_CONFIG":          ResourceTypeAUTHENTICATOR_CONFIG,
+	"REQUIRED_ACTION_CONFIG":        ResourceTypeREQUIRED_ACTION_CONFIG,
 	"REQUIRED_ACTION":               ResourceTypeREQUIRED_ACTION,
 	"IDENTITY_PROVIDER":             ResourceTypeIDENTITY_PROVIDER,
 	"IDENTITY_PROVIDER_MAPPER":      ResourceTypeIDENTITY_PROVIDER_MAPPER,
@@ -116,6 +125,9 @@ var EnumValuesResourceType = map[string]ResourceType{
 	"AUTHORIZATION_SCOPE":           ResourceTypeAUTHORIZATION_SCOPE,
 	"AUTHORIZATION_POLICY":          ResourceTypeAUTHORIZATION_POLICY,
 	"CUSTOM":                        ResourceTypeCUSTOM,
+	"USER_PROFILE":                  ResourceTypeUSER_PROFILE,
+	"ORGANIZATION":                  ResourceTypeORGANIZATION,
+	"ORGANIZATION_MEMBERSHIP":       ResourceTypeORGANIZATION_MEMBERSHIP,
 	"UNKNOWN":                       ResourceTypeUNKNOWN,
 	"NOT_APPLICABLE":                ResourceTypeNOT_APPLICABLE,
 }
