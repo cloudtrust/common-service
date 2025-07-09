@@ -72,6 +72,16 @@ type Authorization struct {
 	TargetGroupName *string `json:"target_group_name,omitempty"`
 }
 
+// ClientConfiguration struct
+type ThemeConfiguration struct {
+	ThemeName  *string `json:"theme_name,omitempty"`
+	Color      *string `json:"color,omitempty"`
+	MenuTheme  *string `json:"menu_theme,omitempty"`
+	FontFamily *string `json:"font_family,omitempty"`
+	Logo       *[]byte `json:"logo,omitempty"`
+	Favicon    *[]byte `json:"favicon,omitempty"`
+}
+
 // NewRealmConfiguration returns the realm configuration from its JSON representation
 func NewRealmConfiguration(confJSON string) (RealmConfiguration, error) {
 	var conf RealmConfiguration
