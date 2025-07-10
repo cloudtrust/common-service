@@ -74,7 +74,7 @@ type Authorization struct {
 	TargetGroupName *string `json:"target_group_name,omitempty"`
 }
 
-// ClientConfiguration struct
+// ClientConfiguration  struct
 type ThemeConfiguration struct {
 	ThemeName  *string `json:"theme_name,omitempty"`
 	Color      *string `json:"color,omitempty"`
