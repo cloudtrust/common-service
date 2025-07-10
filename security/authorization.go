@@ -204,6 +204,8 @@ var (
 	MGMTGetFederatedIdentities              = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetFederatedIdentities", ScopeGroup)
 	MGMTLinkShadowUser                      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_LinkShadowUser", ScopeGroup)
 	MGMTGetIdentityProviders                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetIdentityProviders", ScopeRealm)
+	MGMTGetThemeConfiguration               = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetThemeConfiguration", ScopeRealm)
+	MGMTUpdateThemeConfiguration            = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateThemeConfiguration", ScopeRealm)
 
 	STGetActions                   = Actions.addAction(BridgeService, StatisticAPI, "ST_GetActions", ScopeGlobal)
 	STGetStatisticsIdentifications = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsIdentifications", ScopeRealm)
