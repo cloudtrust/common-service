@@ -87,20 +87,45 @@ func (db *basicCloudtrustDB) Stats() sql.DBStats {
 
 // DbConfig Db configuration parameters
 type DbConfig struct {
-	HostPort          string
-	Username          string
-	Password          string
-	Database          string
-	Protocol          string
-	Parameters        string
-	MaxOpenConns      int
-	MaxIdleConns      int
-	ConnMaxLifetime   int
-	Noop              bool
-	MigrationEnabled  bool
-	MigrationVersion  string
-	ConnectionCheck   bool
-	PingTimeoutMillis int
+	Enabled           bool   `mapstructure:"enabled"`
+	HostPort          string `mapstructure:"host-port"`
+	Username          string `mapstructure:"username"`
+	Password          string `mapstructure:"password"`
+	Database          string `mapstructure:"database"`
+	Protocol          string `mapstructure:"protocol"`
+	Parameters        string `mapstructure:"parameters"`
+	MaxOpenConns      int    `mapstructure:"max-open-conns"`
+	MaxIdleConns      int    `mapstructure:"max-idle-conns"`
+	ConnMaxLifetime   int    `mapstructure:"conn-max-lifetime"`
+	MigrationEnabled  bool   `mapstructure:"migration"`
+	MigrationVersion  string `mapstructure:"migration-version"`
+	ConnectionCheck   bool   `mapstructure:"connection-check"`
+	PingTimeoutMillis int    `mapstructure:"ping-timeout-ms"`
+}
+
+// ConfigureDbDefaultForKey configure default database parameters for a given prefix
+// Parameters are built with the given prefix, then a dot symbol, then one of these suffixes:
+// host-port, username, password, database, protocol, max-open-conns, max-idle-conns, conn-max-lifetime
+// If a parameter exists only named with the given prefix and if its value if false, the database connection
+// will be a Noop one
+func ConfigureDbDefaultForKey(v cs.Configuration, prefix, envUser, envPasswd string) {
+	v.SetDefault(prefix+".enabled", true)
+	v.SetDefault(prefix+".host-port", "")
+	v.SetDefault(prefix+".username", "")
+	v.SetDefault(prefix+".password", "")
+	v.SetDefault(prefix+".database", "")
+	v.SetDefault(prefix+".protocol", "")
+	v.SetDefault(prefix+".parameters", "")
+	v.SetDefault(prefix+".max-open-conns", 10)
+	v.SetDefault(prefix+".max-idle-conns", 2)
+	v.SetDefault(prefix+".conn-max-lifetime", 3600)
+	v.SetDefault(prefix+".migration", false)
+	v.SetDefault(prefix+".migration-version", "")
+	v.SetDefault(prefix+".connection-check", true)
+	v.SetDefault(prefix+".ping-timeout-ms", 1500)
+
+	_ = v.BindEnv(prefix+".username", envUser)
+	_ = v.BindEnv(prefix+".password", envPasswd)
 }
 
 // ConfigureDbDefault configure default database parameters for a given prefix
@@ -138,8 +163,8 @@ func GetDbConfig(v cs.Configuration, prefix string) *DbConfig {
 func GetDbConfigExt(v cs.Configuration, prefix string, noop bool) *DbConfig {
 	var cfg DbConfig
 
-	cfg.Noop = noop
-	if !noop {
+	cfg.Enabled = !noop
+	if cfg.Enabled {
 		cfg.HostPort = v.GetString(prefix + "-host-port")
 		cfg.Username = v.GetString(prefix + "-username")
 		cfg.Password = v.GetString(prefix + "-password")
@@ -169,7 +194,7 @@ func (cfg *DbConfig) getDbConnectionString() string {
 // OpenDatabase gets an access to a database
 // If cfg.Noop is true, a Noop access will be provided
 func (cfg *DbConfig) OpenDatabase() (sqltypes.CloudtrustDB, error) {
-	if cfg.Noop {
+	if !cfg.Enabled {
 		return &NoopDB{}, nil
 	}
 

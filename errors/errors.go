@@ -3,6 +3,7 @@ package errorhandler
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // Constants for error messages
@@ -105,6 +106,14 @@ func CreateNotAllowedError(messageKey string) Error {
 	}
 }
 
+// CreateForbiddenError creates an error relative to a not allowed request
+func CreateForbiddenError(messageParts ...string) Error {
+	return Error{
+		Status:  http.StatusForbidden,
+		Message: concatTo2StaticValues(GetEmitter(), "forbidden", messageParts...),
+	}
+}
+
 // CreateNotFoundError creates an error relative to a not found request
 func CreateNotFoundError(messageKey string) Error {
 	return Error{
@@ -121,9 +130,15 @@ func CreateEndpointNotEnabled(param string) Error {
 	}
 }
 
-// UnauthorizedError when an operation is not permitted.
+// UnauthorizedError when access to the service is disallowed
 type UnauthorizedError struct{}
 
 func (e UnauthorizedError) Error() string {
 	return "UnauthorizedError: Unauthorized"
+}
+
+func concatTo2StaticValues(val1 string, val2 string, values ...string) string {
+	var msg = append([]string{val1}, val2)
+	msg = append(msg, values...)
+	return strings.Join(msg, ".")
 }
