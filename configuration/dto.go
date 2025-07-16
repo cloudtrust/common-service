@@ -63,6 +63,7 @@ type RealmAdminConfiguration struct {
 	AutoIdentificationAccountingEnabled   *bool           `json:"auto_identification_accounting_enabled"`
 	AutoIdentificationPrepaymentRequired  *bool           `json:"auto_identification_prepayment_required"`
 	OnboardingStatusEnabled               *bool           `json:"onboarding_status_enabled"`
+	// TODO add autogenerate username field
 }
 
 // Authorization struct
@@ -74,14 +75,18 @@ type Authorization struct {
 	TargetGroupName *string `json:"target_group_name,omitempty"`
 }
 
-// ClientConfiguration  struct
+// ThemeConfiguration  struct
 type ThemeConfiguration struct {
-	ThemeName  *string `json:"theme_name,omitempty"`
-	Color      *string `json:"color,omitempty"`
-	MenuTheme  *string `json:"menu_theme,omitempty"`
-	FontFamily *string `json:"font_family,omitempty"`
-	Logo       *[]byte `json:"logo,omitempty"`
-	Favicon    *[]byte `json:"favicon,omitempty"`
+	ThemeName     *string `json:"theme_name,omitempty"`
+	Color         *string `json:"color,omitempty"`
+	MenuTheme     *string `json:"menu_theme,omitempty"`
+	FontFamily    *string `json:"font_family,omitempty"`
+	Logo          *[]byte `json:"logo,omitempty"`
+	Favicon       *[]byte `json:"favicon,omitempty"`
+	TranslationEN *string `json:"translation_en,omitempty"`
+	TranslationDE *string `json:"translation_de,omitempty"`
+	TranslationFR *string `json:"translation_fr,omitempty"`
+	TranslationIT *string `json:"translation_it,omitempty"`
 }
 
 // NewRealmConfiguration returns the realm configuration from its JSON representation
