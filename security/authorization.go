@@ -208,6 +208,7 @@ var (
 	MGMTGetIdentityProviders                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetIdentityProviders", ScopeRealm)
 	MGMTGetThemeConfiguration               = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetThemeConfiguration", ScopeRealm)
 	MGMTUpdateThemeConfiguration            = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateThemeConfiguration", ScopeRealm)
+	MGMTGetThemeTranslations                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetThemeTranslations", ScopeRealm)
 
 	STGetActions                   = Actions.addAction(BridgeService, StatisticAPI, "ST_GetActions", ScopeGlobal)
 	STGetStatisticsIdentifications = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsIdentifications", ScopeRealm)
