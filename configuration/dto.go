@@ -23,11 +23,13 @@ type RealmConfiguration struct {
 	DeprecatedAPISelfMailEditingEnabled *bool    `json:"api_self_mail_editing_enabled,omitempty"`
 	APISelfAccountEditingEnabled        *bool    `json:"api_self_account_editing_enabled,omitempty"`
 	APISelfAccountDeletionEnabled       *bool    `json:"api_self_account_deletion_enabled,omitempty"`
+	APISelfIDPLinksManagementEnabled    *bool    `json:"api_self_idplinks_management_enabled,omitempty"`
 	ShowAuthenticatorsTab               *bool    `json:"show_authenticators_tab,omitempty"`
 	ShowPasswordTab                     *bool    `json:"show_password_tab,omitempty"`
 	ShowProfileTab                      *bool    `json:"show_profile_tab,omitempty"`
 	ShowMailEditing                     *bool    `json:"show_mail_editing,omitempty"`
 	ShowAccountDeletionButton           *bool    `json:"show_account_deletion_button,omitempty"`
+	ShowIDPLinksTab                     *bool    `json:"show_idplinks_tab,omitempty"`
 	SelfServiceDefaultTab               *string  `json:"self_service_default_tab,omitempty"`
 	AllowedBackURL                      *string  `json:"allowed_back_url,omitempty"` // DEPRECATED
 	AllowedBackURLs                     []string `json:"allowed_back_urls,omitempty"`
