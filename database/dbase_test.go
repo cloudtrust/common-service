@@ -47,6 +47,25 @@ func TestGetDbConnectionString(t *testing.T) {
 	assert.Equal(t, "user:pass@proto(1234)/db?params", conf.getDbConnectionString())
 }
 
+func TestConfigureDbDefaultForKey(t *testing.T) {
+	var mockCtrl = gomock.NewController(t)
+	defer mockCtrl.Finish()
+	var mockConf = mock.NewConfiguration(mockCtrl)
+
+	var prefix = "mydb"
+	var envUser = "the env user"
+	var envPass = "the env password"
+
+	mockConf.EXPECT().SetDefault(prefix+".enabled", gomock.Any()).Times(1)
+	for _, suffix := range []string{".host-port", ".username", ".password", ".database", ".protocol", ".parameters", ".max-open-conns", ".max-idle-conns", ".conn-max-lifetime", ".migration", ".migration-version", ".connection-check", ".ping-timeout-ms"} {
+		mockConf.EXPECT().SetDefault(prefix+suffix, gomock.Any()).Times(1)
+	}
+	mockConf.EXPECT().BindEnv(prefix+".username", envUser).Times(1)
+	mockConf.EXPECT().BindEnv(prefix+".password", envPass).Times(1)
+
+	ConfigureDbDefaultForKey(mockConf, prefix, envUser, envPass)
+}
+
 func TestConfigureDbDefault(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()

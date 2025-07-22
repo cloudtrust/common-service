@@ -366,6 +366,11 @@ func TestErrorHandler(t *testing.T) {
 		mockRespWriter.EXPECT().Write([]byte(message))
 		ErrorHandlerNoLog()(context.Background(), mockError, mockRespWriter)
 	})
+	t.Run("UnauthorizedError", func(t *testing.T) {
+		mockRespWriter.EXPECT().WriteHeader(http.StatusUnauthorized)
+		mockRespWriter.EXPECT().Write(gomock.Any())
+		ErrorHandlerNoLog()(context.Background(), errorhandler.UnauthorizedError{}, mockRespWriter)
+	})
 	t.Run("ratelimit.ErrLimited", func(t *testing.T) {
 		mockRespWriter.EXPECT().WriteHeader(http.StatusTooManyRequests)
 		ErrorHandlerNoLog()(context.Background(), ratelimit.ErrLimited, mockRespWriter)

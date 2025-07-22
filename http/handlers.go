@@ -91,6 +91,17 @@ func DecodeRequest(ctx context.Context, req *http.Request, pathParams map[string
 	return DecodeRequestWithHeaders(ctx, req, pathParams, queryParams, nil)
 }
 
+func getBodyAsString(req *http.Request) string {
+	buf := new(bytes.Buffer)
+	var reader = req.Body
+	if req.GetBody != nil {
+		// GetBody is not nil: may be req.Body has already been used and can't be re-used
+		reader, _ = req.GetBody()
+	}
+	_, _ = buf.ReadFrom(reader)
+	return buf.String()
+}
+
 // DecodeRequestWithHeaders gets the HTTP parameters, headers and body content
 func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams map[string]string, queryParams map[string]string, headers []string) (any, error) {
 	var request = map[string]string{}
@@ -109,10 +120,8 @@ func DecodeRequestWithHeaders(_ context.Context, req *http.Request, pathParams m
 	request["scheme"] = getScheme(req)
 	request["host"] = req.Host
 
-	buf := new(bytes.Buffer)
-	_, _ = buf.ReadFrom(req.Body)
 	// Input validation of body content should be performed once the content is unmarshalled (Endpoint layer)
-	request["body"] = buf.String()
+	request["body"] = getBodyAsString(req)
 
 	// Fetch and validate query parameter such as email, firstName, ...
 	for key, validationRegExp := range queryParams {
@@ -194,6 +203,9 @@ func ErrorHandler(logger log.Logger) func(context.Context, error, http.ResponseW
 		case errorhandler.DetailedError:
 			w.WriteHeader(e.Status())
 			_, _ = w.Write([]byte(e.ErrorMessage()))
+		case errorhandler.UnauthorizedError:
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(e.Error()))
 		default:
 			logger.Error(ctx, "errorHandler", http.StatusInternalServerError, "msg", e.Error())
 			if err == ratelimit.ErrLimited {
