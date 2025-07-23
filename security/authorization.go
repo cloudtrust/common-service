@@ -205,6 +205,10 @@ var (
 	MGMTLinkShadowUser                      = Actions.addAction(BridgeService, ManagementAPI, "MGMT_LinkShadowUser", ScopeGroup)
 	MGMTUnlinkShadowUser                    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UnlinkShadowUser", ScopeGroup)
 	MGMTGetIdentityProviders                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetIdentityProviders", ScopeRealm)
+	MGMTGetIdentityProvider                 = Actions.addAction(BridgeService, ManagementAPI, "MGMT_GetIdentityProvider", ScopeRealm)
+	MGMTCreateIdentityProvider              = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateIdentityProvider", ScopeRealm)
+	MGMTUpdateIdentityProvider              = Actions.addAction(BridgeService, ManagementAPI, "MGMT_UpdateIdentityProvider", ScopeRealm)
+	MGMTDeleteIdentityProvider              = Actions.addAction(BridgeService, ManagementAPI, "MGMT_DeleteIdentityProvider", ScopeRealm)
 
 	STGetActions                   = Actions.addAction(BridgeService, StatisticAPI, "ST_GetActions", ScopeGlobal)
 	STGetStatisticsIdentifications = Actions.addAction(BridgeService, StatisticAPI, "ST_GetStatisticsIdentifications", ScopeRealm)
