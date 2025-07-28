@@ -224,9 +224,10 @@ var (
 	STGetStatisticsAuthentications    = Actions.addAction(EventService, EventStatisticAPI, "ST_GetStatisticsAuthentications", ScopeRealm)
 	STGetStatisticsAuthenticationsLog = Actions.addAction(EventService, EventStatisticAPI, "ST_GetStatisticsAuthenticationsLog", ScopeRealm)
 
-	IDNGetActions     = Actions.addAction(IDNowService, IDNowAPI, "IDN_GetActions", ScopeGlobal)
-	IDNVideoIdentInit = Actions.addAction(IDNowService, IDNowAPI, "IDN_Init", ScopeGroup)
-	IDNAutoIdentInit  = Actions.addAction(IDNowService, IDNowAPI, "IDN_AutoIdentInit", ScopeGroup)
+	IDNGetActions              = Actions.addAction(IDNowService, IDNowAPI, "IDN_GetActions", ScopeGlobal)
+	IDNVideoIdentInit          = Actions.addAction(IDNowService, IDNowAPI, "IDN_Init", ScopeGroup)
+	IDNAuxiliaryVideoIdentInit = Actions.addAction(IDNowService, IDNowAPI, "IDN_AuxiliaryVideoIdentInit", ScopeGroup)
+	IDNAutoIdentInit           = Actions.addAction(IDNowService, IDNowAPI, "IDN_AutoIdentInit", ScopeGroup)
 
 	PCGetActions            = Actions.addAction(PaperCardService, CardsAPI, "PC_GetActions", ScopeGlobal)
 	PCGetConfigurationSelf  = Actions.addAction(PaperCardService, CardsAPI, "PC_GetConfigurationSelf", ScopeRealm)
