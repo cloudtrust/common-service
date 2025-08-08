@@ -276,6 +276,7 @@ var (
 	MAILGetConfiguration = Actions.addAction(MailingService, ManagementAPI, "MAIL_GetConfiguration", ScopeRealm)
 	MAILSetConfiguration = Actions.addAction(MailingService, ManagementAPI, "MAIL_SetConfiguration", ScopeRealm)
 
+	IDPGetActions             = Actions.addAction(BridgeService, IdpAPI, "IDP_GetActions", ScopeGlobal)
 	IDPGetIdentityProvider    = Actions.addAction(BridgeService, IdpAPI, "IDP_GetIdentityProvider", ScopeRealm)
 	IDPCreateIdentityProvider = Actions.addAction(BridgeService, IdpAPI, "IDP_CreateIdentityProvider", ScopeRealm)
 	IDPUpdateIdentityProvider = Actions.addAction(BridgeService, IdpAPI, "IDP_UpdateIdentityProvider", ScopeRealm)
