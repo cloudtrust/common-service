@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"reflect"
 	"regexp"
+	"slices"
 	"time"
 
 	cerrors "github.com/cloudtrust/common-service/v2/errors"
@@ -20,6 +21,7 @@ type Validator interface {
 	ValidateParameter(prmName string, validatable Validatable, mandatory bool) Validator
 	ValidateParameterFunc(validator func() error) Validator
 	ValidateParameterNotNil(prmName string, value any) Validator
+	ValidateParameterInSlice(prmName string, value *string, allowedValues []string, mandatory bool) Validator
 	ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator
 	ValidateParameterRegExp(prmName string, value *string, regExp string, mandatory bool) Validator
 	ValidateParameterRegExpSlice(prmName string, values []string, regExp string, mandatory bool) Validator
@@ -89,6 +91,20 @@ func (v *successValidator) ValidateParameterNotNil(prmName string, value any) Va
 	return v
 }
 
+func (v *successValidator) ValidateParameterInSlice(prmName string, value *string, allowedValues []string, mandatory bool) Validator {
+	if value == nil {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+	} else {
+		if !slices.Contains(allowedValues, *value) {
+			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+	}
+	return v
+}
+
+// Deprecated: Use ValidateParameterInSlice instead.
 func (v *successValidator) ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator {
 	if value == nil {
 		if mandatory {
@@ -272,6 +288,10 @@ func (v *failedValidator) ValidateParameterFunc(_ func() error) Validator {
 }
 
 func (v *failedValidator) ValidateParameterNotNil(_ string, _ any) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterInSlice(_ string, _ *string, _ []string, _ bool) Validator {
 	return v
 }
 

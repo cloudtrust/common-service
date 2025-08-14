@@ -109,6 +109,28 @@ func TestValidateParameterNotNil(t *testing.T) {
 	})
 }
 
+func TestValidateParameterInSlice(t *testing.T) {
+	var weekend = []string{"saturday", "sunday"}
+	var validValue = "sunday"
+	var invalidValue = "wednesday"
+
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterInSlice("param", nil, weekend, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterInSlice("param", nil, weekend, true).Status())
+	})
+	t.Run("Valid value", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterInSlice("param", &validValue, weekend, true).Status())
+	})
+	t.Run("Invalid value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterInSlice("param", &invalidValue, weekend, true).Status())
+	})
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterInSlice("param", nil, weekend, false).Status())
+	})
+}
+
 func TestValidateParameterIn(t *testing.T) {
 	var weekend = map[string]bool{"saturday": true, "sunday": true, "wednesday": false}
 	var validValue = "sunday"

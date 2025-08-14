@@ -33,6 +33,7 @@ const (
 	VoucherService
 	AccreditationService
 	MailingService
+	ExternalIDPService
 )
 
 // API type
@@ -276,6 +277,15 @@ var (
 	MAILSetJobs          = Actions.addAction(MailingService, ManagementAPI, "MAIL_SetJobs", ScopeRealm)
 	MAILGetConfiguration = Actions.addAction(MailingService, ManagementAPI, "MAIL_GetConfiguration", ScopeRealm)
 	MAILSetConfiguration = Actions.addAction(MailingService, ManagementAPI, "MAIL_SetConfiguration", ScopeRealm)
+
+	EXTIDPGetActions             = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_GetActions", ScopeGlobal)
+	EXTIDPConfigureIDP           = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_ConfigureIDP", ScopeGlobal)
+	EXTIDPListIDPs               = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_ListIDPs", ScopeRealm)
+	EXTIDPGetIDP                 = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_GetIDP", ScopeRealm)
+	EXTIDPUpdateIDP              = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_UpdateIDP", ScopeRealm)
+	EXTIDPUpdateIDPConfiguration = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_UpdateIDPConfiguration", ScopeRealm)
+	EXTIDPCreateIDP              = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_CreateIDP", ScopeRealm)
+	EXTIDPDeleteIDP              = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_DeleteIDP", ScopeRealm)
 
 	IDPGetIdentityProvider    = Actions.addAction(BridgeService, IdpAPI, "IDP_GetIdentityProvider", ScopeRealm)
 	IDPCreateIdentityProvider = Actions.addAction(BridgeService, IdpAPI, "IDP_CreateIdentityProvider", ScopeRealm)
