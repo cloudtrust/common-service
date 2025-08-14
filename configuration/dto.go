@@ -45,24 +45,27 @@ type RealmConfiguration struct {
 
 // RealmAdminConfiguration struct
 type RealmAdminConfiguration struct {
-	Mode                                  *string         `json:"mode"`
-	AvailableChecks                       map[string]bool `json:"available-checks,omitempty"`
-	SelfRegisterEnabled                   *bool           `json:"self_register_enabled"`
-	RegisterTheme                         *string         `json:"register_theme,omitempty"`
-	SseTheme                              *string         `json:"sse_theme,omitempty"`
-	BoTheme                               *string         `json:"bo_theme,omitempty"`
-	SignerTheme                           *string         `json:"signer_theme,omitempty"`
-	NeedVerifiedContact                   *bool           `json:"need_verified_contact,omitempty"`
-	ConsentRequiredSocial                 *bool           `json:"consent_required,omitempty"`
-	ConsentRequiredCorporate              *bool           `json:"consent_required_corp,omitempty"`
-	ShowGlnEditing                        *bool           `json:"show_gln_editing,omitempty"`
-	VideoIdentificationVoucherEnabled     *bool           `json:"video_identification_voucher_enabled"`
-	VideoIdentificationAccountingEnabled  *bool           `json:"video_identification_accounting_enabled"`
-	VideoIdentificationPrepaymentRequired *bool           `json:"video_identification_prepayment_required"`
-	AutoIdentificationVoucherEnabled      *bool           `json:"auto_identification_voucher_enabled"`
-	AutoIdentificationAccountingEnabled   *bool           `json:"auto_identification_accounting_enabled"`
-	AutoIdentificationPrepaymentRequired  *bool           `json:"auto_identification_prepayment_required"`
-	OnboardingStatusEnabled               *bool           `json:"onboarding_status_enabled"`
+	Mode                                           *string         `json:"mode"`
+	AvailableChecks                                map[string]bool `json:"available-checks,omitempty"`
+	SelfRegisterEnabled                            *bool           `json:"self_register_enabled"`
+	RegisterTheme                                  *string         `json:"register_theme,omitempty"`
+	SseTheme                                       *string         `json:"sse_theme,omitempty"`
+	BoTheme                                        *string         `json:"bo_theme,omitempty"`
+	SignerTheme                                    *string         `json:"signer_theme,omitempty"`
+	NeedVerifiedContact                            *bool           `json:"need_verified_contact,omitempty"`
+	ConsentRequiredSocial                          *bool           `json:"consent_required,omitempty"`
+	ConsentRequiredCorporate                       *bool           `json:"consent_required_corp,omitempty"`
+	ShowGlnEditing                                 *bool           `json:"show_gln_editing,omitempty"`
+	VideoIdentificationVoucherEnabled              *bool           `json:"video_identification_voucher_enabled"`
+	VideoIdentificationAccountingEnabled           *bool           `json:"video_identification_accounting_enabled"`
+	VideoIdentificationPrepaymentRequired          *bool           `json:"video_identification_prepayment_required"`
+	AuxiliaryVideoIdentificationVoucherEnabled     *bool           `json:"auxiliary_video_identification_voucher_enabled"`
+	AuxiliaryVideoIdentificationAccountingEnabled  *bool           `json:"auxiliary_video_identification_accounting_enabled"`
+	AuxiliaryVideoIdentificationPrepaymentRequired *bool           `json:"auxiliary_video_identification_prepayment_required"`
+	AutoIdentificationVoucherEnabled               *bool           `json:"auto_identification_voucher_enabled"`
+	AutoIdentificationAccountingEnabled            *bool           `json:"auto_identification_accounting_enabled"`
+	AutoIdentificationPrepaymentRequired           *bool           `json:"auto_identification_prepayment_required"`
+	OnboardingStatusEnabled                        *bool           `json:"onboarding_status_enabled"`
 }
 
 // Authorization struct
