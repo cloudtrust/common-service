@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/influxdata/influxdb1-client v0.0.0-20220302092344-a9ab5670611c
-	github.com/nyaruka/phonenumbers v1.6.4
+	github.com/nyaruka/phonenumbers v1.6.5
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.11.1
