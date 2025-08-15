@@ -52,7 +52,6 @@ var (
 	Accreditations        = createField("accreditations")
 	BirthDate             = createFieldPII("birthDate")
 	BirthLocation         = createFieldPII("birthLocation")
-	BusinessID            = createField("businessID")
 	Email                 = createNonAttributeField("email")
 	EmailToValidate       = createField("emailToValidate")
 	FirstName             = createNonAttributeField("firstName")
