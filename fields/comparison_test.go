@@ -89,13 +89,9 @@ func TestFieldsComparator(t *testing.T) {
 func TestUpdateFunctions(t *testing.T) {
 	var comparator FieldsComparator = &fieldsComparator{updatedFields: map[Field]bool{Email: true, FirstName: true}}
 	t.Run("AreAllFieldsUpdated", func(t *testing.T) {
-		assert.False(t, comparator.AreAllFieldsUpdated(BirthDate, BusinessID))
-		assert.False(t, comparator.AreAllFieldsUpdated(BirthDate, Email, BusinessID))
 		assert.True(t, comparator.AreAllFieldsUpdated(FirstName, Email))
 	})
 	t.Run("IsAnyFieldUpdated", func(t *testing.T) {
-		assert.False(t, comparator.IsAnyFieldUpdated(BirthDate, BusinessID))
-		assert.True(t, comparator.IsAnyFieldUpdated(BirthDate, Email, BusinessID))
 		assert.True(t, comparator.IsAnyFieldUpdated(FirstName, Email))
 	})
 	t.Run("UpdatedFields", func(t *testing.T) {

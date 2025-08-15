@@ -56,7 +56,6 @@ type RealmAdminConfiguration struct {
 	NeedVerifiedContact                            *bool           `json:"need_verified_contact,omitempty"`
 	ConsentRequiredSocial                          *bool           `json:"consent_required,omitempty"`
 	ConsentRequiredCorporate                       *bool           `json:"consent_required_corp,omitempty"`
-	ShowGlnEditing                                 *bool           `json:"show_gln_editing,omitempty"`
 	VideoIdentificationVoucherEnabled              *bool           `json:"video_identification_voucher_enabled"`
 	VideoIdentificationAccountingEnabled           *bool           `json:"video_identification_accounting_enabled"`
 	VideoIdentificationPrepaymentRequired          *bool           `json:"video_identification_prepayment_required"`
