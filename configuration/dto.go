@@ -39,6 +39,7 @@ type RealmConfiguration struct {
 	OnboardingRedirectURI             *string   `json:"onboarding_redirect_uri,omitempty"`
 	OnboardingClientID                *string   `json:"onboarding_client_id,omitempty"`
 	SelfRegisterGroupNames            *[]string `json:"self_register_group_names,omitempty"`
+	OnboardingUserEditingEnabled      *bool     `json:"onboarding_user_editing_enabled,omitempty"`
 
 	BarcodeType *string `json:"barcode_type"`
 }
