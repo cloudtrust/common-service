@@ -19,7 +19,7 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.10.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
-	go.uber.org/mock v0.5.2
+	go.uber.org/mock v0.6.0
 	golang.org/x/net v0.43.0
 	golang.org/x/oauth2 v0.30.0
 	gopkg.in/h2non/gentleman.v2 v2.0.5
