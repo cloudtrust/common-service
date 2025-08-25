@@ -17,7 +17,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.11.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	go.uber.org/mock v0.6.0
 	golang.org/x/net v0.43.0
