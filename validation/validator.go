@@ -51,12 +51,16 @@ type failedValidator struct {
 
 // IsStringInSlice tells if a searched value is part of a slice or not
 func IsStringInSlice(slice []string, searched string) bool {
-	for _, value := range slice {
-		if value == searched {
-			return true
-		}
+	return slices.Contains(slice, searched)
+}
+
+// IsNil tells if a value is nil. Also works for nil pointers in a struct viewed as an interface
+func IsNil(value any) bool {
+	if value == nil {
+		return true
 	}
-	return false
+	v := reflect.ValueOf(value)
+	return v.Kind() == reflect.Ptr && v.IsNil()
 }
 
 // NewParameterValidator creates a validator ready to check multiple parameters
@@ -65,7 +69,7 @@ func NewParameterValidator() Validator {
 }
 
 func (v *successValidator) ValidateParameter(prmName string, validatable Validatable, mandatory bool) Validator {
-	if validatable == nil {
+	if IsNil(validatable) {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}

@@ -95,6 +95,44 @@ type ThemeConfigurationSettings struct {
 	FontFamily *string `json:"font_family,omitempty"`
 }
 
+// RealmContextKey struct
+type RealmContextKey struct {
+	ID                string
+	Label             string
+	IdentitiesRealm   string
+	CustomerRealm     string
+	Config            ContextKeyConfiguration
+	IsRegisterDefault bool
+}
+
+// ContextKeyConfiguration struct
+type ContextKeyConfiguration struct {
+	IdentificationURI *string                      `json:"identification-uri"`
+	Onboarding        *ContextKeyConfOnboarding    `json:"onboarding"`
+	Accreditation     *ContextKeyConfAccreditation `json:"accreditation"`
+	AutoVoucher       *ContextKeyConfAutovoucher   `json:"autovoucher"`
+}
+
+// ContextKeyConfOnboarding struct
+type ContextKeyConfOnboarding struct {
+	ClientID       *string `json:"client-id"`
+	RedirectURI    *string `json:"redirect-uri"`
+	IsRedirectMode *bool   `json:"redirect-mode"`
+}
+
+// ContextKeyConfAccreditation struct
+type ContextKeyConfAccreditation struct {
+	EmailThemeRealm *string `json:"email-theme-realm"`
+}
+
+// ContextKeyConfAutovoucher struct
+type ContextKeyConfAutovoucher struct {
+	ServiceType            *string `json:"service-type"`
+	Validity               *string `json:"validity"`
+	AccreditationRequested *string `json:"accreditation-requested"`
+	BilledRealm            *string `json:"billed-realm"`
+}
+
 // NewRealmConfiguration returns the realm configuration from its JSON representation
 func NewRealmConfiguration(confJSON string) (RealmConfiguration, error) {
 	var conf RealmConfiguration
@@ -112,6 +150,13 @@ func NewRealmConfiguration(confJSON string) (RealmConfiguration, error) {
 // NewRealmAdminConfiguration returns the realm admin configuration from its JSON representation
 func NewRealmAdminConfiguration(configJSON string) (RealmAdminConfiguration, error) {
 	var conf RealmAdminConfiguration
+	var err = json.Unmarshal([]byte(configJSON), &conf)
+	return conf, err
+}
+
+// NewContextKeyConfiguration returns the context key configuration from its JSON representation
+func NewContextKeyConfiguration(configJSON string) (ContextKeyConfiguration, error) {
+	var conf ContextKeyConfiguration
 	var err = json.Unmarshal([]byte(configJSON), &conf)
 	return conf, err
 }
