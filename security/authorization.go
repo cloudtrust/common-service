@@ -52,6 +52,7 @@ const (
 	SchedulerAPI
 	EventStatisticAPI
 	IdpAPI
+	ComponentsAPI
 )
 
 // ActionsIndex struct
@@ -294,4 +295,8 @@ var (
 	IDPCreateIdentityProvider = Actions.addAction(BridgeService, IdpAPI, "IDP_CreateIdentityProvider", ScopeRealm)
 	IDPUpdateIdentityProvider = Actions.addAction(BridgeService, IdpAPI, "IDP_UpdateIdentityProvider", ScopeRealm)
 	IDPDeleteIdentityProvider = Actions.addAction(BridgeService, IdpAPI, "IDP_DeleteIdentityProvider", ScopeRealm)
+
+	COMPGetComponents   = Actions.addAction(BridgeService, ComponentsAPI, "COMP_GetComponents", ScopeRealm)
+	COMPCreateComponent = Actions.addAction(BridgeService, ComponentsAPI, "COMP_CreateComponent", ScopeRealm)
+	COMPUpdateComponent = Actions.addAction(BridgeService, ComponentsAPI, "COMP_UpdateComponent", ScopeRealm)
 )

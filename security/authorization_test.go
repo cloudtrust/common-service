@@ -18,5 +18,5 @@ func TestAction(t *testing.T) {
 func TestActionsIndex(t *testing.T) {
 	assert.Len(t, Actions.GetActionsForAPIs(BridgeService, ManagementAPI), len(Actions.index[BridgeService][ManagementAPI]))
 	assert.Equal(t, Actions.index[BridgeService][ManagementAPI], Actions.GetActionsForAPIs(BridgeService, ManagementAPI))
-	assert.Len(t, Actions.GetActionNamesForService(BridgeService), len(Actions.GetActionsForAPIs(BridgeService, CommunicationAPI, EventsAPI, KycAPI, ManagementAPI, StatisticAPI, TaskAPI, IdpAPI)))
+	assert.Len(t, Actions.GetActionNamesForService(BridgeService), len(Actions.GetActionsForAPIs(BridgeService, CommunicationAPI, EventsAPI, KycAPI, ManagementAPI, StatisticAPI, TaskAPI, IdpAPI, ComponentsAPI)))
 }
