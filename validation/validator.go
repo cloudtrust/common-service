@@ -37,6 +37,8 @@ type Validator interface {
 	ValidateParameterDateBetween(prmName string, value *string, dateLayout string, refAfter time.Time, refBetween time.Time, mandatory bool) Validator
 	ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator
 	ValidateParameterBase64(prmName string, value *string, mandatory bool) Validator
+	ValidateParameterImageMimeType(prmName string, value []byte, allowedTypes []string, mandatory bool) Validator
+	ValidateParameterOnlyStrings(prmName string, value map[string]any, mandatory bool) Validator
 	Status() error
 }
 
@@ -261,6 +263,57 @@ func (v *successValidator) ValidateParameterBase64(prmName string, value *string
 	return v
 }
 
+func (v *successValidator) ValidateParameterImageMimeType(prmName string, imageData []byte, allowedTypes []string, mandatory bool) Validator {
+	if imageData == nil {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+	} else {
+		if len(imageData) == 0 {
+			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+		mimeType, err := GetImageMimeType(imageData)
+		if err != nil {
+			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+		if !slices.Contains(allowedTypes, mimeType) {
+			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+	}
+	return v
+}
+
+// validates every value in a nested structure to be a string
+func (v *successValidator) ValidateParameterOnlyStrings(prmName string, value map[string]any, mandatory bool) Validator {
+	if value == nil {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+	} else {
+		if err := validateAllValuesString(value); err != nil {
+			return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+		}
+	}
+	return v
+}
+
+// validateAllValuesString recursively validates that a value is either a string or an object containing only strings
+func validateAllValuesString(value any) error {
+	switch v := value.(type) {
+	case string:
+		return nil
+	case map[string]any:
+		for _, nestedValue := range v {
+			if err := validateAllValuesString(nestedValue); err != nil {
+				return err
+			}
+		}
+		return nil
+	default:
+		return cerrors.Error{Message: "value is not a string or a map[string]any"}
+	}
+}
+
 func (v *successValidator) parseDate(dateLayouts []string, value string) (time.Time, error) {
 	var resError error
 	for _, layout := range dateLayouts {
@@ -352,6 +405,14 @@ func (v *failedValidator) ValidateParameterLargeDuration(_ string, _ *string, _ 
 }
 
 func (v *failedValidator) ValidateParameterBase64(_ string, _ *string, _ bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterImageMimeType(_ string, _ []byte, _ []string, _ bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterOnlyStrings(_ string, _ map[string]any, _ bool) Validator {
 	return v
 }
 
