@@ -389,3 +389,60 @@ func TestValidateParameterBase64(t *testing.T) {
 		assert.NotNil(t, failingValidator().ValidateParameterBase64("param", nil, false).Status())
 	})
 }
+
+func TestValidateParameterImageMimeType(t *testing.T) {
+	var mockPNG = []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
+	var mockJPEG = []byte{0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01}
+	var mockTooShort = []byte{0x89}
+	var allowedTypes = []string{"image/png"}
+
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterImageMimeType("param", nil, allowedTypes, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterImageMimeType("param", nil, allowedTypes, true).Status())
+	})
+	t.Run("Valid value", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterImageMimeType("param", mockPNG, allowedTypes, true).Status())
+	})
+	t.Run("Invalid value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterImageMimeType("param", mockJPEG, allowedTypes, true).Status())
+		assert.NotNil(t, NewParameterValidator().ValidateParameterImageMimeType("param", mockTooShort, allowedTypes, true).Status())
+	})
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterImageMimeType("param", nil, allowedTypes, false).Status())
+	})
+}
+
+func TestValidateParameterOnlyStrings(t *testing.T) {
+	var validMap = map[string]any{
+		"key1": "value1",
+		"key2": map[string]any{
+			"subkey1": "subvalue1",
+			"subkey2": "subvalue2",
+		},
+	}
+	var invalidMap = map[string]any{
+		"key1": "value1",
+		"key2": map[string]any{
+			"subkey1": "subvalue1",
+			"subkey2": 789,
+		},
+	}
+
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterOnlyStrings("param", nil, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterOnlyStrings("param", nil, true).Status())
+	})
+	t.Run("Valid value", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterOnlyStrings("param", validMap, true).Status())
+	})
+	t.Run("Invalid value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterOnlyStrings("param", invalidMap, true).Status())
+	})
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterOnlyStrings("param", nil, false).Status())
+	})
+}
