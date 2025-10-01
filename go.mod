@@ -21,7 +21,7 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	go.uber.org/mock v0.6.0
 	golang.org/x/net v0.44.0
-	golang.org/x/oauth2 v0.30.0
+	golang.org/x/oauth2 v0.31.0
 	gopkg.in/h2non/gentleman.v2 v2.0.5
 )
 
