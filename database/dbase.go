@@ -97,6 +97,7 @@ type DbConfig struct {
 	MaxOpenConns      int    `mapstructure:"max-open-conns"`
 	MaxIdleConns      int    `mapstructure:"max-idle-conns"`
 	ConnMaxLifetime   int    `mapstructure:"conn-max-lifetime"`
+	ConnMaxIdleTime   int    `mapstructure:"conn-max-idle-time"`
 	MigrationEnabled  bool   `mapstructure:"migration"`
 	MigrationVersion  string `mapstructure:"migration-version"`
 	ConnectionCheck   bool   `mapstructure:"connection-check"`
@@ -119,6 +120,7 @@ func ConfigureDbDefaultForKey(v cs.Configuration, prefix, envUser, envPasswd str
 	v.SetDefault(prefix+".max-open-conns", 10)
 	v.SetDefault(prefix+".max-idle-conns", 2)
 	v.SetDefault(prefix+".conn-max-lifetime", 3600)
+	v.SetDefault(prefix+".conn-max-idle-time", 3000)
 	v.SetDefault(prefix+".migration", false)
 	v.SetDefault(prefix+".migration-version", "")
 	v.SetDefault(prefix+".connection-check", true)
@@ -144,6 +146,7 @@ func ConfigureDbDefault(v cs.Configuration, prefix, envUser, envPasswd string) {
 	v.SetDefault(prefix+"-max-open-conns", 10)
 	v.SetDefault(prefix+"-max-idle-conns", 2)
 	v.SetDefault(prefix+"-conn-max-lifetime", 3600)
+	v.SetDefault(prefix+"-conn-max-idle-time", 3000)
 	v.SetDefault(prefix+"-migration", false)
 	v.SetDefault(prefix+"-migration-version", "")
 	v.SetDefault(prefix+"-connection-check", true)
@@ -174,6 +177,7 @@ func GetDbConfigExt(v cs.Configuration, prefix string, noop bool) *DbConfig {
 		cfg.MaxOpenConns = v.GetInt(prefix + "-max-open-conns")
 		cfg.MaxIdleConns = v.GetInt(prefix + "-max-idle-conns")
 		cfg.ConnMaxLifetime = v.GetInt(prefix + "-conn-max-lifetime")
+		cfg.ConnMaxIdleTime = v.GetInt(prefix + "-conn-max-idle-time")
 		cfg.MigrationEnabled = v.GetBool(prefix + "-migration")
 		cfg.MigrationVersion = v.GetString(prefix + "-migration-version")
 		cfg.ConnectionCheck = v.GetBool(prefix + "-connection-check")
@@ -226,6 +230,7 @@ func (cfg *DbConfig) OpenDatabase() (sqltypes.CloudtrustDB, error) {
 		sqlConn.SetMaxOpenConns(cfg.MaxOpenConns)
 		sqlConn.SetMaxIdleConns(cfg.MaxIdleConns)
 		sqlConn.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
+		sqlConn.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdleTime) * time.Second)
 	}
 
 	return dbConn, err
