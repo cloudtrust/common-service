@@ -191,6 +191,7 @@ func MakeHTTPOIDCTokenValidationMW(keycloakClient KeycloakClient, audienceRequir
 			ctx = context.WithValue(ctx, cs.CtContextUserID, jot.GetSubject())
 			ctx = context.WithValue(ctx, cs.CtContextUsername, jot.GetUsername())
 			ctx = context.WithValue(ctx, cs.CtContextGroups, ExtractGroups(jot.GetGroups()))
+			ctx = context.WithValue(ctx, cs.CtContextRoles, jot.GetRoles())
 			ctx = context.WithValue(ctx, cs.CtContextIssuerDomain, issuerDomain)
 
 			next.ServeHTTP(w, req.WithContext(ctx))
@@ -272,6 +273,7 @@ type TokenAudienceStringArray struct {
 	ID             string   `json:"jti,omitempty"`
 	Username       string   `json:"preferred_username,omitempty"`
 	Groups         []string `json:"groups,omitempty"`
+	Roles          []string `json:"roles,omitempty"`
 }
 
 // TokenAudienceString is JWT token with an Audience field represented as a string
@@ -285,6 +287,7 @@ type TokenAudienceString struct {
 	ID             string   `json:"jti,omitempty"`
 	Username       string   `json:"preferred_username,omitempty"`
 	Groups         []string `json:"groups,omitempty"`
+	Roles          []string `json:"roles,omitempty"`
 }
 
 // TokenAudience interface
@@ -294,6 +297,7 @@ type TokenAudience interface {
 	GetIssuer() string
 	GetGroups() []string
 	GetAudience() any
+	GetRoles() []string
 
 	AssertMatchingAudience(requiredValue string) bool
 }
@@ -334,6 +338,9 @@ func (ta *TokenAudienceStringArray) GetGroups() []string { return ta.Groups }
 // GetAudience provides the audience from the token
 func (ta *TokenAudienceStringArray) GetAudience() any { return ta.Audience }
 
+// GetRoles provides the roles from the token
+func (ta *TokenAudienceStringArray) GetRoles() []string { return ta.Roles }
+
 // AssertMatchingAudience checks if the required audience is in the token list of audiences
 func (ta *TokenAudienceStringArray) AssertMatchingAudience(requiredValue string) bool {
 	return AssertMatchingAudience(ta.Audience, requiredValue)
@@ -353,6 +360,9 @@ func (ta *TokenAudienceString) GetGroups() []string { return ta.Groups }
 
 // GetAudience provides the audience from the token
 func (ta *TokenAudienceString) GetAudience() any { return ta.Audience }
+
+// GetRoles provides the roles from the token
+func (ta *TokenAudienceString) GetRoles() []string { return ta.Roles }
 
 // AssertMatchingAudience checks if the required audience is in the token list of audiences
 func (ta *TokenAudienceString) AssertMatchingAudience(requiredValue string) bool {
