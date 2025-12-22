@@ -291,6 +291,8 @@ var (
 	EXTIDPUpdateIDPConfiguration = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_UpdateIDPConfiguration", ScopeRealm)
 	EXTIDPCreateIDP              = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_CreateIDP", ScopeRealm)
 	EXTIDPDeleteIDP              = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_DeleteIDP", ScopeRealm)
+	EXTIDPGetIDPAllowedUsers     = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_GetIDPAllowedUsers", ScopeRealm)
+	EXTIDPUpdateIDPAllowedUsers  = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_UpdateIDPAllowedUsers", ScopeRealm)
 	EXTIDPGetUserMultiLinks      = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_GetUserMultiLinks", ScopeRealm)
 	EXTIDPDeleteUser             = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_DeleteUser", ScopeRealm)
 )
