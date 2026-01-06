@@ -53,14 +53,21 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnTargetUse
 		return suggestForbiddenError(err)
 	}
 
+	allowedRoles := getAllowedRolesForAction(action, adminConfig)
+	if len(allowedRoles) == 0 {
+		return nil
+	}
+
 	userRoles, err := iam.keycloakClient.GetRoleNamesOfUser(ctx, accessToken, targetRealm, userID)
 	if err != nil {
 		iam.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "realm", targetRealm, "userID", userID)
 		return suggestForbiddenError(err)
 	}
 
-	if checkRoleAuthorization(action, adminConfig, userRoles) {
-		return nil
+	for _, userRole := range userRoles {
+		if slices.Contains(allowedRoles, userRole) {
+			return nil
+		}
 	}
 
 	infos, _ := json.Marshal(map[string]string{
@@ -88,8 +95,15 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnSelfUser(
 		return suggestForbiddenError(err)
 	}
 
-	if checkRoleAuthorization(action, adminConfig, currentRoles) {
+	allowedRoles := getAllowedRolesForAction(action, adminConfig)
+	if len(allowedRoles) == 0 {
 		return nil
+	}
+
+	for _, userRole := range currentRoles {
+		if slices.Contains(allowedRoles, userRole) {
+			return nil
+		}
 	}
 
 	infos, _ := json.Marshal(map[string]string{
@@ -102,7 +116,7 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnSelfUser(
 	return ForbiddenError{}
 }
 
-func checkRoleAuthorization(action string, adminConfig configuration.RealmAdminConfiguration, userRoles []string) bool {
+func getAllowedRolesForAction(action string, adminConfig configuration.RealmAdminConfiguration) []string {
 	allowedRoles := []string{}
 	switch action {
 	case IDNVideoIdentInit.String():
@@ -115,16 +129,5 @@ func checkRoleAuthorization(action string, adminConfig configuration.RealmAdminC
 		allowedRoles = adminConfig.PhysicalIdentificationAllowedRoles
 	}
 
-	if len(allowedRoles) == 0 {
-		// For retrocompatibility, if no restrictions are defined, all roles are allowed
-		return true
-	}
-
-	for _, userRole := range userRoles {
-		if slices.Contains(allowedRoles, userRole) {
-			return true
-		}
-	}
-
-	return false
+	return allowedRoles
 }

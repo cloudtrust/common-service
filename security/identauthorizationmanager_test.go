@@ -16,8 +16,8 @@ import (
 func TestCheckRoleAuthorizationOnTargetUser(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	mockKeycloakClient := mock.NewKeycloakClient(mockCtrl)
-	mockAuthorizationDBReader := mock.NewAuthorizationDBReader(mockCtrl)
+	mockKeycloakClient := mock.NewIdentificationKeycloakClient(mockCtrl)
+	mockAuthorizationDBReader := mock.NewIdentificationAuthorizationDBReader(mockCtrl)
 
 	accessToken := "TOKEN=="
 	master := "master"
@@ -31,7 +31,6 @@ func TestCheckRoleAuthorizationOnTargetUser(t *testing.T) {
 	ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
 
 	t.Run("Error when getting admin configuration", func(t *testing.T) {
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
@@ -42,7 +41,6 @@ func TestCheckRoleAuthorizationOnTargetUser(t *testing.T) {
 	})
 
 	t.Run("Error when getting user roles from Keycloak", func(t *testing.T) {
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
@@ -58,7 +56,6 @@ func TestCheckRoleAuthorizationOnTargetUser(t *testing.T) {
 	t.Run("Authorized for KYC action with required role", func(t *testing.T) {
 		userRoles := []string{"kyc_officer"}
 
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
@@ -74,7 +71,6 @@ func TestCheckRoleAuthorizationOnTargetUser(t *testing.T) {
 	t.Run("Unauthorized for KYC action without required role", func(t *testing.T) {
 		userRoles := []string{"standard_user"}
 
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
@@ -88,16 +84,12 @@ func TestCheckRoleAuthorizationOnTargetUser(t *testing.T) {
 	})
 
 	t.Run("No restrictions configured - all roles allowed", func(t *testing.T) {
-		userRoles := []string{"any_role"}
-
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, targetRealm).Return(configuration.RealmAdminConfiguration{
 			// Empty PhysicalIdentificationAllowedRoles means all roles are allowed
 		}, nil)
-		mockKeycloakClient.EXPECT().GetRoleNamesOfUser(ctx, accessToken, targetRealm, targetUserID).Return(userRoles, nil).Times(1)
 
 		err = authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
 		assert.Nil(t, err)
@@ -107,8 +99,8 @@ func TestCheckRoleAuthorizationOnTargetUser(t *testing.T) {
 func TestCheckRoleAuthorizationOnSelfUser(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	mockKeycloakClient := mock.NewKeycloakClient(mockCtrl)
-	mockAuthorizationDBReader := mock.NewAuthorizationDBReader(mockCtrl)
+	mockKeycloakClient := mock.NewIdentificationKeycloakClient(mockCtrl)
+	mockAuthorizationDBReader := mock.NewIdentificationAuthorizationDBReader(mockCtrl)
 
 	accessToken := "TOKEN=="
 	master := "master"
@@ -120,7 +112,6 @@ func TestCheckRoleAuthorizationOnSelfUser(t *testing.T) {
 	ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
 
 	t.Run("Error when getting admin configuration - empty user roles in context", func(t *testing.T) {
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
@@ -133,7 +124,6 @@ func TestCheckRoleAuthorizationOnSelfUser(t *testing.T) {
 	t.Run("Authorized for KYC action with required role", func(t *testing.T) {
 		ctx := context.WithValue(ctx, cs.CtContextRoles, []string{"kyc_officer"})
 
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
@@ -148,7 +138,6 @@ func TestCheckRoleAuthorizationOnSelfUser(t *testing.T) {
 	t.Run("Unauthorized for KYC action without required role", func(t *testing.T) {
 		ctx := context.WithValue(ctx, cs.CtContextRoles, []string{"standard_user"})
 
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
@@ -163,7 +152,6 @@ func TestCheckRoleAuthorizationOnSelfUser(t *testing.T) {
 	t.Run("No restrictions configured - all roles allowed", func(t *testing.T) {
 		ctx := context.WithValue(ctx, cs.CtContextRoles, []string{"any_role"})
 
-		mockAuthorizationDBReader.EXPECT().GetAuthorizations(gomock.Any()).Return([]configuration.Authorization{}, nil)
 		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 		assert.Nil(t, err)
 
@@ -176,23 +164,23 @@ func TestCheckRoleAuthorizationOnSelfUser(t *testing.T) {
 	})
 }
 
-func TestCheckRoleAuthorization(t *testing.T) {
+func TestGetAllowedRolesForAction(t *testing.T) {
 	adminConfig := configuration.RealmAdminConfiguration{
-		VideoIdentificationAllowedRoles:          []string{"end_user", "video_user"},
-		AuxiliaryVideoIdentificationAllowedRoles: []string{"end_user"},
-		AutoIdentificationAllowedRoles:           []string{"end_user"},
+		VideoIdentificationAllowedRoles:          []string{"end_user_video", "video_user"},
+		AuxiliaryVideoIdentificationAllowedRoles: []string{"end_user_aux"},
+		AutoIdentificationAllowedRoles:           []string{"end_user_auto"},
 		PhysicalIdentificationAllowedRoles:       []string{},
 	}
 
-	videoCheck := checkRoleAuthorization(IDNAutoIdentInit.String(), adminConfig, []string{"end_user"})
-	assert.True(t, videoCheck)
+	videoCheck := getAllowedRolesForAction(IDNVideoIdentInit.String(), adminConfig)
+	assert.Equal(t, videoCheck, []string{"end_user_video", "video_user"})
 
-	auxiliaryVideoCheck := checkRoleAuthorization(IDNAuxiliaryVideoIdentInit.String(), adminConfig, []string{"l1_support_agent"})
-	assert.False(t, auxiliaryVideoCheck)
+	auxiliaryVideoCheck := getAllowedRolesForAction(IDNAuxiliaryVideoIdentInit.String(), adminConfig)
+	assert.Equal(t, auxiliaryVideoCheck, []string{"end_user_aux"})
 
-	autoCheck := checkRoleAuthorization(IDNAutoIdentInit.String(), adminConfig, []string{"end_user", "some_other_role"})
-	assert.True(t, autoCheck)
+	autoCheck := getAllowedRolesForAction(IDNAutoIdentInit.String(), adminConfig)
+	assert.Equal(t, autoCheck, []string{"end_user_auto"})
 
-	check := checkRoleAuthorization(KYCGetUser.String(), adminConfig, []string{"any_role"})
-	assert.True(t, check)
+	check := getAllowedRolesForAction(KYCGetUser.String(), adminConfig)
+	assert.Equal(t, check, []string{})
 }
