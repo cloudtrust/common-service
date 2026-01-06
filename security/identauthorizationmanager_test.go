@@ -31,67 +31,62 @@ func TestCheckRoleAuthorizationOnTargetUser(t *testing.T) {
 	ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
 
 	t.Run("Error when getting admin configuration", func(t *testing.T) {
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, targetRealm).Return(configuration.RealmAdminConfiguration{}, errors.New("Error"))
 
-		err = authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
+		err := authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
 		assert.Equal(t, ForbiddenError{}, err)
 	})
 
 	t.Run("Error when getting user roles from Keycloak", func(t *testing.T) {
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, targetRealm).Return(configuration.RealmAdminConfiguration{
 			PhysicalIdentificationAllowedRoles: allowedRoles,
 		}, nil)
 		mockKeycloakClient.EXPECT().GetRoleNamesOfUser(ctx, accessToken, targetRealm, targetUserID).Return([]string{}, errors.New("Error"))
 
-		err = authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
+		err := authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
 		assert.Equal(t, ForbiddenError{}, err)
 	})
 
 	t.Run("Authorized for KYC action with required role", func(t *testing.T) {
 		userRoles := []string{"kyc_officer"}
 
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, targetRealm).Return(configuration.RealmAdminConfiguration{
 			PhysicalIdentificationAllowedRoles: allowedRoles,
 		}, nil)
 		mockKeycloakClient.EXPECT().GetRoleNamesOfUser(ctx, accessToken, targetRealm, targetUserID).Return(userRoles, nil)
 
-		err = authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
+		err := authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
 		assert.Nil(t, err)
 	})
 
 	t.Run("Unauthorized for KYC action without required role", func(t *testing.T) {
 		userRoles := []string{"standard_user"}
 
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, targetRealm).Return(configuration.RealmAdminConfiguration{
 			PhysicalIdentificationAllowedRoles: allowedRoles,
 		}, nil)
 		mockKeycloakClient.EXPECT().GetRoleNamesOfUser(ctx, accessToken, targetRealm, targetUserID).Return(userRoles, nil)
 
-		err = authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
+		err := authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
 		assert.Equal(t, ForbiddenError{}, err)
 	})
 
 	t.Run("No restrictions configured - all roles allowed", func(t *testing.T) {
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, targetRealm).Return(configuration.RealmAdminConfiguration{
 			// Empty PhysicalIdentificationAllowedRoles means all roles are allowed
 		}, nil)
 
-		err = authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
+		err := authorizationManager.CheckRoleAuthorizationOnTargetUser(ctx, kycAction, targetRealm, targetUserID)
 		assert.Nil(t, err)
 	})
 }
@@ -112,54 +107,50 @@ func TestCheckRoleAuthorizationOnSelfUser(t *testing.T) {
 	ctx = context.WithValue(ctx, cs.CtContextGroups, groups)
 
 	t.Run("Error when getting admin configuration - empty user roles in context", func(t *testing.T) {
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, master).Return(configuration.RealmAdminConfiguration{}, errors.New("Error"))
 
-		err = authorizationManager.CheckRoleAuthorizationOnSelfUser(ctx, kycAction)
+		err := authorizationManager.CheckRoleAuthorizationOnSelfUser(ctx, kycAction)
 		assert.Equal(t, ForbiddenError{}, err)
 	})
 
 	t.Run("Authorized for KYC action with required role", func(t *testing.T) {
 		ctx := context.WithValue(ctx, cs.CtContextRoles, []string{"kyc_officer"})
 
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, master).Return(configuration.RealmAdminConfiguration{
 			PhysicalIdentificationAllowedRoles: allowedRoles,
 		}, nil)
 
-		err = authorizationManager.CheckRoleAuthorizationOnSelfUser(ctx, kycAction)
+		err := authorizationManager.CheckRoleAuthorizationOnSelfUser(ctx, kycAction)
 		assert.Nil(t, err)
 	})
 
 	t.Run("Unauthorized for KYC action without required role", func(t *testing.T) {
 		ctx := context.WithValue(ctx, cs.CtContextRoles, []string{"standard_user"})
 
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, master).Return(configuration.RealmAdminConfiguration{
 			PhysicalIdentificationAllowedRoles: allowedRoles,
 		}, nil)
 
-		err = authorizationManager.CheckRoleAuthorizationOnSelfUser(ctx, kycAction)
+		err := authorizationManager.CheckRoleAuthorizationOnSelfUser(ctx, kycAction)
 		assert.Equal(t, ForbiddenError{}, err)
 	})
 
 	t.Run("No restrictions configured - all roles allowed", func(t *testing.T) {
 		ctx := context.WithValue(ctx, cs.CtContextRoles, []string{"any_role"})
 
-		authorizationManager, err := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
-		assert.Nil(t, err)
+		authorizationManager := NewIdentificationAuthorizationManager(mockAuthorizationDBReader, mockKeycloakClient, log.NewNopLogger())
 
 		mockAuthorizationDBReader.EXPECT().GetAdminConfiguration(ctx, master).Return(configuration.RealmAdminConfiguration{
 			// Empty PhysicalIdentificationAllowedRoles means all roles are allowed
 		}, nil)
 
-		err = authorizationManager.CheckRoleAuthorizationOnSelfUser(ctx, kycAction)
+		err := authorizationManager.CheckRoleAuthorizationOnSelfUser(ctx, kycAction)
 		assert.Nil(t, err)
 	})
 }

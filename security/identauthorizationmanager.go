@@ -33,14 +33,14 @@ type identificationAuthorizationManager struct {
 	logger                log.Logger
 }
 
-func NewIdentificationAuthorizationManager(authorizationDBReader IdentificationAuthorizationDBReader, keycloakClient IdentificationKeycloakClient, logger log.Logger) (IdentificationAuthorizationManager, error) {
-	var manager = &identificationAuthorizationManager{
+func NewIdentificationAuthorizationManager(authorizationDBReader IdentificationAuthorizationDBReader, keycloakClient IdentificationKeycloakClient,
+	logger log.Logger) IdentificationAuthorizationManager {
+
+	return &identificationAuthorizationManager{
 		authorizationDBReader: authorizationDBReader,
 		keycloakClient:        keycloakClient,
 		logger:                logger,
 	}
-
-	return manager, nil
 }
 
 // CheckRoleAuthorizationOnTargetUser checks if the target user has the required role to init identification
@@ -49,7 +49,7 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnTargetUse
 
 	adminConfig, err := iam.authorizationDBReader.GetAdminConfiguration(ctx, targetRealm)
 	if err != nil {
-		iam.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "realm", targetRealm)
+		iam.logger.Info(ctx, "msg", "ForbiddenError: Can't get admin configuration", "err", err.Error(), "realm", targetRealm)
 		return suggestForbiddenError(err)
 	}
 
@@ -60,7 +60,7 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnTargetUse
 
 	userRoles, err := iam.keycloakClient.GetRoleNamesOfUser(ctx, accessToken, targetRealm, userID)
 	if err != nil {
-		iam.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "realm", targetRealm, "userID", userID)
+		iam.logger.Info(ctx, "msg", "ForbiddenError: Can't get roles of user", "err", err.Error(), "realm", targetRealm, "userID", userID)
 		return suggestForbiddenError(err)
 	}
 
@@ -91,7 +91,7 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnSelfUser(
 
 	adminConfig, err := iam.authorizationDBReader.GetAdminConfiguration(ctx, currentRealm)
 	if err != nil {
-		iam.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "realm", currentRealm)
+		iam.logger.Info(ctx, "msg", "ForbiddenError: Can't get admin configuration", "err", err.Error(), "realm", currentRealm)
 		return suggestForbiddenError(err)
 	}
 
