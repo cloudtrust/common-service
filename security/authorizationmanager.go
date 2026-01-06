@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"slices"
 	"strings"
 
 	cs "github.com/cloudtrust/common-service/v2"
@@ -25,13 +24,11 @@ type authorizationManager struct {
 type KeycloakClient interface {
 	GetGroupNamesOfUser(ctx context.Context, accessToken string, realmName, userID string) ([]string, error)
 	GetGroupName(ctx context.Context, accessToken string, realmName, groupID string) (string, error)
-	GetRoleNamesOfUser(ctx context.Context, accessToken string, realmName, userID string) ([]string, error)
 }
 
 // AuthorizationDBReader interface
 type AuthorizationDBReader interface {
 	GetAuthorizations(context.Context) ([]configuration.Authorization, error)
-	GetAdminConfiguration(ctx context.Context, realmID string) (configuration.RealmAdminConfiguration, error)
 }
 
 // AuthorizationManager interface
@@ -43,8 +40,6 @@ type AuthorizationManager interface {
 	CheckAuthorizationOnTargetGroupID(ctx context.Context, action, targetRealm, targetGroupID string) error
 	CheckAuthorizationOnTargetUser(ctx context.Context, action, targetRealm, userID string) error
 	CheckAuthorizationOnSelfUser(ctx context.Context, action string) error
-	CheckIdentificationRoleAuthorizationOnTargetUser(ctx context.Context, action string, targetRealm string, userID string) error
-	CheckIdentificationRoleAuthorizationOnSelfUser(ctx context.Context, action string) error
 	GetRightsOfCurrentUser(ctx context.Context) map[string]map[string]map[string]map[string]struct{}
 	ReloadAuthorizations(ctx context.Context) error
 }
@@ -256,92 +251,6 @@ func (am *authorizationManager) CheckAuthorizationOnTargetRealm(ctx context.Cont
 		am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to perform the action on this realm", "infos", string(infos))
 	}
 	return err
-}
-
-// CheckIdentificationRoleAuthorizationOnTargetUser checks if the target user has the required role to init identification
-func (am *authorizationManager) CheckIdentificationRoleAuthorizationOnTargetUser(ctx context.Context, action string, targetRealm string, userID string) error {
-	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
-
-	adminConfig, err := am.authorizationDBReader.GetAdminConfiguration(ctx, targetRealm)
-	if err != nil {
-		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "realm", targetRealm)
-		return suggestForbiddenError(err)
-	}
-
-	userRoles, err := am.keycloakClient.GetRoleNamesOfUser(ctx, accessToken, targetRealm, userID)
-	if err != nil {
-		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "realm", targetRealm, "userID", userID)
-		return suggestForbiddenError(err)
-	}
-
-	if checkIdentificationRoleAuthorization(action, adminConfig, userRoles) {
-		return nil
-	}
-
-	infos, _ := json.Marshal(map[string]string{
-		"ThrownBy":    "CheckIdentificationRoleAuthorizationOnTargetUser",
-		"Action":      action,
-		"targetRealm": targetRealm,
-		"userRoles":   strings.Join(userRoles, "|"),
-		"userID":      userID,
-	})
-	am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to init identification", "infos", string(infos))
-	return ForbiddenError{}
-}
-
-// CheckIdentificationRoleAuthorizationOnSelfUser checks if the current user has the required role to init identification
-func (am *authorizationManager) CheckIdentificationRoleAuthorizationOnSelfUser(ctx context.Context, action string) error {
-	currentRealm := ctx.Value(cs.CtContextRealm).(string)
-	currentRoles, ok := ctx.Value(cs.CtContextRoles).([]string)
-	if !ok {
-		currentRoles = []string{}
-	}
-
-	adminConfig, err := am.authorizationDBReader.GetAdminConfiguration(ctx, currentRealm)
-	if err != nil {
-		am.logger.Info(ctx, "msg", "ForbiddenError: "+err.Error(), "realm", currentRealm)
-		return suggestForbiddenError(err)
-	}
-
-	if checkIdentificationRoleAuthorization(action, adminConfig, currentRoles) {
-		return nil
-	}
-
-	infos, _ := json.Marshal(map[string]string{
-		"ThrownBy":    "CheckIdentificationRoleAuthorizationOnSelfUser",
-		"Action":      action,
-		"targetRealm": currentRealm,
-		"userRoles":   strings.Join(currentRoles, "|"),
-	})
-	am.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to init identification", "infos", string(infos))
-	return ForbiddenError{}
-}
-
-func checkIdentificationRoleAuthorization(action string, adminConfig configuration.RealmAdminConfiguration, userRoles []string) bool {
-	allowedRoles := []string{}
-	switch action {
-	case IDNVideoIdentInit.String():
-		allowedRoles = adminConfig.VideoIdentificationAllowedRoles
-	case IDNAuxiliaryVideoIdentInit.String():
-		allowedRoles = adminConfig.AuxiliaryVideoIdentificationAllowedRoles
-	case IDNAutoIdentInit.String():
-		allowedRoles = adminConfig.AutoIdentificationAllowedRoles
-	case KYCGetUser.String(), KYCValidateUser.String():
-		allowedRoles = adminConfig.PhysicalIdentificationAllowedRoles
-	}
-
-	if len(allowedRoles) == 0 {
-		// For retrocompatibility, if no restrictions are defined, all roles are allowed
-		return true
-	}
-
-	for _, userRole := range userRoles {
-		if slices.Contains(allowedRoles, userRole) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // GetRightsOfCurrentUser returns the matrix rights of the current user
