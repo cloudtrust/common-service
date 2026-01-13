@@ -11,32 +11,32 @@ import (
 	"github.com/cloudtrust/common-service/v2/log"
 )
 
-// IdentificationKeycloakClient interface
-type IdentificationKeycloakClient interface {
+// RoleBasedKeycloakClient interface
+type RoleBasedKeycloakClient interface {
 	GetRoleNamesOfUser(ctx context.Context, accessToken string, realmName, userID string) ([]string, error)
 }
 
-// IdentificationAuthorizationDBReader interface
-type IdentificationAuthorizationDBReader interface {
+// RoleBasedAuthorizationDBReader interface
+type RoleBasedAuthorizationDBReader interface {
 	GetAdminConfiguration(ctx context.Context, realmID string) (configuration.RealmAdminConfiguration, error)
 }
 
-// IdentificationAuthorizationManager interface
-type IdentificationAuthorizationManager interface {
+// RoleBasedAuthorizationManager interface
+type RoleBasedAuthorizationManager interface {
 	CheckRoleAuthorizationOnTargetUser(ctx context.Context, action string, targetRealm string, userID string) error
 	CheckRoleAuthorizationOnSelfUser(ctx context.Context, action string) error
 }
 
-type identificationAuthorizationManager struct {
-	authorizationDBReader IdentificationAuthorizationDBReader
-	keycloakClient        IdentificationKeycloakClient
+type roleBasedAuthorizationManager struct {
+	authorizationDBReader RoleBasedAuthorizationDBReader
+	keycloakClient        RoleBasedKeycloakClient
 	logger                log.Logger
 }
 
-func NewIdentificationAuthorizationManager(authorizationDBReader IdentificationAuthorizationDBReader, keycloakClient IdentificationKeycloakClient,
-	logger log.Logger) IdentificationAuthorizationManager {
+func NewRoleBasedAuthorizationManager(authorizationDBReader RoleBasedAuthorizationDBReader, keycloakClient RoleBasedKeycloakClient,
+	logger log.Logger) RoleBasedAuthorizationManager {
 
-	return &identificationAuthorizationManager{
+	return &roleBasedAuthorizationManager{
 		authorizationDBReader: authorizationDBReader,
 		keycloakClient:        keycloakClient,
 		logger:                logger,
@@ -44,12 +44,12 @@ func NewIdentificationAuthorizationManager(authorizationDBReader IdentificationA
 }
 
 // CheckRoleAuthorizationOnTargetUser checks if the target user has the required role to init identification
-func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnTargetUser(ctx context.Context, action string, targetRealm string, userID string) error {
+func (rbam *roleBasedAuthorizationManager) CheckRoleAuthorizationOnTargetUser(ctx context.Context, action string, targetRealm string, userID string) error {
 	var accessToken = ctx.Value(cs.CtContextAccessToken).(string)
 
-	adminConfig, err := iam.authorizationDBReader.GetAdminConfiguration(ctx, targetRealm)
+	adminConfig, err := rbam.authorizationDBReader.GetAdminConfiguration(ctx, targetRealm)
 	if err != nil {
-		iam.logger.Info(ctx, "msg", "ForbiddenError: Can't get admin configuration", "err", err.Error(), "realm", targetRealm)
+		rbam.logger.Info(ctx, "msg", "ForbiddenError: Can't get admin configuration", "err", err.Error(), "realm", targetRealm)
 		return suggestForbiddenError(err)
 	}
 
@@ -58,9 +58,9 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnTargetUse
 		return nil
 	}
 
-	userRoles, err := iam.keycloakClient.GetRoleNamesOfUser(ctx, accessToken, targetRealm, userID)
+	userRoles, err := rbam.keycloakClient.GetRoleNamesOfUser(ctx, accessToken, targetRealm, userID)
 	if err != nil {
-		iam.logger.Info(ctx, "msg", "ForbiddenError: Can't get roles of user", "err", err.Error(), "realm", targetRealm, "userID", userID)
+		rbam.logger.Info(ctx, "msg", "ForbiddenError: Can't get roles of user", "err", err.Error(), "realm", targetRealm, "userID", userID)
 		return suggestForbiddenError(err)
 	}
 
@@ -77,21 +77,21 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnTargetUse
 		"userRoles":   strings.Join(userRoles, "|"),
 		"userID":      userID,
 	})
-	iam.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to init identification", "infos", string(infos))
+	rbam.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to init identification", "infos", string(infos))
 	return ForbiddenError{}
 }
 
 // CheckRoleAuthorizationOnSelfUser checks if the current user has the required role to init identification
-func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnSelfUser(ctx context.Context, action string) error {
+func (rbam *roleBasedAuthorizationManager) CheckRoleAuthorizationOnSelfUser(ctx context.Context, action string) error {
 	currentRealm := ctx.Value(cs.CtContextRealm).(string)
 	currentRoles, ok := ctx.Value(cs.CtContextRoles).([]string)
 	if !ok {
 		currentRoles = []string{}
 	}
 
-	adminConfig, err := iam.authorizationDBReader.GetAdminConfiguration(ctx, currentRealm)
+	adminConfig, err := rbam.authorizationDBReader.GetAdminConfiguration(ctx, currentRealm)
 	if err != nil {
-		iam.logger.Info(ctx, "msg", "ForbiddenError: Can't get admin configuration", "err", err.Error(), "realm", currentRealm)
+		rbam.logger.Info(ctx, "msg", "ForbiddenError: Can't get admin configuration", "err", err.Error(), "realm", currentRealm)
 		return suggestForbiddenError(err)
 	}
 
@@ -112,7 +112,7 @@ func (iam *identificationAuthorizationManager) CheckRoleAuthorizationOnSelfUser(
 		"targetRealm": currentRealm,
 		"userRoles":   strings.Join(currentRoles, "|"),
 	})
-	iam.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to init identification", "infos", string(infos))
+	rbam.logger.Info(ctx, "msg", "ForbiddenError: Not allowed to init identification", "infos", string(infos))
 	return ForbiddenError{}
 }
 
