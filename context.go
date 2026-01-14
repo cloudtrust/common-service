@@ -20,4 +20,6 @@ const (
 	CtContextCorrelationID CtContext = iota
 	// CtContextIssuerDomain is the issuer domain context key
 	CtContextIssuerDomain CtContext = iota
+	// CtContextRoles is the roles context key
+	CtContextRoles CtContext = iota
 )
