@@ -118,6 +118,7 @@ type ContextKeyConfiguration struct {
 	Onboarding        *ContextKeyConfOnboarding    `json:"onboarding"`
 	Accreditation     *ContextKeyConfAccreditation `json:"accreditation"`
 	AutoVoucher       *ContextKeyConfAutovoucher   `json:"autovoucher"`
+	IDNow             *ContextKeyConfIDNow         `json:"idnow"`
 }
 
 // ContextKeyConfOnboarding struct
@@ -138,6 +139,11 @@ type ContextKeyConfAutovoucher struct {
 	Validity               *string `json:"validity"`
 	AccreditationRequested *string `json:"accreditation-requested"`
 	BilledRealm            *string `json:"billed-realm"`
+}
+
+// ContextKeyConfIDNow struct
+type ContextKeyConfIDNow struct {
+	DesktopRedirectURI *string `json:"desktop-redirect-uri"`
 }
 
 // NewRealmConfiguration returns the realm configuration from its JSON representation
