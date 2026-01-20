@@ -311,6 +311,17 @@ func TestEncodeReply(t *testing.T) {
 		assert.Len(t, headers, 1)
 		assert.Equal(t, location, headers["Location"][0])
 	})
+	t.Run("Found with location response", func(t *testing.T) {
+		var location = "http://localhost/path/to/new/resource"
+		headers := make(http.Header)
+		gomock.InOrder(
+			mockRespWriter.EXPECT().Header().Return(headers),
+			mockRespWriter.EXPECT().WriteHeader(http.StatusFound),
+		)
+		assert.Nil(t, EncodeReply(context.Background(), mockRespWriter, StatusFound{Location: location}))
+		assert.Len(t, headers, 1)
+		assert.Equal(t, location, headers["Location"][0])
+	})
 	t.Run("JSON serializable response", func(t *testing.T) {
 		headers := make(http.Header)
 		resp := map[string]string{"key1": "value1", "key2": "value2"}

@@ -21,6 +21,11 @@ type StatusCreated struct {
 	Location string
 }
 
+// StatusFound let handlers return a HTTP Found (302) with the given location in headers
+type StatusFound struct {
+	Location string
+}
+
 // StatusNoContent let handlers return a HTTP NoContent (204)
 type StatusNoContent struct {
 }
@@ -175,6 +180,11 @@ func EncodeReply(_ context.Context, w http.ResponseWriter, rep any) error {
 			w.Header().Set("Location", e.Location)
 		}
 		w.WriteHeader(http.StatusCreated)
+	case StatusFound:
+		if e.Location != "" {
+			w.Header().Set("Location", e.Location)
+		}
+		w.WriteHeader(http.StatusFound)
 	case StatusNoContent:
 		w.WriteHeader(http.StatusNoContent)
 	default:
