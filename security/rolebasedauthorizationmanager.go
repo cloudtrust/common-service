@@ -127,6 +127,8 @@ func getAllowedRolesForAction(action string, adminConfig configuration.RealmAdmi
 		allowedRoles = adminConfig.AutoIdentificationAllowedRoles
 	case KYCGetUser.String(), KYCValidateUser.String():
 		allowedRoles = adminConfig.PhysicalIdentificationAllowedRoles
+	case KYCGetUserAuxiliary.String(), KYCValidateUserAuxiliary.String():
+		allowedRoles = adminConfig.AuxiliaryPhysicalIdentificationAllowedRoles
 	}
 
 	return allowedRoles
