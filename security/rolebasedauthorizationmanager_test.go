@@ -157,10 +157,11 @@ func TestCheckRoleAuthorizationOnSelfUser(t *testing.T) {
 
 func TestGetAllowedRolesForAction(t *testing.T) {
 	adminConfig := configuration.RealmAdminConfiguration{
-		VideoIdentificationAllowedRoles:          []string{"end_user_video", "video_user"},
-		AuxiliaryVideoIdentificationAllowedRoles: []string{"end_user_aux"},
-		AutoIdentificationAllowedRoles:           []string{"end_user_auto"},
-		PhysicalIdentificationAllowedRoles:       []string{},
+		VideoIdentificationAllowedRoles:             []string{"end_user_video", "video_user"},
+		AuxiliaryVideoIdentificationAllowedRoles:    []string{"end_user_aux"},
+		AutoIdentificationAllowedRoles:              []string{"end_user_auto"},
+		PhysicalIdentificationAllowedRoles:          []string{},
+		AuxiliaryPhysicalIdentificationAllowedRoles: []string{"end_user_aux_physical"},
 	}
 
 	videoCheck := getAllowedRolesForAction(IDNVideoIdentInit.String(), adminConfig)
@@ -174,4 +175,7 @@ func TestGetAllowedRolesForAction(t *testing.T) {
 
 	check := getAllowedRolesForAction(KYCGetUser.String(), adminConfig)
 	assert.Equal(t, check, []string{})
+
+	auxiliaryPhysicalCheck := getAllowedRolesForAction(KYCGetUserAuxiliary.String(), adminConfig)
+	assert.Equal(t, auxiliaryPhysicalCheck, []string{"end_user_aux_physical"})
 }
