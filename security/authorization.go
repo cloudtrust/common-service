@@ -32,7 +32,7 @@ const (
 	SchedulerService
 	VoucherService
 	AccreditationService
-	MailingService
+	LifecycleService
 	ExternalIDPService
 )
 
@@ -276,11 +276,11 @@ var (
 	ACCRGetAccreditationConfiguration = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_GetAccreditationConfiguration", ScopeRealm)
 	ACCRSetAccreditationConfiguration = Actions.addAction(AccreditationService, ManagementAPI, "ACCR_SetAccreditationConfiguration", ScopeRealm)
 
-	MAILGetActions       = Actions.addAction(MailingService, ManagementAPI, "MAIL_GetActions", ScopeGlobal)
-	MAILGetJobs          = Actions.addAction(MailingService, ManagementAPI, "MAIL_GetJobs", ScopeRealm)
-	MAILSetJobs          = Actions.addAction(MailingService, ManagementAPI, "MAIL_SetJobs", ScopeRealm)
-	MAILGetConfiguration = Actions.addAction(MailingService, ManagementAPI, "MAIL_GetConfiguration", ScopeRealm)
-	MAILSetConfiguration = Actions.addAction(MailingService, ManagementAPI, "MAIL_SetConfiguration", ScopeRealm)
+	LCGetActions       = Actions.addAction(LifecycleService, ManagementAPI, "LC_GetActions", ScopeGlobal)
+	LCGetJobs          = Actions.addAction(LifecycleService, ManagementAPI, "LC_GetJobs", ScopeRealm)
+	LCSetJobs          = Actions.addAction(LifecycleService, ManagementAPI, "LC_SetJobs", ScopeRealm)
+	LCGetConfiguration = Actions.addAction(LifecycleService, ManagementAPI, "LC_GetConfiguration", ScopeRealm)
+	LCSetConfiguration = Actions.addAction(LifecycleService, ManagementAPI, "LC_SetConfiguration", ScopeRealm)
 
 	EXTIDPGetActions             = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_GetActions", ScopeGlobal)
 	EXTIDPConfigureIDP           = Actions.addAction(ExternalIDPService, ManagementAPI, "EXTIDP_ConfigureIDP", ScopeGlobal)
