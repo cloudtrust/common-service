@@ -64,33 +64,6 @@ func TestEndpointLoggingMW(t *testing.T) {
 	})
 }
 
-func TestEndpointInstrumentingMW(t *testing.T) {
-	var mockCtrl = gomock.NewController(t)
-	defer mockCtrl.Finish()
-	var mockMetrics = mock.NewMetrics(mockCtrl)
-	var mockHisto = mock.NewHistogram(mockCtrl)
-
-	var histoName = "histo_name"
-	var corrID = strconv.FormatUint(rand.Uint64(), 10)
-	var ctx = context.WithValue(context.Background(), cs.CtContextCorrelationID, corrID)
-
-	mockMetrics.EXPECT().NewHistogram(histoName).Return(mockHisto).Times(1)
-	mockHisto.EXPECT().With("corr_id", corrID).Return(mockHisto).Times(1)
-	mockHisto.EXPECT().Observe(gomock.Any())
-
-	var m = MakeEndpointInstrumentingMW(mockMetrics, histoName)(dummyEndpoint)
-
-	t.Run("With correlation ID", func(t *testing.T) {
-		m(ctx, nil)
-	})
-	t.Run("Without correlation ID", func(t *testing.T) {
-		var f = func() {
-			m(context.Background(), nil)
-		}
-		assert.Panics(t, f)
-	})
-}
-
 func TestEndpointAvailableMW(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()

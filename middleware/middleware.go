@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"time"
 
 	cs "github.com/cloudtrust/common-service/v2"
 	"github.com/cloudtrust/common-service/v2/configuration"
 	errorhandler "github.com/cloudtrust/common-service/v2/errors"
 	"github.com/cloudtrust/common-service/v2/log"
-	"github.com/cloudtrust/common-service/v2/metrics"
 )
 
 // MakeEndpointLoggingMW makes a logging middleware.
@@ -50,20 +48,6 @@ func MakeEndpointLoggingInOutMW(logger log.Logger) cs.Middleware {
 			res, err := next(ctx, req)
 			logger.Debug(ctx, "res", res)
 			return res, err
-		}
-	}
-}
-
-// MakeEndpointInstrumentingMW makes a middleware that measure the endpoints response time and
-// send the metrics to influx DB.
-func MakeEndpointInstrumentingMW(m metrics.Metrics, histoName string) cs.Middleware {
-	h := m.NewHistogram(histoName)
-	return func(next cs.Endpoint) cs.Endpoint {
-		return func(ctx context.Context, req any) (any, error) {
-			defer func(begin time.Time) {
-				h.With("corr_id", ctx.Value(cs.CtContextCorrelationID).(string)).Observe(time.Since(begin).Seconds())
-			}(time.Now())
-			return next(ctx, req)
 		}
 	}
 }
