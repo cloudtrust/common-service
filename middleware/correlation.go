@@ -8,8 +8,6 @@ import (
 	cs "github.com/cloudtrust/common-service/v2"
 	errorhandler "github.com/cloudtrust/common-service/v2/errors"
 	gen "github.com/cloudtrust/common-service/v2/idgenerator"
-	"github.com/cloudtrust/common-service/v2/log"
-	"github.com/cloudtrust/common-service/v2/tracing"
 )
 
 const (
@@ -20,7 +18,7 @@ const (
 
 // MakeHTTPCorrelationIDMW retrieve the correlation ID from the HTTP header 'X-Correlation-ID'.
 // It there is no such header, it generates a correlation ID.
-func MakeHTTPCorrelationIDMW(idGenerator gen.IDGenerator, _ tracing.OpentracingClient, _ log.Logger, componentName, componentID string) func(http.Handler) http.Handler {
+func MakeHTTPCorrelationIDMW(idGenerator gen.IDGenerator, componentName, componentID string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var correlationID = req.Header.Get(hdrCorrelationID)
