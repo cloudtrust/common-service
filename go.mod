@@ -16,14 +16,12 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/mock v0.6.0
-	golang.org/x/net v0.50.0
+	golang.org/x/net v0.51.0
 	golang.org/x/oauth2 v0.35.0
 	gopkg.in/h2non/gentleman.v2 v2.0.5
 )
 
 require (
-	github.com/VividCortex/gohistogram v1.0.0 // indirect
-	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
@@ -41,8 +39,8 @@ require (
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/text v0.34.0 // indirect
