@@ -11,7 +11,7 @@ require (
 	github.com/google/flatbuffers v25.12.19+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
-	github.com/nyaruka/phonenumbers v1.6.10
+	github.com/nyaruka/phonenumbers v1.6.11
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.11.1
