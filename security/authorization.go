@@ -172,7 +172,6 @@ var (
 	MGMTSendSmsCode                         = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SendSmsCode", ScopeGroup)
 	MGMTSendOnboardingEmail                 = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SendOnboardingEmail", ScopeGroup)
 	MGMTSendOnboardingEmailInSocialRealm    = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SendOnboardingEmailInSocialRealm", ScopeGlobal)
-	MGMTSendReminderEmail                   = Actions.addAction(BridgeService, ManagementAPI, "MGMT_SendReminderEmail", ScopeGroup)
 	MGMTResetSmsCounter                     = Actions.addAction(BridgeService, ManagementAPI, "MGMT_ResetSmsCounter", ScopeGroup)
 	MGMTCreateRecoveryCode                  = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateRecoveryCode", ScopeGroup)
 	MGMTCreateActivationCode                = Actions.addAction(BridgeService, ManagementAPI, "MGMT_CreateActivationCode", ScopeGroup)
