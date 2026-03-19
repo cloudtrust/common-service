@@ -1,6 +1,6 @@
 module github.com/cloudtrust/common-service/v2
 
-go 1.25.3
+go 1.26.1
 
 require (
 	github.com/IBM/sarama v1.47.0
@@ -11,7 +11,7 @@ require (
 	github.com/google/flatbuffers v25.12.19+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
-	github.com/nyaruka/phonenumbers v1.6.11
+	github.com/nyaruka/phonenumbers v1.6.12
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.11.1
@@ -25,7 +25,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/eapache/go-resiliency v1.7.0 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/go-logfmt/logfmt v0.6.0 // indirect
+	github.com/go-logfmt/logfmt v0.6.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -35,12 +35,12 @@ require (
 	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
-	github.com/pierrec/lz4/v4 v4.1.25 // indirect
+	github.com/pierrec/lz4/v4 v4.1.26 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	golang.org/x/crypto v0.49.0 // indirect
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
+	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
