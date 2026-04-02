@@ -11,7 +11,7 @@ require (
 	github.com/google/flatbuffers v25.12.19+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
-	github.com/nyaruka/phonenumbers v1.6.12
+	github.com/nyaruka/phonenumbers v1.7.1
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.11.1
@@ -40,7 +40,6 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	golang.org/x/crypto v0.49.0 // indirect
-	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
