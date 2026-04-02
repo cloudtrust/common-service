@@ -60,6 +60,7 @@ type RealmAdminConfiguration struct {
 	ConsentRequiredSocial                          *bool           `json:"consent_required,omitempty"`
 	ConsentRequiredCorporate                       *bool           `json:"consent_required_corp,omitempty"`
 	ConsentRequiredCorporateAuxiliary              *bool           `json:"consent_required_corporate_auxiliary,omitempty"`
+	AccreditationRenewalWindowDays                 *int            `json:"accreditation_renewal_window_days"`
 	VideoIdentificationVoucherEnabled              *bool           `json:"video_identification_voucher_enabled"`
 	VideoIdentificationAccountingEnabled           *bool           `json:"video_identification_accounting_enabled"`
 	VideoIdentificationPrepaymentRequired          *bool           `json:"video_identification_prepayment_required"`
