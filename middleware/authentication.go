@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 
 	cs "github.com/cloudtrust/common-service/v2"
@@ -240,13 +241,7 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 
 // AssertMatchingAudience checks if the required audience is in the jwt list of audiences
 func AssertMatchingAudience(jwtAudiences []string, requiredAudience string) bool {
-	for _, jwtAudience := range jwtAudiences {
-		if requiredAudience == jwtAudience {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(jwtAudiences, requiredAudience)
 }
 
 // ExtractGroups extracts the list of groups

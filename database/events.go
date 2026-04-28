@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"time"
 
 	cs "github.com/cloudtrust/common-service/v2"
@@ -65,12 +66,7 @@ type eventsDBModule struct {
 }
 
 func isInArray(array []string, value string) bool {
-	for _, e := range array {
-		if e == value {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(array, value)
 }
 
 func checkNull(value string) any {

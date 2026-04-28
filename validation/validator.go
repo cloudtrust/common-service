@@ -60,7 +60,7 @@ func IsNil(value any) bool {
 		return true
 	}
 	v := reflect.ValueOf(value)
-	return v.Kind() == reflect.Ptr && v.IsNil()
+	return v.Kind() == reflect.Pointer && v.IsNil()
 }
 
 // NewParameterValidator creates a validator ready to check multiple parameters
