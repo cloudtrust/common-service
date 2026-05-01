@@ -1,6 +1,7 @@
 package events
 
 import (
+	"context"
 	"testing"
 
 	cs "github.com/cloudtrust/common-service/v2"
@@ -8,7 +9,6 @@ import (
 	"github.com/cloudtrust/common-service/v2/events/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"golang.org/x/net/context"
 )
 
 func TestNewEventOnUser(t *testing.T) {

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"time"
 
 	cs "github.com/cloudtrust/common-service/v2"
@@ -62,15 +63,6 @@ type EventsDBModule interface {
 
 type eventsDBModule struct {
 	db sqltypes.CloudtrustDB
-}
-
-func isInArray(array []string, value string) bool {
-	for _, e := range array {
-		if e == value {
-			return true
-		}
-	}
-	return false
 }
 
 func checkNull(value string) any {
@@ -136,7 +128,7 @@ func (cm *eventsDBModule) Store(_ context.Context, m map[string]string) error {
 	if additionalInfo == "" {
 		var addNfo = make(map[string]string)
 		for k, v := range m {
-			if !isInArray(ctEventColumns, k) {
+			if !slices.Contains(ctEventColumns, k) {
 				addNfo[k] = v
 			}
 		}

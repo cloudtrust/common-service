@@ -10,10 +10,6 @@ import (
 type dummy struct {
 }
 
-func ptr(value string) *string {
-	return &value
-}
-
 func toStr(value *time.Time) string {
 	return value.Format(layout)
 }
@@ -46,7 +42,7 @@ func TestToInt(t *testing.T) {
 	var vInt64 = int64(2)
 	var vFloat32 = float32(2.0)
 	var vFloat64 = float64(2.0)
-	assert.Equal(t, 2, ToInt(ptr("2"), invalid))
+	assert.Equal(t, 2, ToInt(new("2"), invalid))
 	assert.Equal(t, 2, ToInt("2", invalid))
 	assert.Equal(t, invalid, ToInt("2x", invalid))
 	assert.Equal(t, 2, ToInt(vInt, invalid))
@@ -80,7 +76,7 @@ func TestToFloat(t *testing.T) {
 	var equals = func(a, b float64) bool {
 		return int64(a*100.0) == int64(b*100)
 	}
-	assert.True(t, equals(expected, ToFloat(ptr("3.14"), invalid)))
+	assert.True(t, equals(expected, ToFloat(new("3.14"), invalid)))
 	assert.True(t, equals(expected, ToFloat("3.14", invalid)))
 	assert.True(t, equals(expected, ToFloat(vFloat32, invalid)))
 	assert.True(t, equals(expected, ToFloat(&vFloat32, invalid)))

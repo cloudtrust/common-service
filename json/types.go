@@ -25,7 +25,7 @@ func (os *OptionalString) UnmarshalJSON(data []byte) error {
 func (os OptionalString) MarshalJSON() ([]byte, error) {
 	// omitempty has no effect here
 	if os.Defined && os.Value != nil {
-		return []byte(fmt.Sprintf(`"%s"`, *os.Value)), nil
+		return fmt.Appendf(nil, `"%s"`, *os.Value), nil
 	}
 	return []byte("null"), nil
 }
