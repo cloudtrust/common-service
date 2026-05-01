@@ -98,7 +98,7 @@ func (v *successValidator) ValidateParameterNotNil(prmName string, value any) Va
 }
 
 func (v *successValidator) ValidateParameterInSlice(prmName string, value *string, allowedValues []string, mandatory bool) Validator {
-	if value == nil {
+	if value == nil || (!mandatory && *value == "") {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}
@@ -112,7 +112,7 @@ func (v *successValidator) ValidateParameterInSlice(prmName string, value *strin
 
 // Deprecated: Use ValidateParameterInSlice instead.
 func (v *successValidator) ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator {
-	if value == nil {
+	if value == nil || (!mandatory && *value == "") {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}
@@ -125,7 +125,7 @@ func (v *successValidator) ValidateParameterIn(prmName string, value *string, al
 }
 
 func (v *successValidator) ValidateParameterRegExp(prmName string, value *string, regExp string, mandatory bool) Validator {
-	if value == nil {
+	if value == nil || (!mandatory && *value == "") {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}
@@ -156,7 +156,7 @@ func (v *successValidator) ValidateParameterRegExpSlice(prmName string, values [
 }
 
 func (v *successValidator) ValidateParameterPhoneNumber(prmName string, value *string, mandatory bool) Validator {
-	if value == nil {
+	if value == nil || (!mandatory && *value == "") {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}
@@ -171,12 +171,14 @@ func (v *successValidator) ValidateParameterPhoneNumber(prmName string, value *s
 }
 
 func (v *successValidator) ValidateParameterLength(prmName string, value *string, min, max int, mandatory bool) Validator {
-	var intValue *int
-	if value != nil {
-		var length = len(*value)
-		intValue = &length
+	if value == nil || (!mandatory && *value == "") {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+		return v
 	}
-	return v.ValidateParameterIntBetween(prmName, intValue, min, max, mandatory)
+	var length = len(*value)
+	return v.ValidateParameterIntBetween(prmName, &length, min, max, mandatory)
 }
 
 func (v *successValidator) ValidateParameterIntBetween(prmName string, value *int, min, max int, mandatory bool) Validator {
@@ -221,7 +223,7 @@ func (v *successValidator) ValidateParameterDateBetween(prmName string, value *s
 }
 
 func (v *successValidator) validateParameterDate(prmName string, value *string, dateLayout []string, referenceAfter, referenceBefore *time.Time, mandatory bool) Validator {
-	if value == nil {
+	if value == nil || (!mandatory && *value == "") {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}
@@ -241,7 +243,7 @@ func (v *successValidator) validateParameterDate(prmName string, value *string, 
 }
 
 func (v *successValidator) ValidateParameterLargeDuration(prmName string, value *string, mandatory bool) Validator {
-	if value == nil {
+	if value == nil || (!mandatory && *value == "") {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}
@@ -254,7 +256,7 @@ func (v *successValidator) ValidateParameterLargeDuration(prmName string, value 
 }
 
 func (v *successValidator) ValidateParameterBase64(prmName string, value *string, mandatory bool) Validator {
-	if value == nil {
+	if value == nil || (!mandatory && *value == "") {
 		if mandatory {
 			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
 		}
