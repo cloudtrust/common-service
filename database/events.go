@@ -65,10 +65,6 @@ type eventsDBModule struct {
 	db sqltypes.CloudtrustDB
 }
 
-func isInArray(array []string, value string) bool {
-	return slices.Contains(array, value)
-}
-
 func checkNull(value string) any {
 	if value == "" {
 		return nil
@@ -132,7 +128,7 @@ func (cm *eventsDBModule) Store(_ context.Context, m map[string]string) error {
 	if additionalInfo == "" {
 		var addNfo = make(map[string]string)
 		for k, v := range m {
-			if !isInArray(ctEventColumns, k) {
+			if !slices.Contains(ctEventColumns, k) {
 				addNfo[k] = v
 			}
 		}

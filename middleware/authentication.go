@@ -239,11 +239,6 @@ func ParseAndValidateOIDCToken(ctx context.Context, accessToken string, keycloak
 	return jot, nil
 }
 
-// AssertMatchingAudience checks if the required audience is in the jwt list of audiences
-func AssertMatchingAudience(jwtAudiences []string, requiredAudience string) bool {
-	return slices.Contains(jwtAudiences, requiredAudience)
-}
-
 // ExtractGroups extracts the list of groups
 func ExtractGroups(kcGroups []string) []string {
 	var groups = []string{}
@@ -338,7 +333,7 @@ func (ta *TokenAudienceStringArray) GetRoles() []string { return ta.Roles }
 
 // AssertMatchingAudience checks if the required audience is in the token list of audiences
 func (ta *TokenAudienceStringArray) AssertMatchingAudience(requiredValue string) bool {
-	return AssertMatchingAudience(ta.Audience, requiredValue)
+	return slices.Contains(ta.Audience, requiredValue)
 }
 
 // GetSubject provides the subject from the token
