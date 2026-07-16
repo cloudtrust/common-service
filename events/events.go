@@ -30,6 +30,7 @@ const (
 	CtEventKcOperationType = "kc_operation_type"
 	CtEventClientID        = "client_id"
 	CtEventAdditionalInfo  = "additional_info"
+	CtEventContextKey      = "context_key"
 
 	CtEventUnknownUsername = "--UNKNOWN--"
 )
