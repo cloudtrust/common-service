@@ -130,7 +130,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 	t.Run("Invalid base64 token", func(t *testing.T) {
 		mockLogger.EXPECT().Info(gomock.Any(), "msg", "Authorization error: Invalid base64 token").Times(1)
 		var result = getAuthenticationResultTest(m, req)
-		assert.Equal(t, http.StatusForbidden, result.StatusCode)
+		assert.Equal(t, http.StatusUnauthorized, result.StatusCode)
 	})
 
 	req.Header.Set("Authorization", "Basic "+token)
@@ -160,7 +160,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		req = httptest.NewRequest("POST", "http://cloudtrust.io/management/test", bytes.NewReader([]byte{}))
 		req.Header.Set("Authorization", "Basic 123456ABCDEF")
 		var result = getAuthenticationResultTest(m, req)
-		assert.Equal(t, http.StatusForbidden, result.StatusCode)
+		assert.Equal(t, http.StatusUnauthorized, result.StatusCode)
 	})
 
 	t.Run("Invalid token format", func(t *testing.T) {
@@ -168,7 +168,7 @@ func TestHTTPBasicAuthenticationMW(t *testing.T) {
 		req = httptest.NewRequest("POST", "http://cloudtrust.io/management/test", bytes.NewReader([]byte{}))
 		req.Header.Set("Authorization", "Basic dXNlcm5hbWU=")
 		var result = getAuthenticationResultTest(m, req)
-		assert.Equal(t, http.StatusForbidden, result.StatusCode)
+		assert.Equal(t, http.StatusUnauthorized, result.StatusCode)
 	})
 }
 
