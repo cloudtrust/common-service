@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 	"slices"
@@ -43,7 +42,7 @@ func MakeHTTPBasicAuthenticationFuncMW(credsMatcher func(token string) (*string,
 
 			var authenticated *string
 			if authenticated, err = credsMatcher(token); err != nil {
-				httpErrorHandler(ctx, http.StatusForbidden, err, w)
+				httpErrorHandler(ctx, http.StatusUnauthorized, err, w)
 				return
 			} else if authenticated == nil {
 				logger.Info(ctx, "msg", "Authorization error: Invalid password value")
@@ -62,19 +61,9 @@ func MakeHTTPBasicAuthenticationFuncMW(credsMatcher func(token string) (*string,
 // If there is no such header, the request is not allowed.
 // If the password is correct, the username is added into the context
 func MakeHTTPBasicAuthenticationMapMW(credentials map[string]string, logger log.Logger) func(http.Handler) http.Handler {
-	var authTokens = make(map[string]string)
-	for user, password := range credentials {
-		var token = fmt.Sprintf("%s:%s", user, password)
-		var token64 = base64.StdEncoding.EncodeToString([]byte(token))
-		authTokens[token64] = user
-	}
-
-	return MakeHTTPBasicAuthenticationFuncMW(func(token string) (*string, error) {
-		if username, ok := authTokens[token]; ok {
-			return &username, nil
-		}
-		return nil, nil
-	}, logger)
+	basicAuth := NewBasicAuthCollection()
+	basicAuth.ImportFromMap(credentials)
+	return basicAuth.MakeHTTPBasicAuthMW(logger)
 }
 
 // MakeHTTPBasicAuthenticationMW retrieve the token from the HTTP header 'Basic' and
