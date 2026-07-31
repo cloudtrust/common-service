@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cloudtrust/common-service/v2/events"
 	commonhttp "github.com/cloudtrust/common-service/v2/http"
 	log "github.com/cloudtrust/common-service/v2/log"
 	"github.com/go-kit/kit/ratelimit"
@@ -18,7 +17,7 @@ type HealthChecker interface {
 	AddHTTPEndpoint(name string, targetURL string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
 	AddHTTPEndpoints(endpoints map[string]string, timeoutDuration time.Duration, expectedStatus int, cacheDuration time.Duration)
 	AddDatabase(name string, db HealthDatabase, cacheDuration time.Duration)
-	AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration)
+	AddKafkaConsumer(name string, consumer KafkaConsumer, cacheDuration time.Duration)
 	MakeHandler(rateLimit ratelimit.Allower) http.HandlerFunc
 }
 
@@ -134,9 +133,9 @@ func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDurati
 	hc.AddHealthChecker(name, newDatabaseChecker(name, db, cacheDuration, RealTimeProvider{}))
 }
 
-func (hc *healthchecker) AddAuditEventsReporterModule(name string, reporter events.AuditEventsReporterModule, timeout time.Duration, cacheDuration time.Duration) {
-	hc.logger.Info(context.Background(), "msg", "Adding audit event reporter module", "processor", name)
-	hc.AddHealthChecker(name, newAuditEventsReporterChecker(name, reporter, timeout, cacheDuration, hc.logger, RealTimeProvider{}))
+func (hc *healthchecker) AddKafkaConsumer(name string, consumer KafkaConsumer, cacheDuration time.Duration) {
+	hc.logger.Info(context.Background(), "msg", "Adding Kafka consumer", "processor", name)
+	hc.AddHealthChecker(name, newKafkaConsumerChecker(name, consumer, cacheDuration, RealTimeProvider{}))
 }
 
 // MakeHandler makes a HTTP handler that returns health check information
