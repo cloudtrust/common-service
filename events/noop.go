@@ -74,7 +74,17 @@ func (n *NoopKafkaProducer) AddOffsetsToTxn(offsets map[string][]*sarama.Partiti
 	return nil
 }
 
+// AddOffsetsToTxnWithGroupMetadata does noop
+func (n *NoopKafkaProducer) AddOffsetsToTxnWithGroupMetadata(offsets map[string][]*sarama.PartitionOffsetMetadata, groupMetadata *sarama.ConsumerGroupMetadata) error {
+	return nil
+}
+
 // noop
 func (n *NoopKafkaProducer) AddMessageToTxn(msg *sarama.ConsumerMessage, groupId string, metadata *string) error {
+	return nil
+}
+
+// AddMessageToTxnWithGroupMetadata does noop
+func (n *NoopKafkaProducer) AddMessageToTxnWithGroupMetadata(msg *sarama.ConsumerMessage, groupMetadata *sarama.ConsumerGroupMetadata, metadata *string) error {
 	return nil
 }
