@@ -3,12 +3,12 @@ package events
 import (
 	"context"
 	"time"
+	"uuid"
 
 	cs "github.com/cloudtrust/common-service/v2"
 	"github.com/cloudtrust/common-service/v2/events/fb"
 	"github.com/cloudtrust/common-service/v2/log"
 	flatbuffers "github.com/google/flatbuffers/go"
-	"github.com/google/uuid"
 )
 
 // Events constants
