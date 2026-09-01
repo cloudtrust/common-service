@@ -50,6 +50,7 @@ var (
 	allFields []Field
 
 	Accreditations        = createField("accreditations")
+	AccreditationSponsors = createField("accreditationSponsors")
 	BirthDate             = createFieldPII("birthDate")
 	BirthLocation         = createFieldPII("birthLocation")
 	BusinessID            = createField("businessID")
