@@ -136,6 +136,7 @@ type ContextKeyConfOnboarding struct {
 // ContextKeyConfAccreditation struct
 type ContextKeyConfAccreditation struct {
 	EmailThemeRealm *string `json:"email-theme-realm"`
+	Sponsors        *string `json:"sponsors"`
 }
 
 // ContextKeyConfAutovoucher struct
