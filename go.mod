@@ -10,7 +10,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/flatbuffers v25.12.19+incompatible
 	github.com/gorilla/mux v1.8.1
-	github.com/nyaruka/phonenumbers/v2 v2.0.11
+	github.com/nyaruka/phonenumbers/v2 v2.0.12
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.12.1
