@@ -5,6 +5,7 @@ import (
 )
 
 type KafkaConsumer interface {
+	IsEnabled() bool
 	IsLive() bool
 }
 
