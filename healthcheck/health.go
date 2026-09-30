@@ -134,6 +134,10 @@ func (hc *healthchecker) AddDatabase(name string, db HealthDatabase, cacheDurati
 }
 
 func (hc *healthchecker) AddKafkaConsumer(name string, consumer KafkaConsumer, cacheDuration time.Duration) {
+	if !consumer.IsEnabled() {
+		hc.logger.Info(context.Background(), "msg", "Kafka consumer is not enabled. Ignoring it", "processor", name)
+		return
+	}
 	hc.logger.Info(context.Background(), "msg", "Adding Kafka consumer", "processor", name)
 	hc.AddHealthChecker(name, newKafkaConsumerChecker(name, consumer, cacheDuration, RealTimeProvider{}))
 }
