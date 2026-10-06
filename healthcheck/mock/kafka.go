@@ -39,6 +39,20 @@ func (m *KafkaConsumer) EXPECT() *KafkaConsumerMockRecorder {
 	return m.recorder
 }
 
+// IsEnabled mocks base method.
+func (m *KafkaConsumer) IsEnabled() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsEnabled indicates an expected call of IsEnabled.
+func (mr *KafkaConsumerMockRecorder) IsEnabled() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEnabled", reflect.TypeOf((*KafkaConsumer)(nil).IsEnabled))
+}
+
 // IsLive mocks base method.
 func (m *KafkaConsumer) IsLive() bool {
 	m.ctrl.T.Helper()
