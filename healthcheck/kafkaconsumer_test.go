@@ -17,7 +17,7 @@ func TestKafkaConsumerHealthCheckLiveAndCached(t *testing.T) {
 	mockTime.EXPECT().Now().Return(testTime).AnyTimes()
 
 	consumer := mock.NewKafkaConsumer(mockCtrl)
-	consumer.EXPECT().IsLive().Return(true).Times(1)
+	consumer.EXPECT().IsLive().Return(true)
 	checker := newKafkaConsumerChecker("alias", consumer, 10*time.Second, mockTime)
 
 	status := checker.CheckStatus()
@@ -41,7 +41,7 @@ func TestKafkaConsumerHealthCheckDownAndCached(t *testing.T) {
 	mockTime.EXPECT().Now().Return(testTime).AnyTimes()
 
 	consumer := mock.NewKafkaConsumer(mockCtrl)
-	consumer.EXPECT().IsLive().Return(false).Times(1)
+	consumer.EXPECT().IsLive().Return(false)
 	checker := newKafkaConsumerChecker("alias", consumer, 10*time.Second, mockTime)
 
 	status := checker.CheckStatus()
