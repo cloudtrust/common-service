@@ -39,16 +39,16 @@ func (m *Producer) EXPECT() *ProducerMockRecorder {
 	return m.recorder
 }
 
-// SendPartitionedMessageBytes mocks base method.
-func (m *Producer) SendPartitionedMessageBytes(partitionKey string, content []byte) error {
+// SendWithMap mocks base method.
+func (m *Producer) SendWithMap(content []byte, partitionKey string, details map[string]any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendPartitionedMessageBytes", partitionKey, content)
+	ret := m.ctrl.Call(m, "SendWithMap", content, partitionKey, details)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendPartitionedMessageBytes indicates an expected call of SendPartitionedMessageBytes.
-func (mr *ProducerMockRecorder) SendPartitionedMessageBytes(partitionKey, content any) *gomock.Call {
+// SendWithMap indicates an expected call of SendWithMap.
+func (mr *ProducerMockRecorder) SendWithMap(content, partitionKey, details any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPartitionedMessageBytes", reflect.TypeOf((*Producer)(nil).SendPartitionedMessageBytes), partitionKey, content)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendWithMap", reflect.TypeOf((*Producer)(nil).SendWithMap), content, partitionKey, details)
 }
