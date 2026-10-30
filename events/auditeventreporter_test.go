@@ -2,41 +2,43 @@ package events
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/cloudtrust/common-service/v2/events/mock"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
 func TestReportEvent(t *testing.T) {
 	var mockCtrl = gomock.NewController(t)
 	defer mockCtrl.Finish()
+
+	serviceName := "test_service"
+	realmName := "TEST"
+	eventType := "test_event"
+	userID := "testerID"
 	producer := mock.NewProducer(mockCtrl)
-	logger := mock.NewLogger(mockCtrl)
-	eventReporter := NewAuditEventReporterModule(producer, logger)
+	eventReporter := NewAuditEventReporterModule(producer, serviceName)
 	ctx := context.Background()
 	event := Event{
 		time:      time.Now().UTC(),
 		origin:    "test",
-		eventType: "test_event",
+		eventType: eventType,
 		details: map[string]string{
-			CtEventAgentUserID:    "testerID",
+			CtEventAgentUserID:    userID,
 			CtEventAgentUsername:  "tester",
-			CtEventAgentRealmName: "TEST",
+			CtEventAgentRealmName: realmName,
 		},
 	}
 
-	t.Run("SUCCESS", func(t *testing.T) {
-		producer.EXPECT().SendPartitionedMessageBytes(gomock.Any(), gomock.Any()).Return(nil)
-
-		eventReporter.ReportEvent(ctx, event)
+	producer.EXPECT().SendWithMap(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(bytes []byte, key string, details map[string]any) error {
+		assert.NotNil(t, bytes)
+		assert.Equal(t, userID, key)
+		assert.Equal(t, serviceName, details["svc"])
+		assert.Equal(t, realmName, details["realm"])
+		assert.Equal(t, eventType, details["event_type"])
+		return nil
 	})
-
-	t.Run("FAILURE", func(t *testing.T) {
-		producer.EXPECT().SendPartitionedMessageBytes(gomock.Any(), gomock.Any()).Return(fmt.Errorf("Kafka failure"))
-		logger.EXPECT().Error(gomock.Any(), "msg", "failed to persist event in kafka", "err", "Kafka failure", "eventJSON", gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
-		eventReporter.ReportEvent(ctx, event)
-	})
+	eventReporter.ReportEvent(ctx, event)
 }
