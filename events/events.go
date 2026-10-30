@@ -31,6 +31,7 @@ const (
 	CtEventClientID        = "client_id"
 	CtEventAdditionalInfo  = "additional_info"
 	CtEventContextKey      = "context_key"
+	CtEventTxnID           = "txn_id"
 
 	CtEventUnknownUsername = "--UNKNOWN--"
 )
