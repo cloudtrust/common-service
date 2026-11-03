@@ -207,6 +207,61 @@ func TestValidateParameterRegExpSlice(t *testing.T) {
 	})
 }
 
+func TestValidateParameterRegExpMap(t *testing.T) {
+	regexpKey := `^[a-z]{2}$`
+	regexpValue := `^s[a-z]+day$`
+	validKey := "en"
+	validValue := "sunday"
+	invalidKey := "english"
+	invalidValue := "friday"
+
+	t.Run("Nil value, not mandatory", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().ValidateParameterRegExpMap("param", nil, regexpKey, regexpValue, false).Status())
+	})
+	t.Run("Nil value, mandatory", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpMap("param", nil, regexpKey, regexpValue, true).Status())
+	})
+	t.Run("Empty map", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpMap("param", map[string]string{}, regexpKey, regexpValue, true).Status())
+	})
+	t.Run("Valid entries", func(t *testing.T) {
+		var values = map[string]string{validKey: validValue, "fr": "sunnyday"}
+		assert.Nil(t, NewParameterValidator().ValidateParameterRegExpMap("param", values, regexpKey, regexpValue, true).Status())
+	})
+	t.Run("Invalid key", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpMap("param", map[string]string{invalidKey: validValue}, regexpKey, regexpValue, true).Status())
+	})
+	t.Run("Invalid value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpMap("param", map[string]string{validKey: invalidValue}, regexpKey, regexpValue, true).Status())
+	})
+	t.Run("Invalid key and value", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpMap("param", map[string]string{invalidKey: invalidValue}, regexpKey, regexpValue, true).Status())
+	})
+	t.Run("Invalid and valid entries", func(t *testing.T) {
+		values := map[string]string{validKey: validValue, "fr": invalidValue}
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpMap("param", values, regexpKey, regexpValue, true).Status())
+	})
+	t.Run("Invalid key regexp", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpMap("param", map[string]string{validKey: validValue}, `^[a-z{2}$`, regexpValue, true).Status())
+	})
+	t.Run("Invalid value regexp", func(t *testing.T) {
+		assert.NotNil(t, NewParameterValidator().ValidateParameterRegExpMap("param", map[string]string{validKey: validValue}, regexpKey, `^s[a-z+day$`, true).Status())
+	})
+	t.Run("Valid check after failed validation", func(t *testing.T) {
+		assert.NotNil(t, failingValidator().ValidateParameterRegExpMap("param", map[string]string{validKey: validValue}, regexpKey, regexpValue, true).Status())
+	})
+	t.Run("Chained with other validations", func(t *testing.T) {
+		assert.Nil(t, NewParameterValidator().
+			ValidateParameterRegExpMap("param1", map[string]string{validKey: validValue}, regexpKey, regexpValue, true).
+			ValidateParameterRegExpSlice("param2", []string{validValue}, regexpValue, true).
+			Status())
+		assert.NotNil(t, NewParameterValidator().
+			ValidateParameterRegExpMap("param1", map[string]string{validKey: validValue}, regexpKey, regexpValue, true).
+			ValidateParameterRegExpMap("param2", map[string]string{invalidKey: validValue}, regexpKey, regexpValue, true).
+			Status())
+	})
+}
+
 func TestValidateParameterPhoneNumber(t *testing.T) {
 	t.Run("Nil value, not mandatory", func(t *testing.T) {
 		assert.Nil(t, NewParameterValidator().ValidateParameterPhoneNumber("param", nil, false).Status())
