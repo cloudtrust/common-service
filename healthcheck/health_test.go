@@ -135,3 +135,27 @@ func TestHealthStatusCache(t *testing.T) {
 		assert.True(t, hs.hasExpired())
 	})
 }
+
+func TestAddKafkaConsumer(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	consumer := mock.NewKafkaConsumer(mockCtrl)
+
+	t.Run("Consumer is disabled", func(t *testing.T) {
+		consumer.EXPECT().IsEnabled().Return(false)
+
+		hc := NewHealthChecker("test-module", log.NewNopLogger()).(*healthchecker)
+		hc.AddKafkaConsumer("alias", consumer, 10*time.Second)
+
+		assert.Equal(t, 0, len(hc.checkers))
+	})
+	t.Run("Consumer is enabled", func(t *testing.T) {
+		consumer.EXPECT().IsEnabled().Return(true)
+
+		hc := NewHealthChecker("test-module", log.NewNopLogger()).(*healthchecker)
+		hc.AddKafkaConsumer("alias", consumer, 10*time.Second)
+
+		assert.Equal(t, 1, len(hc.checkers))
+	})
+}
