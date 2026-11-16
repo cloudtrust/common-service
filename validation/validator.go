@@ -25,6 +25,7 @@ type Validator interface {
 	ValidateParameterIn(prmName string, value *string, allowedValues map[string]bool, mandatory bool) Validator
 	ValidateParameterRegExp(prmName string, value *string, regExp string, mandatory bool) Validator
 	ValidateParameterRegExpSlice(prmName string, values []string, regExp string, mandatory bool) Validator
+	ValidateParameterRegExpMap(prmName string, values map[string]string, regExpKey string, regExpValue string, mandatory bool) Validator
 	ValidateParameterPhoneNumber(prmName string, value *string, mandatory bool) Validator
 	ValidateParameterLength(prmName string, value *string, min, max int, mandatory bool) Validator
 	ValidateParameterIntBetween(prmName string, value *int, min, max int, mandatory bool) Validator
@@ -147,6 +148,24 @@ func (v *successValidator) ValidateParameterRegExpSlice(prmName string, values [
 		for _, v := range values {
 			res, _ := regexp.MatchString(regExp, v)
 			if !res {
+				return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
+			}
+		}
+	}
+
+	return v
+}
+
+func (v *successValidator) ValidateParameterRegExpMap(prmName string, values map[string]string, regExpKey string, regExpValue string, mandatory bool) Validator {
+	if len(values) == 0 {
+		if mandatory {
+			return &failedValidator{err: cerrors.CreateMissingParameterError(prmName)}
+		}
+	} else {
+		for k, v := range values {
+			resKey, _ := regexp.MatchString(regExpKey, k)
+			resValue, _ := regexp.MatchString(regExpValue, v)
+			if !resKey || !resValue {
 				return &failedValidator{err: cerrors.CreateBadRequestError(cerrors.MsgErrInvalidParam + "." + prmName)}
 			}
 		}
@@ -361,6 +380,10 @@ func (v *failedValidator) ValidateParameterRegExp(_ string, _ *string, _ string,
 }
 
 func (v *failedValidator) ValidateParameterRegExpSlice(prmName string, values []string, regExp string, mandatory bool) Validator {
+	return v
+}
+
+func (v *failedValidator) ValidateParameterRegExpMap(_ string, _ map[string]string, _ string, _ string, _ bool) Validator {
 	return v
 }
 
