@@ -3,13 +3,11 @@ package events
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
-
-	"github.com/cloudtrust/common-service/v2/log"
 )
 
+// Producer defines an interface to send ProducerMessage
 type Producer interface {
-	SendPartitionedMessageBytes(partitionKey string, content []byte) error
+	SendWithMap(content []byte, partitionKey string, details map[string]any) error
 }
 
 // AuditEventsReporterModule interface
@@ -18,15 +16,15 @@ type AuditEventsReporterModule interface {
 }
 
 type auditEventsReporterModule struct {
-	producer Producer
-	logger   log.Logger
+	producer    Producer
+	serviceName string
 }
 
 // NewAuditEventReporterModule creates an instance of AuditEventsReporterModule
-func NewAuditEventReporterModule(producer Producer, logger log.Logger) AuditEventsReporterModule {
+func NewAuditEventReporterModule(producer Producer, serviceName string) AuditEventsReporterModule {
 	return &auditEventsReporterModule{
-		producer: producer,
-		logger:   logger,
+		producer:    producer,
+		serviceName: serviceName,
 	}
 }
 
@@ -38,18 +36,18 @@ func (e *auditEventsReporterModule) ReportEvent(ctx context.Context, event Event
 	if !ok {
 		key = "DEFAULT-KEY"
 	}
-
-	err := e.producer.SendPartitionedMessageBytes(key, []byte(base64Event))
-
-	if err != nil {
-		event.details[CtEventAuditTime] = event.time.String()
-		event.details[CtEventOrigin] = event.origin
-		event.details[CtEventType] = event.eventType
-		eventJSON, errMarshal := json.Marshal(event.details)
-		if errMarshal == nil {
-			e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error(), "eventJSON", string(eventJSON), "key", key, "event64", base64Event)
-		} else {
-			e.logger.Error(ctx, "msg", "failed to persist event in kafka", "err", err.Error(), "key", key, "event64", base64Event)
-		}
+	realm, ok := event.details[CtEventAgentRealmName]
+	if !ok {
+		realm = "UNDEFINED"
 	}
+
+	// Does not take care of any error... the publisher function is assumed to handle it internally.
+	_ = e.producer.SendWithMap([]byte(base64Event), key, map[string]any{
+		"svc":        e.serviceName,
+		"realm":      realm,
+		"time":       event.time.String(),
+		"content":    base64Event,
+		"origin":     event.origin,
+		"event_type": event.eventType,
+	})
 }
